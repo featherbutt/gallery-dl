@@ -32,45 +32,29 @@ class ItakuExtractor(Extractor):
     def items(self):
         if images := self.images():
             for image in images:
-                image["date"] = text.parse_datetime(
-                    image["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
-                for category, tags in image.pop("categorized_tags").items():
-                    image[f"tags_{category.lower()}"] = [
-                        t["name"] for t in tags]
-                image["tags"] = [t["name"] for t in image["tags"]]
-
-                sections = []
-                for s in image["sections"]:
-                    if group := s["group"]:
-                        sections.append(f"{group['title']}/{s['title']}")
-                    else:
-                        sections.append(s["title"])
-                image["sections"] = sections
-
-                if self.videos and image["video"]:
-                    url = image["video"]["video"]
-                else:
-                    url = image["image"]
-
+                url = self.format_image_metatdata(image)
                 yield Message.Directory, image
                 yield Message.Url, url, text.nameext_from_url(url, image)
             return
 
         if posts := self.posts():
             for post in posts:
-                images = post.pop("gallery_images") or ()
+                images = post.get("gallery_images") or ()
                 post["count"] = len(images)
                 post["date"] = text.parse_datetime(
                     post["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
                 post["tags"] = [t["name"] for t in post["tags"]]
 
-                yield Message.Directory, post
-                for post["num"], image in enumerate(images, 1):
-                    post["file"] = image
+                for image in images:
                     image["date"] = text.parse_datetime(
                         image["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
 
-                    url = image["image"]
+                yield Message.Directory, post
+                del post["gallery_images"]
+                for post["num"], image in enumerate(images, 1):
+                    image.update(self.api.image(image["id"]))
+                    url = self.format_image_metatdata(image)
+                    post["file"] = image
                     yield Message.Url, url, text.nameext_from_url(url, post)
             return
 
@@ -83,6 +67,28 @@ class ItakuExtractor(Extractor):
             return
 
     images = posts = users = util.noop
+
+    def format_image_metatdata(self, image: dict) -> str:
+        image["date"] = text.parse_datetime(
+        image["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        for category, tags in image.pop("categorized_tags").items():
+            image[f"tags_{category.lower()}"] = [
+                t["name"] for t in tags]
+        image["tags"] = [t["name"] for t in image["tags"]]
+
+        sections = []
+        for s in image["sections"]:
+            if group := s["group"]:
+                sections.append(f"{group['title']}/{s['title']}")
+            else:
+                sections.append(s["title"])
+        image["sections"] = sections
+
+        if self.videos and image["video"]:
+            url = image["video"]["video"]
+        else:
+            url = image["image"]
+        return url
 
 
 class ItakuGalleryExtractor(ItakuExtractor):
