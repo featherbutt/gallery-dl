@@ -29,7 +29,21 @@ class SzurubooruExtractor(booru.BooruExtractor):
             self.session.auth = util.HTTPBasicAuth(
                 username, self.config("token"), b"Token")
 
-    def _api_request(self, endpoint, params=None):
+    def request(self, url, **kwargs):
+        response = booru.BooruExtractor.request(self, url, **kwargs)
+        if response.headers["Content-Type"].startswith("text/html") and \
+                b"onsent to viewing adult content<" in response.content:
+            url = self.root + "/.gatekeeper/cmd/accept18plusUnverified"
+            kwargs["method"] = "POST"
+            kwargs["headers"].pop("Content-Type", None)
+            kwargs["data"] = {
+                "originalUrl": response.url[len(self.root):],
+                "consent"    : "on",
+            }
+            response = booru.BooruExtractor.request(self, url, **kwargs)
+        return response
+
+    def request_api(self, endpoint, params=None):
         url = f"{self.root}/api{endpoint}"
         return self.request_json(url, headers=self.headers, params=params)
 
@@ -38,7 +52,7 @@ class SzurubooruExtractor(booru.BooruExtractor):
         params["limit"] = self.per_page
 
         while True:
-            data = self._api_request(endpoint, params)
+            data = self.request_api(endpoint, params)
             results = data["results"]
 
             yield from results
@@ -114,4 +128,4 @@ class SzurubooruPostExtractor(SzurubooruExtractor):
     example = "https://booru.bcbnsfw.space/post/12345"
 
     def posts(self):
-        return (self._api_request("/post/" + self.groups[-1]),)
+        return (self.request_api("/post/" + self.groups[-1]),)
