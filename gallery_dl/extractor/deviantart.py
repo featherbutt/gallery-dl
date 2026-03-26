@@ -194,7 +194,7 @@ class DeviantartExtractor(Extractor):
                 yield self.commit(deviation, content)
 
             elif self.original and deviation["is_downloadable"]:
-                content = self.api.deviation_download(deviation["deviationid"])
+                content = self.api.deviation_download(deviation)
                 deviation["is_original"] = True
                 yield self.commit(deviation, content)
 
@@ -509,12 +509,12 @@ class DeviantartExtractor(Extractor):
         else:
             public = None
 
-        data = self.api.deviation_download(deviation["deviationid"], public)
+        data = self.api.deviation_download(deviation, public)
         content.update(data)
         deviation["is_original"] = True
 
     def _update_content_image(self, deviation, content):
-        data = self.api.deviation_download(deviation["deviationid"])
+        data = self.api.deviation_download(deviation)
         url = data["src"].partition("?")[0]
         mtype = mimetypes.guess_type(url, False)[0]
         if mtype and mtype.startswith("image/"):
@@ -1391,17 +1391,26 @@ class DeviantartOAuthAPI():
                 self.log.warning("Private Journal")
         return content
 
-    def deviation_download(self, deviation_id, public=None):
+    def deviation_download(self, deviation, public=None):
         """Get the original file download (if allowed)"""
-        endpoint = "/deviation/download/" + deviation_id
+        endpoint = "/deviation/download/" + deviation["deviationid"]
         params = {"mature_content": self.mature}
 
+        if public is None:
+            public = self.public
+        self.log.info("%s: Requesting download URL with %s token",
+                      deviation["index"], "public" if public else "private")
         try:
             return self._call(
                 endpoint, params=params, public=public, log=False)
-        except Exception:
-            if not self.refresh_token_key:
+        except self.exc.AuthorizationError as exc:
+            if isinstance(exc.message, dict):
+                self.log.error("%s: '%s'", deviation["index"],
+                               exc.message.get("error_description"))
+            if not public or not self.refresh_token_key:
                 raise
+            self.log.info("%s: Retrying with private token",
+                          deviation["index"])
             return self._call(endpoint, params=params, public=False)
 
     def deviation_metadata(self, deviations):
@@ -1555,7 +1564,9 @@ class DeviantartOAuthAPI():
                 raise self.exc.NotFoundError("user or group")
             if error in {"Deviation not downloadable.",
                          "Only subscribers may have access to this download."}:
-                raise self.exc.AuthorizationError()
+                raise self.exc.AuthRequired()
+            if error == "Free download limit reached.":
+                raise self.exc.AuthorizationError(data)
 
             self.log.debug(response.text)
             msg = f"API responded with {status} {response.reason}"
