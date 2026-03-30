@@ -10295,11 +10295,11 @@ ipcqueue.timeout
 Type
     ``int``
 Default
-    ``10``
+    ``0``
 Description
     Sets maximum timeout before queue ends and turns off the server if
-    queue is empty. If set to `null` or `None`, then the server will
-    run forever.
+    queue is empty. If set to `-1`, then the server will run forever.
+    Setting doesn't apply when ipcqueue is disabled.
 
 
 ipcqueue.nourl
