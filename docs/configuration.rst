@@ -2292,6 +2292,7 @@ Description
 Available Types
     * ``image``
     * ``video``
+    * ``cover``
     * ``download``
     * ``gallery``
 
