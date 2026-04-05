@@ -41,6 +41,7 @@ HTML = """text:<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <link rel="stylesheet" href="https://st.deviantart.net\
 /css/deviantart-network_lc.css?3843780832"/>
@@ -64,6 +65,7 @@ HTML = """text:<!DOCTYPE html>
     <link rel="stylesheet" href="https://static.parastorage.com/services\
 /da-deviation/2bfd1ff7a9d6bf10d27b98dd8504c0399c3f9974a015785114b7dc6b\
 /app.min.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body id="deviantART-v7" class="bubble no-apps loggedout w960 deviantart">
     <div id="output">
