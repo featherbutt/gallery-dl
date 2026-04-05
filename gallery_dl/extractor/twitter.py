@@ -383,7 +383,7 @@ class TwitterExtractor(Extractor):
             files.append({
                 "url"      : "text:" + "".join(doc),
                 "type"     : "article:html",
-                "extension": "html",
+                "extension": "htm",
             })
         if self._article_cover:
             if media := article.get("cover_media"):

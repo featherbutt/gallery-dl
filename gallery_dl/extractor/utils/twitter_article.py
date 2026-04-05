@@ -21,8 +21,9 @@ def to_document(article, content=None):
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>{STYLESHEET}    </style>
     <title>{title}</title>
+    <style>{STYLESHEET}    </style>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
   <img src="{text.escape(media_url(cover["original_img_url"]))}" \
