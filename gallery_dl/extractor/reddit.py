@@ -447,7 +447,7 @@ class RedditAPI():
 
             token = config("refresh-token")
             if token is None or token == "cache":
-                self.refresh_token = extractor._cache(
+                self.refresh_token = extractor.cache(
                     _refresh_token_cache, "#"+self.client_id, _mem=False)
             else:
                 self.refresh_token = token
