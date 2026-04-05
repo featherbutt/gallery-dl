@@ -20,6 +20,7 @@ EXTENSION_MAP = {
     "jfif": "jpg",
     "jif" : "jpg",
     "jfi" : "jpg",
+    "html": "htm",
 }
 
 

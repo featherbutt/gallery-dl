@@ -441,7 +441,8 @@ Default
             "jpe" : "jpg",
             "jfif": "jpg",
             "jif" : "jpg",
-            "jfi" : "jpg"
+            "jfi" : "jpg",
+            "html": "htm"
         }
 Description
     A JSON ``object`` mapping filename extensions to their replacements.
