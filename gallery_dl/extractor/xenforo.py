@@ -318,6 +318,10 @@ class XenforoExtractor(BaseExtractor):
         except ValueError:
             return {}
 
+        path = text.split_html(text.extr(
+            page, 'class="p-breadcrumbs', "</ul>"))
+        del path[0]
+
         main = data.get("mainEntity", data)
         url = main.get("url") or main.get("@id") or ""
 
@@ -329,6 +333,7 @@ class XenforoExtractor(BaseExtractor):
             "tags" : (main["keywords"].split(", ")
                       if "keywords" in main else ()),
             "section": main["articleSection"],
+            "path" : path,
         })
 
         stats = main["interactionStatistic"]

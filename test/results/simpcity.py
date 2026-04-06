@@ -40,6 +40,10 @@ __tests__ = (
         "title"     : "Ririkana | RR_loveit",
         "url"       : "https://simpcity.cr/threads/ririkana-rr_loveit.10731/",
         "views"     : range(900_000, 2_000_000),
+        "path"      : [
+            "Specialised Interests",
+            "Asians",
+        ],
         "tags"      : [
             "asian",
             "big ass",

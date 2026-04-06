@@ -49,6 +49,12 @@ __tests__ = (
         "title"      : "Addison Vodka",
         "url"        : "https://celebforum.to/threads/addison-vodka.84947/",
         "views"      : -1,
+        "path": [
+            "Forums",
+            "NSFW",
+            "Pornostars",
+        ],
+
     },
 },
 
