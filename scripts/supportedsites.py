@@ -578,7 +578,7 @@ AUTH_MAP = {
     "pinterest"      : _COOKIES,
     "pixiv"          : _OAUTH,
     "pixiv-novel"    : _OAUTH,
-    "poipiku"        : _COOKIES,
+    "poipiku"        : "Supported",
     "ponybooru"      : "API Key",
     "reddit"         : _OAUTH,
     "rule34world"    : "Supported",

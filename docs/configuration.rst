@@ -690,6 +690,8 @@ Description
     * ``nijie`` (`R <pw-required_>`__)
     * ``nudostarforum``
     * ``pillowfort``
+    * ``poipiku``
+    * ``rule34world``
     * ``rule34xyz``
     * ``sankaku``
     * ``scrolller``
