@@ -123,22 +123,40 @@ class DeviantartExtractor(Extractor):
         url = "https://www.deviantart.com/users/login"
         page = self.request(url).text
 
-        data = {}
-        for item in text.extract_iter(
-                page, '<input type="hidden" name="', '"/>'):
-            name, _, value = item.partition('" value="')
-            data[name] = value
+        def _hidden_inputs(html):
+            data = {}
 
-        challenge = data.get("challenge")
-        if challenge and challenge != "0":
-            self.log.warning("Login requires solving a CAPTCHA")
-            self.log.debug(challenge)
+            for item in text.extract_iter(
+                    html, '<input type="hidden" name="', '"/>'):
+                name, _, value = item.partition('" value="')
+                data[name] = text.unescape(value)
 
+            challenge = data.get("challenge")
+            if challenge and challenge != "0":
+                self.log.warning("Login requires solving a CAPTCHA")
+                self.log.debug(challenge)
+
+            return data
+
+        # username
+        data = _hidden_inputs(page)
         data["username"] = username
+        data["password"] = ""
+        data["remember"] = "on"
+
+        self.sleep(2.0, "login (username)")
+        url = "https://www.deviantart.com/_sisu/do/step2"
+        response = self.request(url, method="POST", data=data)
+        if "st_err=user" in response.url:
+            raise self.exc.AuthorizationError()
+
+        # password
+        data = _hidden_inputs(response.text)
+        data["username"] = ""
         data["password"] = password
         data["remember"] = "on"
 
-        self.sleep(2.0, "login")
+        self.sleep(2.0, "login (password)")
         url = "https://www.deviantart.com/_sisu/do/signin"
         response = self.request(url, method="POST", data=data)
 
@@ -1062,6 +1080,7 @@ class DeviantartDeviationExtractor(DeviantartExtractor):
         else:
             url = f"{self.root}/view/{deviation_id}/"
 
+        self.login()
         page = self._limited_request(url, notfound=True).text
         uuid = text.extr(page, '"deviationUuid\\":\\"', '\\')
         if not uuid:
