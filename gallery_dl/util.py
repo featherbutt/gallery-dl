@@ -1171,7 +1171,7 @@ def predicate_range(ranges, skip=None, flag=None):
         # and evaluating min/max for a large range is slow
         upper = max(r.stop for r in ranges) - 1
         lower = min(r.start for r in ranges)
-        index = 0 if skip is None or lower <= 1 else skip(lower)
+        index = 0 if skip is None or lower <= 1 else skip(lower - 1)
         del lower
     else:
         index = upper = 0

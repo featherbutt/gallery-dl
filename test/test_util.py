@@ -110,6 +110,10 @@ class TestPredicate(unittest.TestCase):
     def test_predicate_range(self):
         dummy = None
 
+        pred = util.predicate_range("")
+        with self.assertRaises(exception.StopExtraction):
+            pred(dummy, dummy)
+
         pred = util.predicate_range(" - 3 , 4-  4, 2-6")
         for i in range(6):
             self.assertTrue(pred(dummy, dummy))
@@ -125,9 +129,26 @@ class TestPredicate(unittest.TestCase):
         with self.assertRaises(exception.StopExtraction):
             pred(dummy, dummy)
 
-        pred = util.predicate_range("")
+    def test_range_skip(self):
+        skip = Mock()
+        pred = util.predicate_range("1, 3, 5", skip)
+        skip.asserNotCalled()
+        self.assertTrue(pred(None, None))
+        self.assertFalse(pred(None, None))
+        self.assertTrue(pred(None, None))
+        self.assertFalse(pred(None, None))
+        self.assertTrue(pred(None, None))
         with self.assertRaises(exception.StopExtraction):
-            pred(dummy, dummy)
+            pred(None, None)
+
+        skip = Mock()
+        skip.return_value = 3
+        pred = util.predicate_range("5", skip)
+        skip.asserCalledOncewith(4)
+        self.assertFalse(pred(None, None))
+        self.assertTrue(pred(None, None))
+        with self.assertRaises(exception.StopExtraction):
+            pred(None, None)
 
     def test_predicate_unique(self):
         dummy = None
