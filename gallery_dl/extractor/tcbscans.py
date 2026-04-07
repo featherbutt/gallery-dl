@@ -13,14 +13,16 @@ BASE_PATTERN = (r"(?:https?://)?(?:tcb(?:-backup\.bihar-mirchi|scans)"
                 r"|(?:tcb)?onepiecechapters)\.(?:com|me)")
 
 
-class TcbscansChapterExtractor(ChapterExtractor):
+class TcbscansBase():
+    """Base class for tcbscans extractors"""
     category = "tcbscans"
+    root = "https://tcbonepiecechapters.com"
+
+
+class TcbscansChapterExtractor(TcbscansBase, ChapterExtractor):
+    """Extractor for tcbscans manga chapters"""
     pattern = BASE_PATTERN + r"(/chapters/\d+/[^/?#]+)"
     example = "https://tcbonepiecechapters.com/chapters/123/MANGA-chapter-123"
-
-    def __init__(self, match):
-        self.root = text.root_from_url(match[0])
-        ChapterExtractor.__init__(self, match)
 
     def images(self, page):
         return [
@@ -41,15 +43,11 @@ class TcbscansChapterExtractor(ChapterExtractor):
         }
 
 
-class TcbscansMangaExtractor(MangaExtractor):
-    category = "tcbscans"
+class TcbscansMangaExtractor(TcbscansBase, MangaExtractor):
+    """Extractor for tcbscans manga"""
     chapterclass = TcbscansChapterExtractor
     pattern = BASE_PATTERN + r"(/mangas/\d+/[^/?#]+)"
     example = "https://tcbonepiecechapters.com/mangas/123/MANGA"
-
-    def __init__(self, match):
-        self.root = text.root_from_url(match[0])
-        MangaExtractor.__init__(self, match)
 
     def chapters(self, page):
         data = {

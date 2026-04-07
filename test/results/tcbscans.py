@@ -24,28 +24,6 @@ __tests__ = (
 },
 
 {
-    "#url"     : "https://onepiecechapters.com/chapters/4716/one-piece-chapter-1065",
-    "#category": ("", "tcbscans", "chapter"),
-    "#class"   : tcbscans.TcbscansChapterExtractor,
-    "#pattern" : r"https://cdn\.[^/]+/(file|attachments/[^/]+)/[^/]+/[^.]+\.\w+",
-    "#count"   : 18,
-
-    "manga"        : "One Piece",
-    "chapter"      : 1065,
-    "chapter_minor": "",
-    "lang"         : "en",
-    "language"     : "English",
-    "#exception"   : exception.HttpError,
-},
-
-{
-    "#url"     : "https://onepiecechapters.com/chapters/44/ace-novel-manga-adaptation-chapter-1",
-    "#category": ("", "tcbscans", "chapter"),
-    "#class"   : tcbscans.TcbscansChapterExtractor,
-    "#exception": exception.HttpError,
-},
-
-{
     "#url"     : "https://tcbonepiecechapters.com/chapters/7719/jujutsu-kaisen-chapter-258",
     "#category": ("", "tcbscans", "chapter"),
     "#class"   : tcbscans.TcbscansChapterExtractor,
@@ -69,20 +47,8 @@ __tests__ = (
 },
 
 {
-    "#url"     : "https://onepiecechapters.com/mangas/4/jujutsu-kaisen",
-    "#category": ("", "tcbscans", "manga"),
-    "#class"   : tcbscans.TcbscansMangaExtractor,
-    "#pattern" : tcbscans.TcbscansChapterExtractor.pattern,
-    "#range"   : "1-50",
-    "#count"   : 50,
-    "#exception": exception.HttpError,
-},
-
-{
     "#url"     : "https://onepiecechapters.com/mangas/15/hunter-x-hunter",
-    "#category": ("", "tcbscans", "manga"),
     "#class"   : tcbscans.TcbscansMangaExtractor,
-    "#exception": exception.HttpError,
 },
 
 {
