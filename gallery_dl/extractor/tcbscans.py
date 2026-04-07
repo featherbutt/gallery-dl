@@ -4,19 +4,19 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-"""Extractors for https://tcbscans.me/"""
+"""Extractors for https://tcbonepiecechapters.com/"""
 
 from .common import ChapterExtractor, MangaExtractor
 from .. import text
 
 BASE_PATTERN = (r"(?:https?://)?(?:tcb(?:-backup\.bihar-mirchi|scans)"
-                r"|onepiecechapters)\.(?:com|me)")
+                r"|(?:tcb)?onepiecechapters)\.(?:com|me)")
 
 
 class TcbscansChapterExtractor(ChapterExtractor):
     category = "tcbscans"
     pattern = BASE_PATTERN + r"(/chapters/\d+/[^/?#]+)"
-    example = "https://tcbscans.me/chapters/12345/MANGA-chapter-123"
+    example = "https://tcbonepiecechapters.com/chapters/123/MANGA-chapter-123"
 
     def __init__(self, match):
         self.root = text.root_from_url(match[0])
@@ -45,7 +45,7 @@ class TcbscansMangaExtractor(MangaExtractor):
     category = "tcbscans"
     chapterclass = TcbscansChapterExtractor
     pattern = BASE_PATTERN + r"(/mangas/\d+/[^/?#]+)"
-    example = "https://tcbscans.me/mangas/123/MANGA"
+    example = "https://tcbonepiecechapters.com/mangas/123/MANGA"
 
     def __init__(self, match):
         self.root = text.root_from_url(match[0])
