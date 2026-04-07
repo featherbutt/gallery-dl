@@ -1245,7 +1245,8 @@ class TwitterInfoExtractor(TwitterExtractor):
         else:
             user = self.cache(self.api.user_by_screen_name, screen_name)
 
-        return iter(((Message.Directory, "", self._transform_user(user)),))
+        return iter(((Message.Directory, "",
+                      self._transform_user(user).copy()),))
 
 
 class TwitterAvatarExtractor(TwitterExtractor):

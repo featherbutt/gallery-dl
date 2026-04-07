@@ -849,7 +849,7 @@ class InstagramInfoExtractor(InstagramExtractor):
         else:
             user = self.api.user_by_screen_name(screen_name)
 
-        return iter(((Message.Directory, "", user),))
+        return iter(((Message.Directory, "", user.copy()),))
 
 
 class InstagramAvatarExtractor(InstagramExtractor):

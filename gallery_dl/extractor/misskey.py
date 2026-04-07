@@ -133,7 +133,7 @@ class MisskeyInfoExtractor(MisskeyExtractor):
 
     def items(self):
         user = self.api.users_show(self.groups[-1])
-        return iter(((Message.Directory, "", user),))
+        return iter(((Message.Directory, "", user.copy()),))
 
 
 class MisskeyAvatarExtractor(MisskeyExtractor):

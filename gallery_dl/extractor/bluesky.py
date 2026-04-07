@@ -334,7 +334,7 @@ class BlueskyInfoExtractor(BlueskyExtractor):
     def items(self):
         self._metadata_user = True
         self.api._did_from_actor(self.groups[0])
-        return iter(((Message.Directory, "", self._user),))
+        return iter(((Message.Directory, "", self._user.copy()),))
 
 
 class BlueskyAvatarExtractor(BlueskyExtractor):

@@ -512,7 +512,7 @@ class FacebookInfoExtractor(FacebookExtractor):
 
     def items(self):
         user = self.cache(self._extract_profile, self.groups[0])
-        return iter(((Message.Directory, "", user),))
+        return iter(((Message.Directory, "", user.copy()),))
 
 
 class FacebookAlbumsExtractor(FacebookExtractor):
