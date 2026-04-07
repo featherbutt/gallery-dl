@@ -874,6 +874,7 @@ class GalleryExtractor(Extractor):
     filename_fmt = "{category}_{gallery_id}_{num:>03}.{extension}"
     directory_fmt = ("{category}", "{gallery_id} {title}")
     archive_fmt = "{gallery_id}_{num}"
+    start = 1
     enum = "num"
 
     def __init__(self, match, url=None):
@@ -899,10 +900,11 @@ class GalleryExtractor(Extractor):
 
         if "count" in data:
             if self.config("page-reverse"):
-                images = util.enumerate_reversed(imgs, 1, data["count"])
+                images = util.enumerate_reversed(
+                    imgs, self.start, data["count"])
             else:
                 images = zip(
-                    range(1, data["count"]+1),
+                    range(self.start, data["count"]+1),
                     imgs,
                 )
         else:
@@ -914,7 +916,7 @@ class GalleryExtractor(Extractor):
             else:
                 if self.config("page-reverse"):
                     enum = util.enumerate_reversed
-            images = enum(imgs, 1)
+            images = enum(imgs, self.start)
 
         yield Message.Directory, "", data
         enum_key = self.enum
