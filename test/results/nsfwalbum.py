@@ -33,4 +33,16 @@ __tests__ = (
     "width"    : range(1365, 2048),
 },
 
+{
+    "#url"     : "https://nsfwalbum.com/photo/90041058",
+    "#class"   : nsfwalbum.NsfwalbumImageExtractor,
+    "#results" : "https://images4.imagebam.com/77/bc/a4/ME1BU3GD_o.jpg",
+
+    "filename" : "ME1BU3GD_o",
+    "extension": "jpg",
+    "id"       : 90041058,
+    "width"    : 1281,
+    "height"   : 1920,
+},
+
 )

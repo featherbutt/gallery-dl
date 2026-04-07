@@ -814,7 +814,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="nsfwalbum" title="nsfwalbum">
     <td>NSFWalbum.com</td>
     <td>https://nsfwalbum.com/</td>
-    <td>Albums</td>
+    <td>Albums, individual Images</td>
     <td></td>
 </tr>
 <tr id="nudostar" title="nudostar">
