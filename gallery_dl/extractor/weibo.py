@@ -37,6 +37,7 @@ class WeiboExtractor(Extractor):
         self.longtext = self.config("text", False)
         self.videos = self.config("videos", True)
         self.movies = self.config("movies", False)
+        self.likes = self.config("likes", False)
         self.gifs = self.config("gifs", True)
         self.gifs_video = (self.gifs == "video")
 
@@ -76,6 +77,7 @@ class WeiboExtractor(Extractor):
 
     def items(self):
         original_retweets = (self.retweets == "original")
+        is_like = text.re(r"\d-\d\d?赞过").search
 
         for status in self.statuses():
 
@@ -99,6 +101,14 @@ class WeiboExtractor(Extractor):
             else:
                 files = []
                 self._extract_status(status, files)
+
+            if is_like(status["title"]["text"]):
+                if not self.likes:
+                    self.log.debug("Skipping %s (赞过 like)", status["id"])
+                    continue
+                status["like"] = True
+            else:
+                status["like"] = False
 
             if self.longtext and status.get("isLongText") and \
                     status["text"].endswith('class="expand">展开</span>'):

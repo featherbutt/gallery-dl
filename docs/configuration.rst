@@ -7566,6 +7566,16 @@ Note
     It is possible to use ``"all"`` instead of listing all values separately.
 
 
+extractor.weibo.likes
+---------------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Download from ``like`` (``赞过``) posts.
+
+
 extractor.weibo.livephoto
 -------------------------
 Type
