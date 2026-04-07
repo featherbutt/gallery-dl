@@ -49,6 +49,7 @@ CATEGORY_MAP = {
     "cien"           : "Ci-en",
     "cohost"         : "cohost!",
     "comedywildlifephoto": "Comedy Wildlife Photography Awards",
+    "comicartfans"   : "Comic Art Fans",
     "comicvine"      : "Comic Vine",
     "cyberfile"      : "CyberFile",
     "dankefuerslesen": "Danke fürs Lesen",

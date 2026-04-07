@@ -217,6 +217,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Galleries</td>
     <td></td>
 </tr>
+<tr id="comicartfans" title="comicartfans">
+    <td>Comic Art Fans</td>
+    <td>https://www.comicartfans.com/</td>
+    <td>Artworks</td>
+    <td></td>
+</tr>
 <tr id="comicvine" title="comicvine">
     <td>Comic Vine</td>
     <td>https://comicvine.gamespot.com/</td>
