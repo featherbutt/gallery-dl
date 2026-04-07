@@ -1137,7 +1137,7 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="tcbscans" title="tcbscans">
     <td>TCB Scans</td>
-    <td>https://tcbscans.me/</td>
+    <td>https://tcbonepiecechapters.com/</td>
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
