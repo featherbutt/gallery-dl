@@ -9,7 +9,7 @@
 """Extractors for https://nsfwalbum.com/"""
 
 from .common import GalleryExtractor
-from .. import text
+from .. import text, util
 
 
 class NsfwalbumExtractor(GalleryExtractor):
@@ -71,6 +71,10 @@ class NsfwalbumAlbumExtractor(NsfwalbumExtractor):
     pattern = r"(?:https?://)?(?:www\.)?nsfwalbum\.com(/album/(\d+))"
     example = "https://nsfwalbum.com/album/12345"
 
+    def skip_files(self, num):
+        self.start += num
+        return num
+
     def metadata(self, page):
         extr = text.extract_from(page)
         return {
@@ -81,7 +85,10 @@ class NsfwalbumAlbumExtractor(NsfwalbumExtractor):
         }
 
     def image_ids(self, page):
-        return text.extract_iter(page, 'data-img-id="', '"')
+        ids = text.extract_iter(page, 'data-img-id="', '"')
+        if self.start > 1:
+            util.advance(ids, self.start - 1)
+        return ids
 
 
 class NsfwalbumImageExtractor(NsfwalbumExtractor):

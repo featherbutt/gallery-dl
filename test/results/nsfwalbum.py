@@ -34,6 +34,25 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://nsfwalbum.com/album/935244",
+    "#comment" : "'range' skip",
+    "#class"   : nsfwalbum.NsfwalbumAlbumExtractor,
+    "#range"   : "11",
+    "#results" : "https://images4.imagebam.com/77/bc/a4/ME1BU3GD_o.jpg",
+
+    "filename" : "ME1BU3GD_o",
+    "extension": "jpg",
+    "album_id" : 935244,
+    "id"       : 90041058,
+    "width"    : 1281,
+    "height"   : 1920,
+    "models"   : [],
+    "num"      : 11,
+    "studio"   : "Graphis",
+    "title"    : "Graphis Mirei Uno - Ephemerality - Set 03 - x20",
+},
+
+{
     "#url"     : "https://nsfwalbum.com/photo/90041058",
     "#class"   : nsfwalbum.NsfwalbumImageExtractor,
     "#results" : "https://images4.imagebam.com/77/bc/a4/ME1BU3GD_o.jpg",
