@@ -68,7 +68,8 @@ class ComicartfansArtworkExtractor(ComicartfansExtractor):
             "location": text.unescape(extr(
                 "<b>Location:</b>", "</a>").rpartition(">")[2]),
             "title"   : text.unescape(extr("<b>Title:</b>", "<").strip()),
-            "artist"  : text.split_html(extr("<b>Artist:</b>", "<br>"))[1::2],
+            "artist"  : text.split_html(extr(
+                "<b>Artist:</b>", "<br>").replace("&nbsp;", " "))[::2],
             "media_type" : extr("<b>Media Type:</b>", "<").lstrip(),
             "art_type": extr("<b>Art Type:</b>", "<").lstrip(),
             "sale_status": extr("<b>For Sale Status:</b>", "<").lstrip(),
@@ -78,7 +79,8 @@ class ComicartfansArtworkExtractor(ComicartfansExtractor):
                 'content description-box">', "</div>").strip()),
             "owner_id": text.parse_int(extr(
                 '>\n<a href="gallerydetail.asp?gcat=', '"')),
-            "owner"   : text.unescape(extr(">", "<")).strip(),
+            "owner"   : text.unescape(extr(
+                ">", "<").replace("&nbsp;", " ")).strip(),
             "owner_date" : self.parse_datetime(extr(
                 "<b>Member Since:</b>", "<").lstrip(), "%B&nbsp;%Y"),
             "owner_website": extr("<b>Website:</b>	<a href='", "'"),

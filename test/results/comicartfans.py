@@ -26,7 +26,7 @@ __tests__ = (
     "location"     : "Eduardo Risso original art",
     "media_type"   : "Pen and Ink",
     "num"          : 0,
-    "owner"        : "Nicolás Risso - NRissoart",
+    "owner"        : "Nicolás Risso - NRissoart",
     "owner_country": "Argentina",
     "owner_date"   : "dt:2021-03-01 00:00:00",
     "owner_id"     : 167080,
@@ -35,8 +35,8 @@ __tests__ = (
     "title"        : """Batman "the last halloween" page 24""",
     "views"        : range(400, 90_000),
     "artist"       : [
-        "Eduardo  Risso",
-        "Jeph Loeb",
+        "Eduardo  Risso",
+        "Jeph Loeb",
     ],
 },
 
@@ -49,7 +49,7 @@ __tests__ = (
     ),
 
     "art_type"     : "Cover",
-    "artist"       : ["Mark Brooks"],
+    "artist"       : ["Mark Brooks"],
     "comments"     : range(10, 900),
     "count"        : 2,
     "date"         : "dt:2022-12-04 00:00:00",
@@ -62,7 +62,7 @@ __tests__ = (
     "location"     : "Marvel Covers",
     "media_type"   : "Paint - Acrylic",
     "num"          : {1, 2},
-    "owner"        : "Pat L",
+    "owner"        : "Pat L",
     "owner_country": "United states",
     "owner_date"   : "dt:2017-12-01 00:00:00",
     "owner_id"     : 125715,
