@@ -18,6 +18,8 @@ class ComicartfansExtractor(Extractor):
     """Base class for comicartfans extractors"""
     category = "comicartfans"
     root = "https://www.comicartfans.com"
+    page_start = 1
+    per_page = 54
     parent = True
 
     def items(self):
@@ -27,8 +29,17 @@ class ComicartfansExtractor(Extractor):
         for path in self.works():
             yield Message.Queue, base + path, data
 
+    def skip_children(self, num):
+        pages = num // self.per_page
+        self.page_start += pages
+        return pages * self.per_page
+
     def _pagination(self, url, params):
-        params["pm"] = text.parse_int(params.get("pm"), 1)
+        if "pm" in params:
+            params["pm"] = self.page_start + text.parse_int(params["pm"], 1)-1
+        else:
+            params["pm"] = self.page_start
+
         needle = """\
 <div class="card-thumbnail">
                     <a href="\
