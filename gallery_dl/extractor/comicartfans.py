@@ -39,7 +39,7 @@ class ComicartfansExtractor(Extractor):
             yield from text.extract_iter(page, needle, '"')
 
             pos = page.find(">Next &raquo;")
-            if pos < 0 or page[pos-2] == '"':
+            if pos < 0 or page[pos-2] in '"#':
                 break
             params["pm"] += 1
 
