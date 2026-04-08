@@ -18,6 +18,30 @@ class ComicartfansExtractor(Extractor):
     """Base class for comicartfans extractors"""
     category = "comicartfans"
     root = "https://www.comicartfans.com"
+    parent = True
+
+    def items(self):
+        data = {"_extractor": ComicartfansArtworkExtractor}
+        base = self.root + "/"
+
+        for path in self.works():
+            yield Message.Queue, base + path, data
+
+    def _pagination(self, url, params):
+        params["pm"] = text.parse_int(params.get("pm"), 1)
+        needle = """\
+<div class="card-thumbnail">
+                    <a href="\
+"""
+        while True:
+            page = self.request(url, params=params).text
+
+            yield from text.extract_iter(page, needle, '"')
+
+            pos = page.find(">Next &raquo;")
+            if pos < 0 or page[pos-2] == '"':
+                break
+            params["pm"] += 1
 
 
 class ComicartfansArtworkExtractor(ComicartfansExtractor):
@@ -83,3 +107,42 @@ class ComicartfansArtworkExtractor(ComicartfansExtractor):
                 url = file[:file.find('"')]
                 text.nameext_from_url(url, work)
                 yield Message.Url, url, work
+
+
+class ComicartfansGalleryExtractor(ComicartfansExtractor):
+    subcategory = "gallery"
+    pattern = BASE_PATTERN + r"/gallerydetail(?:search)?\.asp\?([^#]+)"
+    example = "https://www.comicartfans.com/gallerydetail.asp?gcat=12345"
+
+    def works(self):
+        url = self.root + "/gallerydetailsearch.asp"
+        params = text.parse_query(self.groups[0])
+        if "order" not in params:
+            params["order"] = "Date"
+        return self._pagination(url, params)
+
+
+class ComicartfansSearchExtractor(ComicartfansExtractor):
+    subcategory = "search"
+    pattern = BASE_PATTERN + r"/searchresult\.asp\?([^#]+)"
+    example = "https://www.comicartfans.com/searchresult.asp?QUERY"
+
+    def works(self):
+        url = self.root + "/searchresult.asp"
+        params = text.parse_query(self.groups[0])
+        self.kwdict["search_tags"] = \
+            params.get("txtSearch") or params.get("txtsearch", "")
+        return self._pagination(url, params)
+
+
+class ComicartfansArtistExtractor(ComicartfansExtractor):
+    subcategory = "artist"
+    pattern = BASE_PATTERN + r"/comic-artists/([^/?#]+)\.asp"
+    example = "https://www.comicartfans.com/comic-artists/ARTIST.asp"
+
+    def works(self):
+        artist = self.kwdict["search_tags"] = text.unquote(
+            self.groups[0]).replace("_", " ")
+        url = self.root + "/searchresult.asp"
+        params = {"txtSearch": artist}
+        return self._pagination(url, params)

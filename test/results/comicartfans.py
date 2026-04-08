@@ -72,4 +72,44 @@ __tests__ = (
     "views"        : range(900, 90_000),
 },
 
+{
+    "#url"     : "https://www.comicartfans.com/gallerydetail.asp?gcat=26857",
+    "#class"   : comicartfans.ComicartfansGalleryExtractor,
+    "#pattern" : comicartfans.ComicartfansArtworkExtractor.pattern,
+    "#count"   : 122,
+},
+
+{
+    "#url"     : "https://www.comicartfans.com/gallerydetail.asp?gcat=194018",
+    "#comment" : "only 1 page of results",
+    "#class"   : comicartfans.ComicartfansGalleryExtractor,
+    "#results" : "https://www.comicartfans.com/gallerypiece.asp?piece=2063407",
+},
+
+{
+    "#url"     : "https://www.comicartfans.com/gallerydetailsearch.asp?order=Date&gcat=194018",
+    "#class"   : comicartfans.ComicartfansGalleryExtractor,
+    "#results" : "https://www.comicartfans.com/gallerypiece.asp?piece=2063407",
+},
+
+{
+    "#url"     : "https://www.comicartfans.com/comic-artists/Gabriele_Dell'Otto.asp",
+    "#class"   : comicartfans.ComicartfansArtistExtractor,
+    "#pattern" : comicartfans.ComicartfansArtworkExtractor.pattern,
+    "#range"   : "1-100",
+    "#count"   : 100,
+
+    "search_tags": "Gabriele Dell'Otto",
+},
+
+{
+    "#url"     : "https://www.comicartfans.com/searchresult.asp?txtsearch=Jim%20Lee",
+    "#class"   : comicartfans.ComicartfansSearchExtractor,
+    "#pattern" : comicartfans.ComicartfansArtworkExtractor.pattern,
+    "#range"   : "1-100",
+    "#count"   : 100,
+
+    "search_tags": "Jim Lee",
+},
+
 )

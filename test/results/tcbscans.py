@@ -5,7 +5,6 @@
 # published by the Free Software Foundation.
 
 from gallery_dl.extractor import tcbscans
-from gallery_dl import exception
 
 
 __tests__ = (

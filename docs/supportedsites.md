@@ -220,7 +220,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="comicartfans" title="comicartfans">
     <td>Comic Art Fans</td>
     <td>https://www.comicartfans.com/</td>
-    <td>Artworks</td>
+    <td>Artists, Artworks, Galleries, Search Results</td>
     <td></td>
 </tr>
 <tr id="comicvine" title="comicvine">
