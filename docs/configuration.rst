@@ -10708,8 +10708,29 @@ Description
         * ``"name": "ugoira/archive"``
         * ``"name": "exec@error"``
 
-    Available postprocessor types are
+    * It is possible to inherit options from a post-processor preset defined
+      in the global ``postprocessor`` block by using ``"type": "NAME"``.
+      For example
 
+      .. code:: json
+
+        {
+            "extractor": {
+                "postprocessors": {
+                    "#": "inherit from 'jl' preset",
+                    "type": "jl",
+                    "filename": "meta.jsonl"
+                }
+            },
+
+            "postprocessor": {
+                "jl": {
+                    "name": "metadata/jsonl",
+                    "open": "a"
+                }
+            }
+        }
+Available Post-Processor Types
     ``actions``
         Perform `Action(s)`_
     ``classify``
