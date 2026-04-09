@@ -292,12 +292,11 @@ def build_parser():
         help="Restore legacy 'category' names",
     )
     general.add_argument(
-        "-Q", "--queue",
-        dest="ipcqueue_enable", nargs=0, action=ConfigConstAction, const=True,
-        help=("Creates an IPC gallery-dl server to which subsequent clients "
-              "can add their links to the server queue. Note that if ipcqueue "
-              "is already enabled in config files, this option will instead "
-              "disable it."),
+        "-S", "--server",
+        dest="server", action="store_true",
+        help=("Enable server mode. "
+              "Send input URLs to a gallery-dl server or "
+              "create an IPC server when no input URLs are given"),
     )
 
     update = parser.add_argument_group("Update Options")

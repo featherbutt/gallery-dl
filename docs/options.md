@@ -33,10 +33,9 @@
     --windows-filenames         Force filenames to be Windows-compatible
     -X, --extractors PATH       Load external extractors from PATH
     --compat                    Restore legacy 'category' names
-    -Q, --queue                 Creates an IPC gallery-dl server to which subsequent
-                                clients can add their links to the server queue. Note
-                                that if ipcqueue is already enabled in config files,
-                                this option will instead disable it.
+    -S, --server                Enable server mode. Send input URLs to a
+                                gallery-dl server or create an IPC server when
+                                no input URLs are given
 
 ## Update Options:
     -U, --update                Update to the latest version
