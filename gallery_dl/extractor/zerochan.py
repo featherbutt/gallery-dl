@@ -160,12 +160,8 @@ class ZerochanExtractor(BooruExtractor):
 class ZerochanTagExtractor(ZerochanExtractor):
     subcategory = "tag"
     directory_fmt = ("{category}", "{search_tags}")
-    pattern = BASE_PATTERN + r"/(?!\d+$)([^/?#]+)/?(?:\?([^#]+))?"
+    pattern = BASE_PATTERN + r"/(?!\d+$)([^?#]+)/?(?:\?([^#]+))?"
     example = "https://www.zerochan.net/TAG"
-
-    def __init__(self, match):
-        ZerochanExtractor.__init__(self, match)
-        self.search_tag, self.query = match.groups()
 
     def _init(self):
         if self.config("pagination") == "html":
@@ -182,14 +178,14 @@ class ZerochanTagExtractor(ZerochanExtractor):
             self.exts = ("jpg", "png", "webp", "gif")
 
     def metadata(self):
-        return {"search_tags": text.unquote(
-            self.search_tag.replace("+", " "))}
+        return {"search_tags": text.unquote(self.groups[0].replace("+", " "))}
 
     def posts_html(self):
-        url = self.root + "/" + self.search_tag
+        tag, qs = self.groups
+        url = f"{self.root}/{tag}"
         metadata = self.config("metadata")
 
-        params = text.parse_query(self.query, empty=True)
+        params = text.parse_query(qs, empty=True)
         params["p"] = text.parse_int(params.get("p"), self.page_start)
 
         while True:
@@ -229,10 +225,11 @@ class ZerochanTagExtractor(ZerochanExtractor):
             params["p"] += 1
 
     def posts_api(self):
-        url = self.root + "/" + self.search_tag
+        tag, qs = self.groups
+        url = f"{self.root}/{tag}"
         metadata = self.config("metadata")
 
-        params = text.parse_query(self.query, empty=True)
+        params = text.parse_query(qs, empty=True)
         params["p"] = text.parse_int(params.get("p"), self.page_start)
         params.setdefault("l", self.per_page)
         params["json"] = "1"
@@ -253,7 +250,14 @@ class ZerochanTagExtractor(ZerochanExtractor):
                     continue
                 raise self.exc.AbortExtraction()
 
-            data = response.json()
+            try:
+                data = response.json()
+            except ValueError:
+                # strip HTML inserts in JSON data
+                if b"window.adsbygoogle" in response.content:
+                    page = response.text
+                    data = util.json_loads("{" + page[page.find('"items":'):])
+
             try:
                 posts = data["items"]
             except Exception:

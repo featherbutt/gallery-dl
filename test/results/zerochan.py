@@ -53,6 +53,18 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.zerochan.net/fav/Aerith/Suzuhira+Hiro",
+    "#comment" : "'/fav/' URL (#9387)",
+    "#category": ("booru", "zerochan", "tag"),
+    "#class"   : zerochan.ZerochanTagExtractor,
+    "#pattern" : r"https://static\.zerochan\.net/\.full\.\d+\.\w+",
+    "#range"   : "1-50",
+    "#count"   : 50,
+
+    "search_tags": "fav/Aerith/Suzuhira Hiro",
+},
+
+{
     "#url"     : "https://www.zerochan.net/2920445",
     "#category": ("booru", "zerochan", "image"),
     "#class"   : zerochan.ZerochanImageExtractor,
