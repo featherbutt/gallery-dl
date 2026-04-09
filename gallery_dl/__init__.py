@@ -9,7 +9,6 @@
 import os
 import sys
 import logging
-from queue import Queue, Empty
 from . import version, config, option, output, extractor, job, util, exception
 
 __author__ = "Mike Fährmann"
@@ -348,14 +347,8 @@ Entries:
                         input_file = (input_file, None)
                     args.input_files.append(input_file)
 
-            if config.get((), "ipcqueue_enable", False) ^ \
-                    config.get(("ipcqueue",), "enabled", False):
-                config.set(("ipcqueue",), "enabled", True)
-            else:
-                config.unset((), "ipcqueue")
-
-            if not config.get(("ipcqueue",), "nourl", False) and \
-                    not args.urls and not args.input_files:
+            nourls = (not args.urls and not args.input_files)
+            if nourls and not args.server:
                 if args.cookies_from_browser or config.interpolate(
                         ("extractor",), "cookies"):
                     args.urls.append("noop")
@@ -375,23 +368,12 @@ Entries:
             else:
                 jobtype = args.jobtype or job.DownloadJob
 
-            input_manager = InputManager()
-
-            input_manager.log = input_log = logging.getLogger("inputfile")
-
-            if config.get(("ipcqueue",), "enabled", False):
+            if args.server:
                 from . import server
-                if server.socket_sender(args.urls):
-                    log.info("Sent URLs to existing client.")
-                    return 0
-                elif not config.get(("ipcqueue",), "server", True):
-                    log.error(("Failed connecting to server on host ",
-                              f"{server.HOST} port {server.PORT}"))
-                    return 1
-
-                server.start(input_manager)
-                log.info(("Started socket connection on host ",
-                         f"{server.HOST} port {server.PORT}"))
+                input_manager = server.start() if nourls else InputManager()
+            else:
+                input_manager = InputManager()
+            input_manager.log = input_log = logging.getLogger("inputfile")
 
             # unsupported file logging handler
             if handler := output.setup_logging_handler(
@@ -419,9 +401,15 @@ Entries:
                         input_log.error(exc)
                         return getattr(exc, "code", 128)
 
+            if args.server and not nourls and input_manager.urls:
+                return server.send([
+                    url[0] if isinstance(url, tuple) else url
+                    for url in input_manager.urls
+                ])
+
             pformat = config.get(("output",), "progress", True)
-            if pformat and input_manager.qsize() > 1 and \
-                    args.loglevel < logging.ERROR:
+            if pformat and args.loglevel < logging.ERROR and (
+                    args.server or len(input_manager.urls) > 1):
                 input_manager.progress(pformat)
 
             if catmap := config.interpolate(("extractor",), "category-map"):
@@ -474,8 +462,6 @@ Entries:
                     input_manager.error()
 
                 input_manager.next()
-            if config.get(("ipcqueue",), "enabled"):
-                server.stop()
             return retval
         return 0
 
@@ -490,10 +476,10 @@ Entries:
     return 1
 
 
-class InputManager(Queue):
+class InputManager():
 
     def __init__(self):
-        Queue.__init__(self)
+        self.urls = []
         self.files = ()
         self.log = self.err = None
 
@@ -503,11 +489,10 @@ class InputManager(Queue):
         self._pformat = None
 
     def add_url(self, url):
-        self.put(url)
+        self.urls.append(url)
 
     def add_list(self, urls):
-        for url in urls:
-            self.put(url)
+        self.urls += urls
 
     def add_file(self, path, action=None):
         """Process an input file.
@@ -568,7 +553,7 @@ class InputManager(Queue):
         lconf = []
         indicies = []
         strip_comment = None
-        append = self.add_url
+        append = self.urls.append
 
         for n, line in enumerate(lines):
             line = line.strip()
@@ -632,17 +617,11 @@ class InputManager(Queue):
         self._pformat = pformat.format_map
 
     def next(self):
-        if self._pformat:
-            self._index += 1
+        self._index += 1
 
     def success(self):
         if self._item:
             self._rewrite()
-
-    _sentinel = object()
-
-    def close(self):
-        self.put(self._sentinel)
 
     def error(self):
         if self.err:
@@ -686,13 +665,8 @@ class InputManager(Queue):
 
     def __next__(self):
         try:
-            timeout = config.get(("ipcqueue",), "timeout", 0)
-            if timeout == -1:
-                timeout = None
-            url = self.get(timeout=timeout)
-        except Empty:
-            raise StopIteration
-        if url is self._sentinel:
+            url = self.urls[self._index]
+        except IndexError:
             raise StopIteration
 
         if isinstance(url, tuple):
@@ -704,7 +678,7 @@ class InputManager(Queue):
 
         if self._pformat:
             output.stderr_write(self._pformat({
-                "total"  : self._index + self.qsize() + 1,
+                "total"  : len(self.urls),
                 "current": self._index + 1,
                 "url"    : url,
             }))
