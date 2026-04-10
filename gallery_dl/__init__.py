@@ -348,14 +348,18 @@ Entries:
                     args.input_files.append(input_file)
 
             nourls = (not args.urls and not args.input_files)
-            if nourls and not args.server:
-                if args.cookies_from_browser or config.interpolate(
-                        ("extractor",), "cookies"):
-                    args.urls.append("noop")
+            if not args.server:
+                if nourls:
+                    if args.cookies_from_browser or config.interpolate(
+                            ("extractor",), "cookies"):
+                        args.urls.append("noop")
+                    else:
+                        parser.error(
+                            "The following arguments are required: URL\n"
+                            "Use 'gallery-dl --help' to get a list of all "
+                            "options.")
                 else:
-                    parser.error(
-                        "The following arguments are required: URL\nUse "
-                        "'gallery-dl --help' to get a list of all options.")
+                    args.server = config.get(("server",), "enabled", False)
 
             if args.list_urls:
                 jobtype = job.UrlJob

@@ -10311,6 +10311,16 @@ Description
     avoid random requests sent to the listener from the gallery_dl specific ones.
 
 
+server.enabled
+--------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Send input URLs to a gallery-dl server queue.
+
+
 server.timeout
 --------------
 Type
