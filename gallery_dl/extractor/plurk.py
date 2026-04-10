@@ -36,6 +36,8 @@ class PlurkExtractor(Extractor):
                 plurk["last_edited"] = self.parse_datetime(
                     plurk.get("last_edited"), "%a, %d %b %Y %H:%M:%S %Z"
                 )
+            plurk.pop("favorers", None)
+            plurk.pop("replurkers", None)
 
             num = 1
             yield Message.Directory, "", plurk
