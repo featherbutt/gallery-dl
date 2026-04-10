@@ -28,6 +28,14 @@ class PlurkExtractor(Extractor):
         for plurk in self.plurks():
             if plurk.get("replurked") and not replurk:
                 continue
+            plurk["posted"] = self.parse_datetime(
+                plurk.get("posted"), "%a, %d %b %Y %H:%M:%S %Z"
+            )
+            plurk["date"] = plurk["posted"]
+            if plurk.get("last_edited"):
+                plurk["last_edited"] = self.parse_datetime(
+                    plurk.get("last_edited"), "%a, %d %b %Y %H:%M:%S %Z"
+                )
 
             num = 1
             yield Message.Directory, "", plurk
