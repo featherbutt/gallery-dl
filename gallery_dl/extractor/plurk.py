@@ -17,6 +17,8 @@ class PlurkExtractor(Extractor):
     category = "plurk"
     root = "https://www.plurk.com"
     request_interval = (0.5, 1.5)
+    directory_fmt = ("{category}", "{user_id}")
+    filename_fmt = "{plurk_id}_{num}.{extension}"
 
     def items(self):
         urls = self._urls_ex if self.config("comments", False) else self._urls
