@@ -28,6 +28,7 @@ class PlurkExtractor(Extractor):
         for plurk in self.plurks():
             if plurk.get("replurked") and not replurk:
                 continue
+            plurk["plurk_id_base36"] = util.b36encode(plurk.get("plurk_id"))
             plurk["posted"] = self.parse_datetime(
                 plurk.get("posted"), "%a, %d %b %Y %H:%M:%S %Z"
             )
