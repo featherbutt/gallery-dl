@@ -11,7 +11,7 @@ import socket
 import threading
 import logging
 import queue
-from . import util, config, output
+from . import util, config
 
 log = logging.getLogger("server")
 
@@ -30,10 +30,17 @@ def listen(queueObj):
     # Background thread in master process
     # that accepts data from subsequent gallery-dl processes
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((HOST, PORT))
-        s.listen()
-        s.settimeout(1.0)  # Check stop_event periodically
+        try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((HOST, PORT))
+            s.listen()
+            s.settimeout(1.0)  # Check stop_event periodically
+        except Exception as exc:
+            log.error("%s: %s", exc.__class__.__name__, exc)
+            queueObj.put(util.SENTINEL)
+            return False
+        log.info("Listening on %s:%s", HOST, PORT)
+
         while not stop_event.is_set():
             try:
                 conn, _ = s.accept()
@@ -53,20 +60,36 @@ def listen(queueObj):
                     full_payload = b"".join(chunks)
                     data = util.json_loads(full_payload.decode())
                     if not data:
-                        pass
-                    elif isinstance(data, list):
-                        log.info("Received URLs:\n  " + "\n  ".join(data))
-                        for url in data:
-                            queueObj.put(url)
+                        continue
+
+                    if isinstance(data, list):
+                        cnt = len(data)
+                        if cnt != 1:
+                            urls = "\n  ".join(data)
+                            log.info(f"Received {cnt} URLs:\n  {urls}")
+                            for url in data:
+                                queueObj.put(url)
+                        else:
+                            data = data[0]
+                            log.info("Received URL: " + data)
+                            queueObj.put(data)
                     else:
                         log.info("Received URL: " + data)
                         queueObj.put(data)
             except socket.timeout:
                 continue
+        log.info("Shutting down IPC Server")
+        queueObj.put(util.SENTINEL)
 
 
 def send(data):
     # send data to master process
+    cnt = len(data) if isinstance(data, list) else 1
+    if cnt == 1:
+        log.info("Sending URL to Server")
+    else:
+        log.info("Sending %s URLs to Server", cnt)
+
     payload = util.json_dumps(data).encode()
     header = struct.pack(">I", len(payload))
     try:
@@ -81,6 +104,8 @@ def send(data):
 
 
 def start():
+    log.info("Starting IPC Server")
+
     queueObj = InputManager()
     listener = threading.Thread(
         target=listen, args=(queueObj,), daemon=True)
@@ -111,9 +136,7 @@ class InputManager(queue.Queue):
 
     def progress(self, pformat=True):
         if pformat is True:
-            pformat = "[{current}/{total}] {url}\n"
-        else:
-            pformat += "\n"
+            pformat = "[{current}/{total}] {url}"
         self._pformat = pformat.format_map
 
     def next(self):
@@ -139,7 +162,7 @@ class InputManager(queue.Queue):
         if url is util.SENTINEL:
             raise StopIteration
 
-        output.stderr_write(self._pformat({
+        log.info(self._pformat({
             "total"  : self._index + self.qsize() + 1,
             "current": self._index + 1,
             "url"    : url,
