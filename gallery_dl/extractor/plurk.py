@@ -22,9 +22,32 @@ class PlurkExtractor(Extractor):
 
     def items(self):
         urls = self._urls_ex if self.config("comments", False) else self._urls
+        external = self.config("external", False)
+        replurk = self.config("replurk", False)
+
         for plurk in self.plurks():
+            if plurk.get("replurked") and not replurk:
+                continue
+
+            num = 1
+            yield Message.Directory, "", plurk
             for url in urls(plurk):
-                yield Message.Queue, url, plurk
+                data = plurk.copy()
+                data["num"] = num
+                if url.startswith(
+                    (
+                        "http://images.plurk.com/",
+                        "https://images.plurk.com/",
+                        "http://imgs.plurk.com/",
+                        "https://imgs.plurk.com/",
+                    )
+                ):
+                    yield Message.Url, url, text.nameext_from_url(url, data)
+                    num += 1
+                elif external:
+                    text.nameext_from_url(url, data)
+                    yield Message.Queue, url, data
+                    num += 1
 
     def plurks(self):
         """Return an iterable with all relevant 'plurk' objects"""
