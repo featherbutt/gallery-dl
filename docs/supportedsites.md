@@ -247,6 +247,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Collections, Collections, Elements, Search Results, User Profiles</td>
     <td></td>
 </tr>
+<tr id="cosplayrule34" title="cosplayrule34">
+    <td>Cosplayrule34</td>
+    <td>https://cosplayrule34.com/</td>
+    <td>Categories, Cosplaies, Fandoms, Models, Posts, Posts, Search Results, Tops</td>
+    <td></td>
+</tr>
 <tr id="cyberdrop" title="cyberdrop">
     <td>Cyberdrop</td>
     <td>https://cyberdrop.cr/</td>
