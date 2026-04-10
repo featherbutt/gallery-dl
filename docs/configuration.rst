@@ -5541,6 +5541,27 @@ Description
     Also search Plurk comments for URLs.
 
 
+extractor.plurk.external
+-------------------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Follow external links in Plurk posts that are not hosted on
+    ``images.plurk.com`` or ``imgs.plurk.com``.
+
+
+extractor.plurk.replurk
+-----------------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Process replurked posts in addition to original posts.
+
+
 extractor.[postmill].save-link-post-body
 ----------------------------------------
 Type
