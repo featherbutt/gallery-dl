@@ -271,6 +271,20 @@ class Extractor():
         return self.request(url, **kwargs).headers.get("location", "")
 
     def request_json(self, url, **kwargs):
+        if headers := kwargs.get("headers"):
+            headers.setdefault("Referer", self.root + "/")
+            headers.setdefault("Origin" , self.root)
+            headers.setdefault("Sec-Fetch-Dest", "empty")
+            headers.setdefault("Sec-Fetch-Mode", "cors")
+            headers.setdefault("Sec-Fetch-Site", "same-site")
+        else:
+            kwargs["headers"] = {
+                "Referer": self.root + "/",
+                "Origin" : self.root,
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-site",
+            }
         response = self.request(url, **kwargs)
 
         try:
