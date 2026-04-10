@@ -291,6 +291,13 @@ def build_parser():
         dest="category-map", nargs=0, action=ConfigConstAction, const="compat",
         help="Restore legacy 'category' names",
     )
+    general.add_argument(
+        "-S", "--server",
+        dest="server", action="store_true",
+        help=("Enable server mode. "
+              "Send input URLs to a gallery-dl server or "
+              "create an IPC server when no input URLs are given"),
+    )
 
     update = parser.add_argument_group("Update Options")
     if util.EXECUTABLE:

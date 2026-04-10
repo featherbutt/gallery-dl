@@ -10280,6 +10280,58 @@ Description
     used for (urllib3) warnings.
 
 
+server.host
+-----------
+Type
+    ``string``
+Default
+    ``"127.0.0.1"``
+Description
+    Host to bind the server/socket to.
+
+
+server.port
+-----------
+Type
+    ``int``
+Default
+    ``64696``
+Description
+    Port to bind the server/socket to.
+
+
+server.key
+----------
+Type
+    ``string``
+Default
+    ``"gallery_dl"``
+Description
+    A string that is added to the front of each request to differentiate and
+    avoid random requests sent to the listener from the gallery_dl specific ones.
+
+
+server.enabled
+--------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Send input URLs to a gallery-dl server queue.
+
+
+server.timeout
+--------------
+Type
+    ``int``
+Default
+    ``10``
+Description
+    Sets maximum timeout before queue ends and turns off the server if
+    queue is empty. If set to `-1`, then the server will run forever.
+
+
 
 API Tokens & IDs
 ================

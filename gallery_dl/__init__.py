@@ -347,14 +347,19 @@ Entries:
                         input_file = (input_file, None)
                     args.input_files.append(input_file)
 
-            if not args.urls and not args.input_files:
-                if args.cookies_from_browser or config.interpolate(
-                        ("extractor",), "cookies"):
-                    args.urls.append("noop")
+            nourls = (not args.urls and not args.input_files)
+            if not args.server:
+                if nourls:
+                    if args.cookies_from_browser or config.interpolate(
+                            ("extractor",), "cookies"):
+                        args.urls.append("noop")
+                    else:
+                        parser.error(
+                            "The following arguments are required: URL\n"
+                            "Use 'gallery-dl --help' to get a list of all "
+                            "options.")
                 else:
-                    parser.error(
-                        "The following arguments are required: URL\nUse "
-                        "'gallery-dl --help' to get a list of all options.")
+                    args.server = config.get(("server",), "enabled", False)
 
             if args.list_urls:
                 jobtype = job.UrlJob
@@ -367,7 +372,11 @@ Entries:
             else:
                 jobtype = args.jobtype or job.DownloadJob
 
-            input_manager = InputManager()
+            if args.server:
+                from . import server
+                input_manager = server.start() if nourls else InputManager()
+            else:
+                input_manager = InputManager()
             input_manager.log = input_log = logging.getLogger("inputfile")
 
             # unsupported file logging handler
@@ -396,9 +405,15 @@ Entries:
                         input_log.error(exc)
                         return getattr(exc, "code", 128)
 
+            if args.server and not nourls and input_manager.urls:
+                return server.send([
+                    url[0] if isinstance(url, tuple) else url
+                    for url in input_manager.urls
+                ])
+
             pformat = config.get(("output",), "progress", True)
-            if pformat and len(input_manager.urls) > 1 and \
-                    args.loglevel < logging.ERROR:
+            if pformat and args.loglevel < logging.ERROR and (
+                    args.server or len(input_manager.urls) > 1):
                 input_manager.progress(pformat)
 
             if catmap := config.interpolate(("extractor",), "category-map"):

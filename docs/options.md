@@ -33,6 +33,9 @@
     --windows-filenames         Force filenames to be Windows-compatible
     -X, --extractors PATH       Load external extractors from PATH
     --compat                    Restore legacy 'category' names
+    -S, --server                Enable server mode. Send input URLs to a
+                                gallery-dl server or create an IPC server when
+                                no input URLs are given
 
 ## Update Options:
     -U, --update                Update to the latest version
