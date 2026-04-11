@@ -529,7 +529,7 @@ class Extractor():
         headers.clear()
         ssl_options = ssl_ciphers = 0
 
-        # .netrc Authorization headers are alwsays disabled
+        # .netrc Authorization headers are always disabled
         session.trust_env = True if self.config("proxy-env", True) else False
 
         browser = self.config("browser")
@@ -548,10 +548,13 @@ class Extractor():
             elif platform == "macos":
                 platform = "Macintosh; Intel Mac OS X 15.5"
 
-            if browser == "chrome":
-                if platform.startswith("Macintosh"):
-                    platform = platform.replace(".", "_")
-            else:
+            if browser.startswith("chrome") and \
+                    platform.startswith("Macintosh"):
+                platform = platform.replace(".", "_")
+
+            if browser not in HEADERS:
+                self.log.warning("Unsupported browser %r. "
+                                 "Falling back to 'firefox'", browser)
                 browser = "firefox"
 
             for key, value in HEADERS[browser]:
