@@ -3511,16 +3511,6 @@ Note
     See `flickr.people.getInfo <https://www.flickr.com/services/api/flickr.people.getInfo.html>`__ for details.
 
 
-extractor.flickr.videos
------------------------
-Type
-    ``bool``
-Default
-    ``true``
-Description
-    Extract and download videos.
-
-
 extractor.flickr.size-max
 --------------------------
 Type
@@ -3536,6 +3526,30 @@ Description
     * If this is a ``string``, it should be one of Flickr's format specifiers
       (``"Original"``, ``"Large"``, ... or ``"o"``, ``"k"``, ``"h"``,
       ``"l"``, ...) to use as an upper limit.
+
+
+extractor.flickr.videos
+-----------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Extract and download videos.
+
+
+extractor.flickr.urls
+---------------------
+Type
+    ``string``
+Default
+    ``null``
+Description
+    Transform image URLs.
+
+    ``"download"``
+        Download URLs
+        (e.g. ``https://live.staticflickr.com/123/456789_abcdef_o_d.jpg``)
 
 
 extractor.foriio.audio
