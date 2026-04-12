@@ -20,6 +20,7 @@ class CosmosExtractor(Extractor):
     root = "https://www.cosmos.so"
     root_graphql = "https://api.cosmos.so/graphql"
     filename_fmt = "{id}{num:?_//}_{filename}.{extension}"
+    archive_fmt = "{id}_{filename}"
 
     def _init(self):
         self.fmt = self.config("format", "jpg")
@@ -64,7 +65,11 @@ class CosmosExtractor(Extractor):
                 yield Message.Url, file["url"], file
 
     def _extract_files(self, ele):
-        media = ele.pop("media")
+        try:
+            media = ele.pop("media")
+        except Exception as exc:
+            self.log.traceback(exc)
+            return ()
 
         if medias := ele.pop("multipleMedia"):
             files = []
@@ -76,7 +81,7 @@ class CosmosExtractor(Extractor):
         return (self._extract_media(media),)
 
     def _extract_media(self, media):
-        url = media["url"]
+        url = media["url"].rstrip(".")
         if "mux" in media:
             mux = media["mux"]
             media["url"] = "ytdl:" + mux["playbackUrl"]
@@ -90,6 +95,14 @@ class CosmosExtractor(Extractor):
             media["filename"] = url[url.rfind("/")+1:]
             media["extension"] = self.fmt
         return media
+
+    def _extract_user(self, username):
+        try:
+            page = self.request(f"{self.root}/{username}").text
+            data = text.extr(page, '":{"data":{"user":{', '},"networkStatus"')
+            return util.json_loads(f'{{"user":{{{data}}}')["user"]
+        except Exception:
+            raise self.exc.NotFoundError("user")
 
     def _pagination(self, opname, variables, unpack=False):
         while True:
@@ -141,6 +154,29 @@ class CosmosSearchExtractor(CosmosExtractor):
         })
 
 
+class CosmosCollectionsExtractor(CosmosExtractor):
+    subcategory = "collections"
+    pattern = BASE_PATTERN + r"/([^/?#]+)/collections(?:$|\?|#)"
+    example = "https://cosmos.so/USER/collections"
+
+    def items(self):
+        user = self.kwdict["user"] = self._extract_user(self.groups[0])
+        variables = {
+            "pageSize"  : 20,
+            "ownerId"   : user["id"],
+            "userId"    : 0,
+            "isLoggedIn": False,
+            "order"     : "PUBLIC",
+            "filters"   : {"isPrivate": False},
+        }
+        collections = self._pagination("GetUserClusters", variables)
+
+        base = f"{self.root}/{user['username']}/"
+        for collection in collections:
+            collection["_extractor"] = CosmosCollectionExtractor
+            yield Message.Queue, base + collection["slug"], collection
+
+
 class CosmosCollectionExtractor(CosmosExtractor):
     subcategory = "collection"
     directory_fmt = ("{category}", "{user[username]} ({user[id]})",
@@ -184,11 +220,3 @@ class CosmosUserExtractor(CosmosExtractor):
             "isLoggedIn"   : False,
         }
         return self._pagination("GetUserPublicElementsV2", variables)
-
-    def _extract_user(self, username):
-        try:
-            page = self.request(f"{self.root}/{username}").text
-            data = text.extr(page, '":{"data":{"user":{', '},"networkStatus"')
-            return util.json_loads(f'{{"user":{{{data}}}')["user"]
-        except Exception:
-            raise self.exc.NotFoundError("user")

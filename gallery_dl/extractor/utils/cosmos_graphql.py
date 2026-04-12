@@ -606,6 +606,149 @@ fragment ElementUserContext on ElementUserContext {
 """
 
 
+GetUserClusters = """\
+query GetUserClusters(\
+$ownerId: UserId!, $userId: UserId!, $pageCursor: String, \
+$pageSize: Int = 20, $order: UserProfileClusterOrder, \
+$filters: UserClusterListFilters, $isLoggedIn: Boolean!) {
+  userClusters(
+    userId: $ownerId
+    meta: {pageSize: $pageSize, pageCursor: $pageCursor}
+    order: $order
+    filters: $filters
+  ) {
+    items {
+      ...ClusterTile
+      ...Subclusters
+      __typename
+    }
+    meta {
+      nextPageCursor
+      count
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment ClusterTile on Cluster {
+  ...ClusterBasic
+  collaboratorsCount
+  numberOfElements
+  collaborators {
+    items {
+      ...ClusterCollaborator
+      isOwner
+      __typename
+    }
+    __typename
+  }
+  subClusters {
+    meta {
+      count
+      __typename
+    }
+    __typename
+  }
+  __typename
+}
+
+fragment ClusterBasic on Cluster {
+  id
+  name
+  isPublicElementsCluster
+  description
+  slug
+  isPrivate
+  ownerId
+  owner {
+    ...UserPublicProfile
+    isFollowed(followerId: $userId) @include(if: $isLoggedIn)
+    __typename
+  }
+  coverImageElementId
+  coverImageUrl
+  isFollowed(userId: $userId) @include(if: $isLoggedIn)
+  isFeatured
+  parentClusterId
+  isPinnedToUserProfile(userId: $userId) @include(if: $isLoggedIn)
+  numberOfElements
+  cover {
+    notSafeForWorkStatus
+    url
+    blurHash
+    width
+    height
+    aiGenerated
+    ... on AnimatedImage {
+      video {
+        url
+        thumbnailUrl
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+  collaborators {
+    items {
+      ...ClusterCollaborator
+      isOwner
+      status
+      __typename
+    }
+    __typename
+  }
+  __typename
+}
+
+fragment ClusterCollaborator on Collaborator {
+  userId
+  collaboratorPublicProfile {
+    ...UserPublicProfile
+    __typename
+  }
+  __typename
+}
+
+fragment UserPublicProfile on UserPublicProfile {
+  id
+  fullName
+  username
+  avatarUrl
+  isPremium
+  publicElementsCluster {
+    id
+    numberOfElements
+    __typename
+  }
+  __typename
+}
+
+fragment Subclusters on Cluster {
+  subClusters {
+    __typename
+    items {
+      __typename
+      id
+      name
+      slug
+      coverImageUrl
+      cover {
+        __typename
+        blurHash
+        aiGenerated
+        notSafeForWorkStatus
+      }
+      numberOfElements
+      isPrivate
+    }
+  }
+  __typename
+}
+"""
+
+
 SearchGlobalElements = """\
 query SearchGlobalElements(\
 $userId: UserId, $searchTerm: String!, \
