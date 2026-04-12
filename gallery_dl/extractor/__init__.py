@@ -50,6 +50,7 @@ modules = [
     "comicartfans",
     "comick",
     "comicvine",
+    "cosmos",
     "cyberdrop",
     "cyberfile",
     "danbooru",

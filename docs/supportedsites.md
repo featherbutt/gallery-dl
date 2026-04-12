@@ -241,6 +241,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Artists, Favorites, Posts, User Profiles</td>
     <td>Supported</td>
 </tr>
+<tr id="cosmos" title="cosmos">
+    <td>Cosmos</td>
+    <td>https://www.cosmos.so/</td>
+    <td>Collections, Collections, Elements, Search Results, User Profiles</td>
+    <td></td>
+</tr>
 <tr id="cyberdrop" title="cyberdrop">
     <td>Cyberdrop</td>
     <td>https://cyberdrop.cr/</td>

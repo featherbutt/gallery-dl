@@ -2534,6 +2534,18 @@ Available Types
     * ``inline``
 
 
+extractor.cosmos.format
+-----------------------
+Type
+    * ``string``
+Default
+    ``"jpg"``
+Example
+    ``"avif"``
+Description
+    Selects file type of downloaded images.
+
+
 extractor.cyberdrop.domain
 --------------------------
 Type
