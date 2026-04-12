@@ -692,6 +692,10 @@ class Flags():
                 self.DOWNLOAD = None
                 raise exception.StopDownload()
             return "skip"
+        if value == "pause":
+            while self.__dict__[flag] is not None:
+                time.sleep(1)
+            return "pause"
         self.__dict__[flag] = None
 
         if value == "abort":

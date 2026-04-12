@@ -10893,7 +10893,7 @@ Description
 
         | Expected syntax is ``<flag>[ = <value>]`` (e.g. ``post = stop``)
         | ``<flag>`` can be one of ``file``, ``post``, ``child``, ``download``
-        | ``<value>`` can be one of ``stop``, ``abort``, ``terminate``, ``restart``, ``skip`` (default ``stop``)
+        | ``<value>`` can be one of ``stop``, ``abort``, ``terminate``, ``restart``, ``skip``, ``pause``, ``toggle``, ``clear`` (default ``stop``)
     ``keyword``:
         Set a `keyword <extractor.*.keywords_>`__ value
     ``wait``:

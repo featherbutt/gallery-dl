@@ -234,6 +234,14 @@ def action_flag(opts):
         value = "stop"
     elif value == "skip":
         value = False
+    elif value == "clear":
+        value = None
+    elif value == "toggle":
+        def _flag_toggle(args):
+            util.FLAGS.__dict__[flag] = \
+                "stop" if util.FLAGS.__dict__[flag] is None else None
+        del value
+        return _flag_toggle, None
     else:
         value = value.lower()
 

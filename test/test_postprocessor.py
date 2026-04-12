@@ -147,6 +147,26 @@ class ActionsTest(BasePostprocessorTest):
         self._trigger()
         self.assertEqual(self.job.status, 123)
 
+    def test_flag_clear(self):
+        self._create({"action": "flag download clear"})
+
+        util.FLAGS.DOWNLOAD = "stop"
+        self._trigger()
+        self.assertEqual(util.FLAGS.DOWNLOAD, None)
+        self._trigger()
+        self.assertEqual(util.FLAGS.DOWNLOAD, None)
+
+    def test_flag_toggle(self):
+        self._create({"action": "flag download toggle"})
+
+        self.assertEqual(util.FLAGS.DOWNLOAD, None)
+        self._trigger()
+        self.assertEqual(util.FLAGS.DOWNLOAD, "stop")
+        self._trigger()
+        self.assertEqual(util.FLAGS.DOWNLOAD, None)
+        self._trigger()
+        self.assertEqual(util.FLAGS.DOWNLOAD, "stop")
+
 
 class ClassifyTest(BasePostprocessorTest):
 
