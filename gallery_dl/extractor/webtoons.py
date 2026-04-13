@@ -10,7 +10,7 @@
 """Extractors for https://www.webtoons.com/"""
 
 from .common import GalleryExtractor, Extractor, Message
-from .. import dt, text, util
+from .. import text, util, dt
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?webtoons\.com"
 LANG_PATTERN = BASE_PATTERN + r"/(([^/?#]+)"
@@ -215,10 +215,11 @@ class WebtoonsComicExtractor(WebtoonsBase, Extractor):
 
     def items(self):
         kw = self.kwdict
-        base, kw["lang"], kw["genre"], kw["comic"], query = self.groups
+        base, lang, kw["genre"], kw["comic"], query = self.groups
         params = text.parse_query(query)
         kw["title_no"] = title_no = text.parse_int(params.get("title_no"))
         kw["page"] = page_no = text.parse_int(params.get("page"), 1)
+        kw["lang"] = lang
 
         path = f"/{base}/list?title_no={title_no}&page={page_no}"
         response = self.request(self.root + path)
@@ -233,10 +234,10 @@ class WebtoonsComicExtractor(WebtoonsBase, Extractor):
 
         data = {"_extractor": WebtoonsEpisodeExtractor}
         while True:
-            for url, date in self.get_episode_urls(page):
+            for url, dt_string in self._extract_episodes(page):
                 params = text.parse_query(url.rpartition("?")[2])
                 data["episode_no"] = text.parse_int(params.get("episode_no"))
-                data["date"] = _parse_date(date, kw["lang"])
+                data["date"] = _parse_date(dt_string, lang)
                 yield Message.Queue, url, data
 
             kw["page"] = page_no = page_no + 1
@@ -245,15 +246,14 @@ class WebtoonsComicExtractor(WebtoonsBase, Extractor):
                 return
             page = self.request(self.root + path).text
 
-    def get_episode_urls(self, page):
+    def _extract_episodes(self, page):
         """Extract and return all episode urls and dates in 'page'"""
         page = text.extr(page, 'id="_listUl"', "</ul>")
-        urls = [
-            match[0]
-            for match in WebtoonsEpisodeExtractor.pattern.finditer(page)
+        return [
+            (text.extr(ep, ' href="', '"'),
+             text.extr(ep, ' class="date">', '<'))
+            for ep in text.extract_iter(page, ' class="_episodeItem', "</li>")
         ]
-        dates = list(text.extract_iter(page, 'class="date">', '<'))
-        return list(zip(urls, dates))
 
     def _asset_banner(self, page):
         try:
