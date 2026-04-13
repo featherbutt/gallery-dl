@@ -9,6 +9,25 @@ from gallery_dl.extractor import myhentaigallery
 
 __tests__ = (
 {
+    "#url"     : "https://myhentaigallery.com/a/16247",
+    "#category": ("", "myhentaigallery", "gallery"),
+    "#class"   : myhentaigallery.MyhentaigalleryGalleryExtractor,
+    "#pattern" : r"https://(cdn|images)\.myhentaicomics\.com/m\w\w/images/[^/]+/original/\d+\.jpg",
+
+    "artist"    : list,
+    "count"     : 11,
+    "gallery_id": 16247,
+    "group"     : list,
+    "parodies"  : list,
+    "title"     : "Attack Of The 50ft Woman 1",
+    "tags": [
+        "Breast Expansion",
+        "Vore | Unbirth",
+        "Giantess",
+    ],
+},
+
+{
     "#url"     : "https://myhentaigallery.com/g/16247",
     "#category": ("", "myhentaigallery", "gallery"),
     "#class"   : myhentaigallery.MyhentaigalleryGalleryExtractor,
@@ -19,8 +38,12 @@ __tests__ = (
     "gallery_id": 16247,
     "group"     : list,
     "parodies"  : list,
-    "tags"      : ["Giantess"],
     "title"     : "Attack Of The 50ft Woman 1",
+    "tags": [
+        "Breast Expansion",
+        "Vore | Unbirth",
+        "Giantess",
+    ],
 },
 
 {
@@ -36,10 +59,17 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://myhentaigallery.com/a/artist/8084?sorting=favorite",
+    "#class"   : myhentaigallery.MyhentaigalleryTagExtractor,
+    "#pattern" : myhentaigallery.MyhentaigalleryGalleryExtractor.pattern,
+    "#count"   : 19,
+},
+
+{
     "#url"     : "https://myhentaigallery.com/g/artist/8084?sorting=favorite",
     "#class"   : myhentaigallery.MyhentaigalleryTagExtractor,
     "#pattern" : myhentaigallery.MyhentaigalleryGalleryExtractor.pattern,
-    "#count"   : 18,
+    "#count"   : 19,
 },
 
 {
