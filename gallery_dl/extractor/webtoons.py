@@ -302,16 +302,6 @@ def _url(url):
     return url.replace("://webtoon-phinf.", "://swebtoon-phinf.")
 
 
-_MONTHS = {lang: {m: i for i, m in enumerate(months, 1)} for lang, months in {
-    "fr": ["janv", "févr", "mars", "avr", "mai", "juin",
-           "juil", "août", "sept", "oct", "nov", "déc"],
-    "es": ["ene", "feb", "mar", "abr", "may", "jun",
-           "jul", "ago", "sept", "oct", "nov", "dic"],
-    "th": ["มค", "กพ", "มีค", "เมย", "พค", "มิย",
-           "กค", "สค", "กย", "ตค", "พย", "ธค"],
-}.items()}
-
-
 def _parse_date(date_string, lang):
     """Parse a locale-dependent date string from the episode list"""
     try:
@@ -328,11 +318,19 @@ def _parse_date(date_string, lang):
                 "年", " ").replace("月", " ").replace("日", "").split()
             return dt.datetime(int(year), int(month), int(day))
 
-        # fr, es, th: "DD month_abbr YYYY"
-        months = _MONTHS.get(lang)
-        if not months:
+        if lang == "fr":
+            months = ("janv", "févr", "mars", "avr", "mai", "juin",
+                      "juil", "août", "sept", "oct", "nov", "déc")
+        elif lang == "es":
+            months = ("ene", "feb", "mar", "abr", "may", "jun",
+                      "jul", "ago", "sept", "oct", "nov", "dic")
+        elif lang == "th":
+            months = ("มค", "กพ", "มีค", "เมย", "พค", "มิย",
+                      "กค", "สค", "กย", "ตค", "พย", "ธค")
+        else:
             return dt.NONE
         day, month, year = date_string.replace(".", "").split()
-        return dt.datetime(int(year), months[month.lower()], int(day))
+        month = months.index(month.lower()) + 1
+        return dt.datetime(int(year), month, int(day))
     except Exception:
         return dt.NONE

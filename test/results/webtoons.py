@@ -209,7 +209,7 @@ __tests__ = (
     "#url"     : "https://www.webtoons.com/fr/romance/subzero/list?title_no=1845&page=24",
     "#comment" : "episode date, french",
     "#class"   : webtoons.WebtoonsComicExtractor,
-    "#range"   : "6",
+    "#range"   : "7",
     "#count"   : 1,
 
     "title_no"  : 1845,
@@ -233,7 +233,7 @@ __tests__ = (
     "#url"     : "https://www.webtoons.com/de/fantasy/werewolves-going-crazy-over-me/list?title_no=8127&page=5",
     "#comment" : "episode date, german",
     "#class"   : webtoons.WebtoonsComicExtractor,
-    "#range"   : "9",
+    "#range"   : "10",
     "#count"   : 1,
 
     "title_no"  : 8127,
@@ -245,7 +245,7 @@ __tests__ = (
     "#url"     : "https://www.webtoons.com/id/romance/daytime-in-the-bunker/list?title_no=9889",
     "#comment" : "episode date, indonesian",
     "#class"   : webtoons.WebtoonsComicExtractor,
-    "#range"   : "3",
+    "#range"   : "4",
     "#count"   : 1,
 
     "title_no"  : 9889,
