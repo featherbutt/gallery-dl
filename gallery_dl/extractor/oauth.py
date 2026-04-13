@@ -151,7 +151,8 @@ class OAuthBase(Extractor):
     def _oauth2_authorization_code_grant(
             self, client_id, client_secret, default_id, default_secret,
             auth_url, token_url, scope="read", duration="permanent",
-            key="refresh_token", code_challenge=False, auth=True, cache=None, instance=None):
+            key="refresh_token", auth=True, cache=None, instance=None,
+            code_challenge=False):
         """Perform an OAuth2 authorization code grant"""
 
         client_id = str(client_id) if client_id else default_id
@@ -173,16 +174,7 @@ class OAuthBase(Extractor):
         }
 
         if code_challenge:
-            import binascii
-            import hashlib
-
-            code_verifier = util.generate_token(32)
-            digest = hashlib.sha256(code_verifier.encode()).digest()
-            code_challenge = binascii.b2a_base64(
-                digest)[:-2].decode().replace("+", "-").replace("/", "_")
-            auth_params["code_challenge"] = code_challenge
-            auth_params["code_challenge_method"] = "S256"
-        
+            code_verifier = self._oauth2_code_challenge(auth_params)
 
         # receive an authorization code
         params = self.open(auth_url, auth_params)
@@ -201,8 +193,8 @@ class OAuthBase(Extractor):
             "code"        : params["code"],
             "redirect_uri": self.redirect_uri,
         }
-        
-        if code_verifier:
+
+        if code_challenge:
             data["code_verifier"] = code_verifier
 
         if auth:
@@ -231,6 +223,18 @@ class OAuthBase(Extractor):
         self.send(self._generate_message(
             (token_name,), (token,),
         ))
+
+    def _oauth2_code_challenge(self, params):
+        import binascii
+        import hashlib
+
+        code_verifier = util.generate_token(32)
+        digest = hashlib.sha256(code_verifier.encode()).digest()
+        params["code_challenge_method"] = "S256"
+        params["code_challenge"] = binascii.b2a_base64(
+            digest)[:-2].replace(b"+", b"-").replace(b"/", b"_")
+
+        return code_verifier
 
     def _generate_message(self, names, values):
         _vh, _va, _is, _it = (
@@ -432,20 +436,10 @@ class OAuthPixiv(OAuthBase):
 
     def items(self):
         from . import pixiv
-        import binascii
-        import hashlib
-
-        code_verifier = util.generate_token(32)
-        digest = hashlib.sha256(code_verifier.encode()).digest()
-        code_challenge = binascii.b2a_base64(
-            digest)[:-2].decode().replace("+", "-").replace("/", "_")
 
         url = "https://app-api.pixiv.net/web/v1/login"
-        params = {
-            "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
-            "client": "pixiv-android",
-        }
+        params = {"client": "pixiv-android"}
+        code_verifier = self._oauth2_code_challenge(params)
         code = self.open(url, params, self._input_code)
 
         url = "https://oauth.secure.pixiv.net/auth/token"
