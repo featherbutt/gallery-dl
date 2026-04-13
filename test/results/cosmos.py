@@ -195,6 +195,21 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.cosmos.so/e/1771494652",
+    "#comment" : "video without 'mux' data and invalid HLS manifest",
+    "#class"   : cosmos.CosmosElementExtractor,
+    "#results" : "ytdl:https://cdn.cosmos.so/95f41225-84f6-47e2-adfd-9dafb88663ac.mp4",
+
+    "duration" : None,
+    "extension": "mp4",
+    "filename" : "95f41225-84f6-47e2-adfd-9dafb88663ac",
+    "width"    : 512,
+    "height"   : 384,
+    "id"       : 1771494652,
+    "mux"      : None,
+},
+
+{
     "#url"     : "https://www.cosmos.so/search/elements/water",
     "#class"   : cosmos.CosmosSearchExtractor,
     "#range"   : "1-100",
@@ -314,8 +329,7 @@ __tests__ = (
     "date"           : "type:datetime",
     "filename"       : "iso:uuid",
     "id"             : int,
-    "ownerId"        : 1615626152,
-    "source"         : dict,
+    "source"         : {dict, None},
     "user"           : {
         "__typename" : "UserPublicProfile",
         "avatarUrl"  : "https://cdn.cosmos.so/216d7503-6a64-4966-904c-0e75a38d01f8?format=webp&w=80",

@@ -71,7 +71,7 @@ class CosmosExtractor(Extractor):
             self.log.traceback(exc)
             return ()
 
-        if medias := ele.pop("multipleMedia"):
+        if medias := ele.pop("multipleMedia", None):
             files = []
             for num, media in enumerate(medias, 1):
                 media["num"] = num
@@ -83,17 +83,20 @@ class CosmosExtractor(Extractor):
     def _extract_media(self, media):
         url = media["url"].rstrip(".")
         if "mux" in media:
-            mux = media["mux"]
-            media["url"] = "ytdl:" + mux["playbackUrl"]
+            if mux := media["mux"]:
+                media["url"] = "ytdl:" + mux["playbackUrl"]
+                media["_fallback"] = (mux.get("downloadableUrl") or
+                                      mux.get("mp4Url"),)
+            else:
+                media["url"] = "ytdl:" + url
             media["_ytdl_manifest"] = "hls"
-            media["_fallback"] = (mux.get("downloadableUrl") or
-                                  mux.get("mp4Url"),)
             media["filename"] = url[url.rfind("/")+1:-4]
             media["extension"] = "mp4"
         else:
             media["url"] = f"{url}?format={self.fmt}"
             media["filename"] = url[url.rfind("/")+1:]
             media["extension"] = self.fmt
+
         return media
 
     def _extract_user(self, username):
