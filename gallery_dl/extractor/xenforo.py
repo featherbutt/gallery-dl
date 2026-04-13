@@ -522,6 +522,10 @@ BASE_PATTERN = XenforoExtractor.update({
         "root": "https://www.blacktowhite.net",
         "pattern": r"(?:www\.)?blacktowhite\.net",
     },
+    "thefappeningforum": {
+        "root": "https://thefappeningblog.com/forum",
+        "pattern": r"(?:www\.)?thefappeningblog\.com/forum",
+    },
 })
 
 

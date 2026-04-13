@@ -209,6 +209,7 @@ CATEGORY_MAP = {
     "thecollection"  : "The /co/llection",
     "thecollectionS" : "The /co/llection",
     "thefap"         : "TheFap",
+    "thefappeningforum": "The Fappening Forum",
     "thehentaiworld" : "The Hentai World",
     "tiktok"         : "TikTok",
     "titsintops"     : "Tits In Tops Forum",

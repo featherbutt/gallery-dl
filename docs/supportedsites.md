@@ -2041,6 +2041,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
     <td></td>
 </tr>
+<tr id="thefappeningforum" title="thefappeningforum">
+    <td>The Fappening Forum</td>
+    <td>https://thefappeningblog.com/forum/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
 
 <tr id="moebooru" title="moebooru">
     <td colspan="4"><strong>Moebooru and MyImouto</strong></td>
