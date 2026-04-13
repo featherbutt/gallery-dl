@@ -85,6 +85,7 @@ modules = [
     "girlsreleased",
     "girlswithmuscle",
     "gofile",
+    "harvardlawnuremberg",
     "hatenablog",
     "hdoujin",
     "hentai2read",
