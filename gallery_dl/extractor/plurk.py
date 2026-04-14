@@ -17,12 +17,48 @@ class PlurkExtractor(Extractor):
     category = "plurk"
     root = "https://www.plurk.com"
     request_interval = (0.5, 1.5)
+    directory_fmt = ("{category}", "{user_id}")
+    filename_fmt = "{plurk_id}_{num}.{extension}"
 
     def items(self):
         urls = self._urls_ex if self.config("comments", False) else self._urls
+        external = self.config("external", False)
+        replurk = self.config("replurk", False)
+
         for plurk in self.plurks():
+            if plurk.get("replurked") and not replurk:
+                continue
+            plurk["plurk_id_base36"] = util.b36encode(plurk.get("plurk_id"))
+            plurk["posted"] = self.parse_datetime(
+                plurk.get("posted"), "%a, %d %b %Y %H:%M:%S %Z"
+            )
+            plurk["date"] = plurk["posted"]
+            if plurk.get("last_edited"):
+                plurk["last_edited"] = self.parse_datetime(
+                    plurk.get("last_edited"), "%a, %d %b %Y %H:%M:%S %Z"
+                )
+            plurk.pop("favorers", None)
+            plurk.pop("replurkers", None)
+
+            num = 1
+            yield Message.Directory, "", plurk
             for url in urls(plurk):
-                yield Message.Queue, url, plurk
+                data = plurk.copy()
+                data["num"] = num
+                if url.startswith(
+                    (
+                        "http://images.plurk.com/",
+                        "https://images.plurk.com/",
+                        "http://imgs.plurk.com/",
+                        "https://imgs.plurk.com/",
+                    )
+                ):
+                    yield Message.Url, url, text.nameext_from_url(url, data)
+                    num += 1
+                elif external:
+                    text.nameext_from_url(url, data)
+                    yield Message.Queue, url, data
+                    num += 1
 
     def plurks(self):
         """Return an iterable with all relevant 'plurk' objects"""
