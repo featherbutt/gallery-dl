@@ -1348,7 +1348,8 @@ Type
 Default
     ``null``
 Example
-    * ``"$HOME/.archives/{category}.sqlite3"``
+    * ``"$HOME/.archives/gdl.sqlite3"``
+    * ``[":~", ".archives", "{category}.sqlite3"]``
     * ``"postgresql://user:pass@host/database"``
 Description
     File to store IDs of downloaded files in. Downloads of files
@@ -1362,14 +1363,14 @@ Description
 
     If this value is a
     `PostgreSQL Connection URI <https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS>`__,
-    the archive will use this PostgreSQL database as backend (requires
-    `Psycopg <https://www.psycopg.org/>`__).
+    the archive will use this PostgreSQL database as backend
+    (requires `Psycopg <https://www.psycopg.org/>`__).
 Note
     Archive files that do not already exist get generated automatically.
 
-    Archive paths support basic `Format String`_ replacements,
-    but be aware that using external inputs for building local paths
-    may pose a security risk.
+    | To use replacement fields in a path,
+      specify it as a `list` of `strings` (see |Path+|_)
+    | (for example ``[":~", ".archives", "{category}.sqlite3"]``)
 
 
 extractor.*.archive-event
