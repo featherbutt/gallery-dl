@@ -685,6 +685,8 @@ class Flags():
     def __init__(self):
         self.FILE = self.POST = self.CHILD = self.DOWNLOAD = None
 
+    clear = __init__
+
     def process(self, flag):
         value = self.__dict__[flag]
         if value is False:  # flag was set to "skip"

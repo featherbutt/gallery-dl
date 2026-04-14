@@ -124,6 +124,10 @@ class BasePostprocessorTest(unittest.TestCase):
 
 class ActionsTest(BasePostprocessorTest):
 
+    def tearDown(self):
+        super().tearDown()
+        util.FLAGS.clear()
+
     def test_raises(self):
         self._create({"action": "raise AbortExtraction foobar"})
 
