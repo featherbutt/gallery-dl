@@ -93,9 +93,12 @@ class CosmosExtractor(Extractor):
             media["filename"] = url[url.rfind("/")+1:-4]
             media["extension"] = "mp4"
         else:
-            media["url"] = f"{url}?format={self.fmt}"
             media["filename"] = url[url.rfind("/")+1:]
-            media["extension"] = self.fmt
+            if self.fmt is None:
+                media["extension"] = "avif"
+            else:
+                media["url"] = f"{url}?format={self.fmt}"
+                media["extension"] = self.fmt
 
         return media
 
