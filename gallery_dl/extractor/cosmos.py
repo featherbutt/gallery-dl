@@ -212,13 +212,19 @@ class CosmosCollectionExtractor(CosmosExtractor):
 class CosmosUserExtractor(CosmosExtractor):
     subcategory = "user"
     directory_fmt = ("{category}", "{user[username]} ({user[id]})")
-    pattern = BASE_PATTERN + r"/(\w+)"
+    pattern = BASE_PATTERN + r"/([^/?#]+)"
     example = "https://cosmos.so/USER"
 
     def elements(self):
-        user = self.kwdict["user"] = self._extract_user(self.groups[0])
+        username = self.groups[0]
+        if username.startswith("id:"):
+            uid = int(username[3:])
+        else:
+            user = self.kwdict["user"] = self._extract_user(username)
+            uid = user["id"]
+
         variables = {
-            "userId"       : user["id"],
+            "userId"       : uid,
             "callingUserId": 0,
             "isLoggedIn"   : False,
         }
