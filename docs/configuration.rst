@@ -2540,7 +2540,7 @@ extractor.cosmos.format
 Type
     * ``string``
 Default
-    ``"jpg"``
+    ``"jpeg"``
 Example
     ``"avif"``
 Description

@@ -23,7 +23,7 @@ class CosmosExtractor(Extractor):
     archive_fmt = "{id}_{filename}"
 
     def _init(self):
-        self.fmt = self.config("format", "jpg")
+        self.fmt = self.config("format", "jpeg")
 
     def request_graphql(self, opname, variables):
         headers = {
