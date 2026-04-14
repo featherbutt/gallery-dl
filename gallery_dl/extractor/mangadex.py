@@ -72,6 +72,8 @@ class MangadexExtractor(Extractor):
             "date"    : self.parse_datetime_iso(cattributes["publishAt"]),
             "group"   : [group["attributes"]["name"]
                          for group in relationships["scanlation_group"]],
+            "user"    : [user["attributes"]["username"]
+                         for user in relationships["user"]],
             "lang"    : lang,
             "count"   : cattributes["pages"],
             "_external_url": cattributes.get("externalUrl"),
@@ -298,7 +300,7 @@ class MangadexAPI():
         return self._call("/author/" + uuid, params)["data"]
 
     def chapter(self, uuid):
-        params = {"includes[]": ("scanlation_group",)}
+        params = {"includes[]": ("scanlation_group", "user")}
         return self._call("/chapter/" + uuid, params)["data"]
 
     def covers_manga(self, uuid):
@@ -435,7 +437,7 @@ class MangadexAPI():
         if isinstance(lang, str) and "," in lang:
             lang = lang.split(",")
         params["translatedLanguage[]"] = lang
-        params["includes[]"] = ("scanlation_group",)
+        params["includes[]"] = ("scanlation_group", "user")
 
         return self._pagination(endpoint, params, auth)
 
