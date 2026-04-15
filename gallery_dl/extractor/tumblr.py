@@ -151,7 +151,7 @@ class TumblrExtractor(Extractor):
                 if "question" in post:
                     body = (f"{body} {post['question']} "
                             f"{post.get('answer') or ''}")
-                for url in _findall_image(body):
+                for url in util.unique(_findall_image(body)):
                     url, fb = self._original_inline_image(url)
                     if fb:
                         post["_fallback"] = self._original_image_fallback(

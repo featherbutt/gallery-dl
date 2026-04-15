@@ -273,6 +273,18 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.tumblr.com/inkrton/133012034697/favorite-himouto",
+    "#comment" : "'answer' post with duplicate results (gh#9418)",
+    "#class"   : tumblr.TumblrPostExtractor,
+    "#auth"    : True,
+    "#results" : "https://64.media.tumblr.com/d3a6fc21e7b671ee81c9290922eac59d/tumblr_inline_nxnwmvDDDX1r7av0p_1280.jpg",
+    "#count"   : 1,
+
+    "num"  : 1,
+    "count": 1,
+},
+
+{
     "#url"     : "https://www.tumblr.com/oidial/812307562622042112/i-understand-the-concern-but-you-cant-get-between",
     "#comment" : "'reblogs: same-blog' option (#9360)",
     "#class"   : tumblr.TumblrPostExtractor,
