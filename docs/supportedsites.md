@@ -439,6 +439,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Folders</td>
     <td></td>
 </tr>
+<tr id="harvardlawnuremberg" title="harvardlawnuremberg">
+    <td>Harvard Law School Nuremberg Trials Project</td>
+    <td>https://nuremberg.law.harvard.edu/</td>
+    <td>Documents</td>
+    <td></td>
+</tr>
 <tr id="hatenablog" title="hatenablog">
     <td>HatenaBlog</td>
     <td>https://hatenablog.com</td>
