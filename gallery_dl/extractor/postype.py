@@ -16,19 +16,18 @@ class PostypeExtractor(Extractor):
     """Base class for postype extractors"""
     category = "postype"
     root = "https://www.postype.com"
-    root_api = "https://api.postype.com"
+    root_api = "https://api.postype.com/api"
     directory_fmt = ("{category}", "{channel[name]}")
     filename_fmt = "{post_id}_{num:>03}.{extension}"
     archive_fmt = "{post_id}_{num}"
     request_interval = (1.0, 2.0)
 
-    def _call(self, endpoint, params=None):
-        url = self.root_api + endpoint
-        return self.request(url, params=params).json()
+    def request_api(self, endpoint, params=None):
+        return self.request_json(self.root_api + endpoint, params=params)
 
     def _extract_images(self, post_id):
         """Extract image URLs from post HTML content"""
-        data = self._call("/api/v1/post/content/" + str(post_id))
+        data = self.request_api("/v1/post/content/" + str(post_id))
         html = data["data"]["html"]
 
         images = []
@@ -57,8 +56,7 @@ class PostypeExtractor(Extractor):
         return images
 
     def _channel_by_name(self, channel_name):
-        return self._call(
-            "/api/v1/channels/by/channel-name/" + channel_name)
+        return self.request_api("/v1/channels/by/channel-name/" + channel_name)
 
     def _post_info(self, post_id):
         """Fetch post metadata from API"""
@@ -88,21 +86,15 @@ class PostypePostExtractor(PostypeExtractor):
     def items(self):
         channel_name, post_id = self.groups
 
-        post_info = self._post_info(post_id)
+        post = self._post_info(post_id)
         images = self._extract_images(post_id)
+        post["count"] = len(images)
 
-        data = {
-            **post_info,
-            "post_id": text.parse_int(post_id),
-            "count"  : len(images),
-        }
-
-        yield Message.Directory, "", data
-        for data["num"], image in enumerate(images, 1):
+        yield Message.Directory, "", post
+        for post["num"], image in enumerate(images, 1):
+            post.update(image)
             url = image["url"]
-            data["width"] = image.get("width")
-            data["height"] = image.get("height")
-            yield Message.Url, url, text.nameext_from_url(url, data)
+            yield Message.Url, url, text.nameext_from_url(url, post)
 
 
 class PostypeChannelExtractor(PostypeExtractor):
@@ -114,27 +106,23 @@ class PostypeChannelExtractor(PostypeExtractor):
     def items(self):
         channel_name = self.groups[0]
         channel = self._channel_by_name(channel_name)
-        channel_id = channel["channelId"]
 
-        data = {"_extractor": PostypePostExtractor}
-
-        for post in self._pagination(channel_id):
-            post_id = post["postId"]
-            url = "{0}/@{1}/post/{2}".format(
-                self.root, channel_name, post_id)
-            yield Message.Queue, url, data
+        data = {"_extractor": PostypePostExtractor, "channel": channel}
+        base = f"{self.root}/@{channel_name}/post/"
+        for post in self._pagination(channel["channelId"]):
+            yield Message.Queue, base + str(post["postId"]), data
 
     def _pagination(self, channel_id):
-        endpoint = "/api/v2/channel/{}/activity/all".format(channel_id)
-        page = 0
+        endpoint = f"/v2/channel/{channel_id}/activity/all"
+        params = {"page": 0}
 
         while True:
-            data = self._call(endpoint, {"page": page})
+            data = self.request_api(endpoint, params)
 
             for item in data["content"]:
                 if item["type"] == "POST":
                     yield item["feedItem"]
 
-            if data["last"]:
-                return
-            page += 1
+            if data.get("last", True):
+                break
+            params["page"] += 1
