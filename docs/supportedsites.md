@@ -973,6 +973,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Galleries</td>
     <td></td>
 </tr>
+<tr id="postype" title="postype">
+    <td>Postype</td>
+    <td>https://www.postype.com/</td>
+    <td>Channels, Posts</td>
+    <td></td>
+</tr>
 <tr id="rule34vault" title="rule34vault">
     <td>R34 Vault</td>
     <td>https://rule34vault.com/</td>
