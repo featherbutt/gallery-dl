@@ -75,6 +75,7 @@ CATEGORY_MAP = {
     "furaffinity"    : "Fur Affinity",
     "furry34"        : "Furry 34 com",
     "girlswithmuscle": "Girls with Muscle",
+    "harvardlawnuremberg": "Harvard Law School Nuremberg Trials Project",
     "hatenablog"     : "HatenaBlog",
     "hbrowse"        : "HBrowse",
     "hdoujin"        : "HDoujin Galleries",
