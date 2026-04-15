@@ -29,6 +29,7 @@ class PixivExtractor(Extractor):
     # https://s.pximg.net/common/images/limit_sanity_level_360.png
     # https://s.pximg.net/common/images/limit_unviewable_360.png
     # https://s.pximg.net/common/images/limit_mypixiv_360.png
+    # https://s.pximg.net/common/images/limit_unknown_360.png
 
     def _init(self):
         self.api = PixivAppAPI(self)
@@ -73,7 +74,7 @@ class PixivExtractor(Extractor):
             if self.meta_user:
                 work.update(self.api.user_detail(str(work["user"]["id"])))
             if self.meta_comments:
-                if work["total_comments"] and not work.get("_ajax"):
+                if work.get("total_comments") and not work.get("_ajax"):
                     try:
                         work["comments"] = list(
                             self.api.illust_comments(work["id"]))
@@ -161,6 +162,10 @@ class PixivExtractor(Extractor):
             elif limit_type == "limit_mypixiv_360.png":
                 work["_mypixiv"] = True
                 self.log.warning("%s: 'My pixiv' locked", work_id)
+
+            elif limit_type == "limit_unknown_360.png":
+                work["_mypixiv"] = True  # stop further processing
+                self.log.warning("%s: Deleted", work_id)
 
             else:
                 work["_mypixiv"] = True  # stop further processing
@@ -982,7 +987,7 @@ class PixivNovelExtractor(PixivExtractor):
             if self.meta_user:
                 novel.update(self.api.user_detail(str(novel["user"]["id"])))
             if self.meta_comments:
-                if novel["total_comments"]:
+                if novel.get("total_comments"):
                     novel["comments"] = list(
                         self.api.novel_comments(novel["id"]))
                 else:
