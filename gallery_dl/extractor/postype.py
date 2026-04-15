@@ -32,25 +32,24 @@ class PostypeExtractor(Extractor):
 
         images = []
         seen = set()
+        pos = 0
 
-        for tag in text.extract_iter(html, "data-full-path=\"", "\""):
-            url = text.unescape(tag)
+        while True:
+            pos = html.find('data-full-path="', pos) + 16
+            if pos < 16:
+                break
+
+            url = text.unescape(
+                html[pos:html.find('"', pos)]).partition("?")[0]
             if url in seen:
                 continue
             seen.add(url)
 
-            # find surrounding context for dimensions
-            idx = html.find(url)
-            start = max(0, idx - 200)
-            ctx = html[start:idx + len(url) + 10]
-
-            w = text.extr(ctx, 'data-width="', '"')
-            h = text.extr(ctx, 'data-height="', '"')
-
+            ctx = text.rextr(html, "<", ">", pos)
             images.append({
                 "url"   : url,
-                "width" : text.parse_int(w),
-                "height": text.parse_int(h),
+                "width" : text.parse_int(text.extr(ctx, 'data-width="', '"')),
+                "height": text.parse_int(text.extr(ctx, 'data-height="', '"')),
             })
 
         return images
