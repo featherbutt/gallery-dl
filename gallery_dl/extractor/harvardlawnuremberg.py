@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 # Copyright 2026 Mike Fährmann & varenc
 #
 # This program is free software; you can redistribute it and/or modify
@@ -9,6 +10,7 @@
 
 from .common import GalleryExtractor
 from .. import text
+
 
 class HarvardlawnurembergDocumentExtractor(GalleryExtractor):
     """Extractor for documents on nuremberg.law.harvard.edu"""
@@ -26,7 +28,7 @@ class HarvardlawnurembergDocumentExtractor(GalleryExtractor):
         self.document_id = match[1]
         self.slug = match[2]
 
-        # use '?mode=image' to force image mode, 
+        # use '?mode=image' to force image mode,
         # even though its the default, to override
         # a possible '?mode=text' in the input URL
         url = (f"{self.root}/documents"
