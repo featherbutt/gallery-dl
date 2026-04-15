@@ -273,7 +273,7 @@ class FacebookExtractor(Extractor):
 
             if not photo["url"]:
                 if retries < self.fallback_retries and self._interval_429:
-                    seconds = self._interval_429()
+                    seconds = self._interval_429(retries + 1)
                     self.log.warning(
                         "Failed to find photo download URL for %s. "
                         "Retrying in %s seconds.", photo_url, seconds,
