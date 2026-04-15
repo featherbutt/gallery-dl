@@ -822,11 +822,11 @@ class Extractor():
                       "</script>"))
 
     def _extract_nextdata(self, page):
+        pos = page.find(' id="__NEXT_DATA__"')
+        if pos < 0:
+            pos = page.find(" id='__NEXT_DATA__'")
         return util.json_loads(
-            text.extr(page, ' id="__NEXT_DATA__" type="application/json">',
-                      "</script>") or
-            text.extr(page, " id='__NEXT_DATA__' type='application/json'>",
-                      "</script>"))
+            page[page.find(">", pos)+1:page.find("</script>", pos)])
 
     def _get_date_min_max(self, dmin=None, dmax=None):
         """Retrieve and parse 'date-min' and 'date-max' config values"""
