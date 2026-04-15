@@ -22,12 +22,40 @@ class PostypeExtractor(Extractor):
     archive_fmt = "{post_id}_{num}"
     request_interval = (1.0, 2.0)
 
+    def items(self):
+        for post in self.posts():
+            post = self._prepare(post)
+            images = self._extract_images(post)
+            post["count"] = len(images)
+
+            yield Message.Directory, "", post
+            for post["num"], image in enumerate(images, 1):
+                post.update(image)
+                url = image["url"]
+                yield Message.Url, url, text.nameext_from_url(url, post)
+
     def request_api(self, endpoint, params=None):
         return self.request_json(self.root_api + endpoint, params=params)
 
-    def _extract_images(self, post_id):
+    def _prepare(self, post):
+        post["date"] = self.parse_timestamp(post["publishedAt"])
+        post["views"] = post.pop("viewCount", None)
+        post["views"] = post.pop("viewCount", None)
+        post["likes"] = post.pop("likeCount", None)
+        post["post_id"] = post.pop("postId", 0)
+        post["comments"] = post.pop("commentCount", None)
+        post.pop("likeProfileAvatars", None)
+        post.pop("prevPost", None)
+        post.pop("nextPost", None)
+
+        if "channelName" in post["channel"]:
+            post["channel"]["name"] = post["channel"].pop("channelName")
+
+        return post
+
+    def _extract_images(self, post):
         """Extract image URLs from post HTML content"""
-        data = self.request_api("/v1/post/content/" + str(post_id))
+        data = self.request_api("/v1/post/content/" + str(post["post_id"]))
         html = data["data"]["html"]
 
         images = []
@@ -54,46 +82,15 @@ class PostypeExtractor(Extractor):
 
         return images
 
-    def _channel_by_name(self, channel_name):
-        return self.request_api("/v1/channels/by/channel-name/" + channel_name)
-
-    def _post_info(self, post_id):
-        """Fetch post metadata from API"""
-        meta = self._call("/api/v1/posts/" + str(post_id))
-        return {
-            "channel" : meta["channel"],
-            "title"   : meta["title"],
-            "subtitle": meta.get("subTitle") or "",
-            "date"    : self.parse_timestamp(
-                meta["publishedAt"]),
-            "tags"    : meta.get("tags") or [],
-            "series"  : meta.get("series"),
-            "views"   : meta["viewCount"],
-            "likes"   : meta["likeCount"],
-            "comments": meta["commentCount"],
-            "price"   : meta["price"],
-            "adult"   : meta.get("adult", False),
-        }
-
 
 class PostypePostExtractor(PostypeExtractor):
     """Extractor for a single postype post"""
     subcategory = "post"
-    pattern = BASE_PATTERN + r"/@([^/?#]+)/post/(\d+)"
+    pattern = BASE_PATTERN + r"/@[^/?#]+/post/(\d+)"
     example = "https://www.postype.com/@USER/post/12345"
 
-    def items(self):
-        channel_name, post_id = self.groups
-
-        post = self._post_info(post_id)
-        images = self._extract_images(post_id)
-        post["count"] = len(images)
-
-        yield Message.Directory, "", post
-        for post["num"], image in enumerate(images, 1):
-            post.update(image)
-            url = image["url"]
-            yield Message.Url, url, text.nameext_from_url(url, post)
+    def posts(self):
+        return (self.request_api("/v1/posts/" + self.groups[0]),)
 
 
 class PostypeChannelExtractor(PostypeExtractor):
@@ -102,14 +99,10 @@ class PostypeChannelExtractor(PostypeExtractor):
     pattern = BASE_PATTERN + r"/@([^/?#]+)/?$"
     example = "https://www.postype.com/@USER"
 
-    def items(self):
-        channel_name = self.groups[0]
-        channel = self._channel_by_name(channel_name)
-
-        data = {"_extractor": PostypePostExtractor, "channel": channel}
-        base = f"{self.root}/@{channel_name}/post/"
-        for post in self._pagination(channel["channelId"]):
-            yield Message.Queue, base + str(post["postId"]), data
+    def posts(self):
+        channel = self.request_api(
+            "/v1/channels/by/channel-name/" + self.groups[0])
+        return self._pagination(channel["channelId"])
 
     def _pagination(self, channel_id):
         endpoint = f"/v2/channel/{channel_id}/activity/all"
