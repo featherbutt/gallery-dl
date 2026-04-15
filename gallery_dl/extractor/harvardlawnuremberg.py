@@ -20,7 +20,7 @@ class HarvardlawnurembergDocumentExtractor(GalleryExtractor):
     archive_fmt = "{document_id}_{num}"
     pattern = (r"(?:https?://)?nuremberg\.law\.harvard\.edu"
                r"/documents/(\d+)-([^/?#]+)")
-    example = "https://nuremberg.law.harvard.edu/documents/12345-slug"
+    example = "https://nuremberg.law.harvard.edu/documents/12345-SLUG"
 
     def __init__(self, match):
         self.document_id = match[1]
@@ -37,16 +37,20 @@ class HarvardlawnurembergDocumentExtractor(GalleryExtractor):
         return {
             "document_id": self.document_id,
             "slug"       : self.slug,
-            "title"      : text.unescape
-            (text.extr(page, 'aria-level="1">', "</h1>")),
+            "title"      : text.unescape(
+                text.extr(page, 'aria-level="1">', "</h1>")
+            ),
         }
 
     def images(self, page):
         results = []
         for div in text.extract_iter(page, '<div data-screen-url="', "</div>"):
             extr = text.extract_from(div)
-            results.append((extr('data-full-url="', '"'), {
-                "width" : text.parse_int(extr('data-width="', '"')),
-                "height": text.parse_int(extr('data-height="', '"')),
-            }))
+            results.append((
+                extr('data-full-url="', '"'),
+                {
+                    "width" : text.parse_int(extr('data-width="', '"')),
+                    "height": text.parse_int(extr('data-height="', '"')),
+                },
+            ))
         return results
