@@ -72,8 +72,8 @@ class TumblrExtractor(Extractor):
                 r"https?://(\d+\.media\.tumblr\.com(?:/[0-9a-f]+)?"
                 r"/tumblr(?:_inline)?_[^_]+)_\d+\.([0-9a-z]+)").sub
             self._subn_orig_image = text.re(r"/s\d+x\d+/").subn
-            _findall_image = text.re('<img src="([^"]+)"').findall
-            _findall_video = text.re('<source src="([^"]+)"').findall
+            _findall_image = text.re('<img [^>]*src="([^"]+)"').findall
+            _findall_video = text.re('<source [^>]*src="([^"]+)"').findall
 
         for post in self.posts():
             if self.date_min > post["timestamp"]:
