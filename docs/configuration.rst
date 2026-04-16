@@ -5645,9 +5645,14 @@ extractor.reddit.api
 Type
     ``string``
 Default
-    ``"rest"``
+    ``"auto"``
 Description
     Selects which API endpoints to use.
+
+    ``"auto"``
+        Use ``"oauth"`` when a
+        `client_id <extractor.reddit.client-id & .user-agent_>`__
+        is given, ``"rest"`` otherwise.
 
     ``"oauth"``
         Use the OAuth API at ``https://oauth.reddit.com``
