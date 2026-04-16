@@ -461,8 +461,24 @@ class InstagramExtractor(Extractor):
             self._extract_tagged_users(post, media)
             files.append(media)
 
+        if self._post_type(post) == "reel":
+            data["type"] = "reel"
+            data["post_url"] = f"{self.root}/reel/{post['shortcode']}/"
+        else:
+            data["type"] = "post"
+        
         return data
 
+    def _post_type(self, post):
+        product_type = post.get("product_type") or post.get("media_product_type")
+        if product_type == "clips":
+            return "reel"
+        if post.get("subtype_name_for_REST__") == "XDTClipsMedia":
+            return "reel"
+        if "clips_metadata" in post:
+            return "reel"
+        return "post"
+    
     def _extract_tagged_users(self, src, dest):
         dest["tagged_users"] = tagged_users = []
 
@@ -620,7 +636,9 @@ class InstagramPostsExtractor(InstagramExtractor):
 
     def posts(self):
         uid = self.api.user_id(self.item)
-        return self.api.user_feed(uid)
+        for post in self.api.user_feed(uid):
+            if self._post_type(post) != "reel":
+                yield post
 
     def _extract_pinned(self, post):
         try:
@@ -637,7 +655,9 @@ class InstagramReelsExtractor(InstagramExtractor):
 
     def posts(self):
         uid = self.api.user_id(self.item)
-        return self.api.user_clips(uid)
+        for post in self.api.user_clips(uid):
+            if self._post_type(post) == "reel":
+                yield post
 
     def _extract_pinned(self, post):
         try:
