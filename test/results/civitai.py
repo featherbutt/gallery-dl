@@ -10,7 +10,7 @@ from gallery_dl import exception
 
 __tests__ = (
 {
-    "#url"  : "https://civitai.com/models/703211/maid-classic",
+    "#url"  : "https://civitai.red/models/703211/maid-classic",
     "#class": civitai.CivitaiModelExtractor,
     "#results": (
         "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/51ea6a54-762c-46cf-9588-726461193c96/original=true/00019-2944604798.png",
@@ -75,6 +75,11 @@ __tests__ = (
         "id": 703211,
     },
     "num"    : range(1, 3),
+},
+
+{
+    "#url"  : "https://civitai.com/models/703211/maid-classic",
+    "#class": civitai.CivitaiModelExtractor,
 },
 
 {
