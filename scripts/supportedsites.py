@@ -448,6 +448,10 @@ SUBCATEGORY_MAP = {
     "smugmug": {
         "path": "Images from Users and Folders",
     },
+    "snapchat": {
+        "story": "",
+        "spotlight": "",
+    },
     "steamgriddb": {
         "asset": "Individual Assets",
     },
