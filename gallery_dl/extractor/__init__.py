@@ -51,6 +51,7 @@ modules = [
     "comick",
     "comicvine",
     "cosmos",
+    "cosplayrule34",
     "cyberdrop",
     "cyberfile",
     "danbooru",
