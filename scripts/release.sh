@@ -137,7 +137,9 @@ changelog() {
     # - replace "#NN" with link to actual issue
     # - insert new version and date
     sed -i \
-        -e "s*\([( ]\)#\([0-9]\+\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
+        -e "s*\([( ]\)gh#\([0-9]\+\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
+        -e "s*\([( ]\)#\([0-9][0-9][0-9][0-9]\?\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
+        -e "s*\([( ]\)#\([0-9][0-9]\?\)*\1[#\2](https://codeberg.org/mikf/gallery-dl/issues/\2)*g" \
         -e "s*^## \w\+\$*## ${NEWVERSION} - $(date +%Y-%m-%d)*" \
         "${CHANGELOG}"
 
@@ -172,19 +174,19 @@ prepare() {
         fi
     fi
 
-    echo Syncing local branch with origin/master
+    echo Syncing local branch with origin
     git pull --autostash
 }
 
 upload-git() {
     cd "${ROOTDIR}"
-    echo Pushing changes to github
+    echo Pushing changes to repository
 
     mv -- "${CHANGELOG}.orig" "${CHANGELOG}" || true
     git add "gallery_dl/version.py" "${README}" "${CHANGELOG}"
     git commit -S -m "release version ${NEWVERSION}"
     git tag -s -m "version ${NEWVERSION}" "v${NEWVERSION}"
-    git push --atomic origin master "v${NEWVERSION}"
+    git push --atomic origin "(git rev-parse --abbrev-ref HEAD)" "v${NEWVERSION}"
 }
 
 upload-pypi() {
