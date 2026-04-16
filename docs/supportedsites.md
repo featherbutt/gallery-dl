@@ -250,7 +250,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="cosplayrule34" title="cosplayrule34">
     <td>Cosplayrule34</td>
     <td>https://cosplayrule34.com/</td>
-    <td>Categories, Cosplaies, Fandoms, Models, Posts, Posts, Search Results, Tops</td>
+    <td>Models, Cosplays, Fandoms, Categories, Searches, Posts, Frontpage Posts, Top Pages</td>
     <td></td>
 </tr>
 <tr id="cyberdrop" title="cyberdrop">

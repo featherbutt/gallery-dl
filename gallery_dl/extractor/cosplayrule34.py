@@ -21,49 +21,55 @@ class Cosplayrule34Extractor(Extractor):
     archive_fmt = "{id}_{num}"
     request_interval = (0.5, 1.5)
 
-    _find_next = text.re(
-        r'class="d-none next"[^>]*href="([^"]+)').search
-    _find_post_urls = text.re(
-        r"""onclick="location\.href='(/post/\d+)'""").findall
-    _find_image_urls = text.re(
-        r'href="(https://cosplayrule34\.com/images/a/1280/[^"]+)"').findall
-    _find_tags = text.re(
-        r'href="/(model|cosplay|fandom)/[^"]+">([^<]+)</a>').findall
+    def items(self):
+        data = {"_extractor": Cosplayrule34PostExtractor}
+        for post_url in self.posts():
+            yield Message.Queue, post_url, data
 
-    def _set_page_url(self, path):
-        if self.url.startswith(("http://", "https://")):
-            self.page_url = self.url
-        else:
-            self.page_url = self.root + path
+    def posts(self):
+        _find_post_urls = text.re(
+            r"""onclick="location\.href='(/post/\d+)'""").findall
+        _find_next = text.re(
+            r'class="d-none next"[^>]*href="([^"]+)').search
+
+        url = self.root + self.groups[0]
+        while True:
+            page = self.request(url, notfound=self.subcategory).text
+
+            post_url = None
+            for post_url in util.unique(_find_post_urls(page)):
+                yield self.root + post_url
+
+            if post_url is None:
+                break
+            match = _find_next(page)
+            if match is None:
+                break
+            url = self.root + text.unescape(match[1])
 
 
 class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
     """Extractor for individual cosplayrule34 posts"""
     subcategory = "post"
-    pattern = BASE_PATTERN + r"/post/(\d+)(?:/?\?[^#]+)?/?$"
+    pattern = BASE_PATTERN + r"/post/(\d+)"
     example = "https://cosplayrule34.com/post/101851"
 
-    def __init__(self, match):
-        Cosplayrule34Extractor.__init__(self, match)
-        self.post_id = text.parse_int(match[1])
-        self._set_page_url("/post/" + match[1])
-
     def items(self):
-        data, urls = self._extract_post(self.page_url)
+        data, urls = self._extract_post(self.groups[0])
         data["count"] = len(urls)
 
         yield Message.Directory, "", data
         for data["num"], url in enumerate(urls, 1):
             yield Message.Url, url, text.nameext_from_url(url, data)
 
-    def _extract_post(self, url):
+    def _extract_post(self, post_id):
+        url = f"{self.root}/post/{post_id}"
         page = self.request(url, notfound=self.subcategory).text
-        title = text.unescape(text.extr(page, 'const title = "', '";'))
-        if not title:
-            title = text.unescape(text.extr(page, '<h1 class="h6">', '<'))
+        title = text.unescape(text.extr(page, 'const title = "', '";') or
+                              text.extr(page, '<h1 class="h6">', '<'))
         description = text.unescape(text.extr(
             page, '<meta name="description" content="', '"'))
-        suffix = " - " + str(self.post_id)
+        suffix = " - " + post_id
         if description.endswith(suffix):
             description = description[:-len(suffix)]
 
@@ -74,11 +80,13 @@ class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
         ) or page
 
         tags = {"model": [], "cosplay": [], "fandom": []}
-        for tag_type, tag_name in util.unique(self._find_tags(tag_region)):
+        _find_tags = text.re(
+            r'href="/(model|cosplay|fandom)/[^"]+">([^<]+)</a>').findall
+        for tag_type, tag_name in util.unique(_find_tags(tag_region)):
             tags[tag_type].append(text.unescape(tag_name))
 
         data = {
-            "id"         : self.post_id,
+            "id"         : text.parse_int(post_id),
             "title"      : title,
             "description": description,
             "model"      : tags["model"][0] if tags["model"] else "",
@@ -100,6 +108,8 @@ class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
                 text.extr(page, "const totalPhotos = ", ";")),
         }
 
+        self._find_image_urls = text.re(
+            r'href="(https://cosplayrule34\.com/images/a/1280/[^"]+)"').findall
         urls = list(util.unique(self._find_image_urls(page)))
         if data["count"] > len(urls):
             urls.extend(self._load_more_photos(data, len(urls)))
@@ -182,99 +192,25 @@ class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
 
 class Cosplayrule34ListingExtractor(Cosplayrule34Extractor):
     """Base class for cosplayrule34 post listings"""
-
-    def items(self):
-        data = {"_extractor": Cosplayrule34PostExtractor}
-        for post_url in self.posts():
-            yield Message.Queue, post_url, data
-
-    def posts(self):
-        url = self.page_url
-
-        while True:
-            page = self.request(url, notfound=self.subcategory).text
-
-            for post_url in util.unique(self._find_post_urls(page)):
-                yield self.root + post_url
-
-            match = self._find_next(page)
-            if not match:
-                return
-            url = self.root + text.unescape(match.group(1))
-
-
-class Cosplayrule34ModelExtractor(Cosplayrule34ListingExtractor):
-    """Extractor for cosplayrule34 model pages"""
-    subcategory = "model"
-    pattern = BASE_PATTERN + r"(/model/[^/?#]+(?:/?\?[^#]+)?)$"
-    example = "https://cosplayrule34.com/model/Lynie-Nicole"
+    subcategory = "listing"
+    pattern = (BASE_PATTERN + r"(/"
+               r"(model|cosplay|fandom|category|search)"
+               r"/[^/?#]+(?:/?\?[^#]+)?)")
 
     def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
+        self.subcategory = match[2]
+        Cosplayrule34Extractor.__init__(self, match)
 
 
-class Cosplayrule34CosplayExtractor(Cosplayrule34ListingExtractor):
-    """Extractor for cosplayrule34 cosplay pages"""
-    subcategory = "cosplay"
-    pattern = BASE_PATTERN + r"(/cosplay/[^/?#]+(?:/?\?[^#]+)?)$"
-    example = "https://cosplayrule34.com/cosplay/Makima"
-
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
-
-
-class Cosplayrule34FandomExtractor(Cosplayrule34ListingExtractor):
-    """Extractor for cosplayrule34 fandom pages"""
-    subcategory = "fandom"
-    pattern = BASE_PATTERN + r"(/fandom/[^/?#]+(?:/?\?[^#]+)?)$"
-    example = "https://cosplayrule34.com/fandom/Baldurs-Gate"
-
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
-
-
-class Cosplayrule34CategoryExtractor(Cosplayrule34ListingExtractor):
-    """Extractor for cosplayrule34 category pages"""
-    subcategory = "category"
-    pattern = BASE_PATTERN + r"(/category/[^/?#]+(?:/?\?[^#]+)?)$"
-    example = "https://cosplayrule34.com/category/cosplay"
-
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
-
-
-class Cosplayrule34SearchExtractor(Cosplayrule34ListingExtractor):
-    """Extractor for cosplayrule34 search results"""
-    subcategory = "search"
-    pattern = BASE_PATTERN + r"(/search/[^/?#]+(?:/?\?[^#]+)?)$"
-    example = "https://cosplayrule34.com/search/Makima"
-
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
-
-
-class Cosplayrule34TopExtractor(Cosplayrule34ListingExtractor):
+class Cosplayrule34TopExtractor(Cosplayrule34Extractor):
     """Extractor for cosplayrule34 top pages"""
     subcategory = "top"
     pattern = BASE_PATTERN + r"(/top(?:/?\?[^#]+)?)$"
     example = "https://cosplayrule34.com/top"
 
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1])
 
-
-class Cosplayrule34PostsExtractor(Cosplayrule34ListingExtractor):
+class Cosplayrule34PostsExtractor(Cosplayrule34Extractor):
     """Extractor for cosplayrule34 front-page posts"""
     subcategory = "posts"
     pattern = BASE_PATTERN + r"(/?(?:\?[^#]+)?)$"
     example = "https://cosplayrule34.com/"
-
-    def __init__(self, match):
-        Cosplayrule34ListingExtractor.__init__(self, match)
-        self._set_page_url(match[1] or "/")

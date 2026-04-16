@@ -309,6 +309,11 @@ SUBCATEGORY_MAP = {
         "discord-server": "",
         "posts"         : "",
     },
+    "cosplayrule34": {
+        "listing": ("Models", "Cosplays", "Fandoms", "Categories", "Searches"),
+        "posts"  : "Frontpage Posts",
+        "top"    : "Top Pages"
+    },
     "cyberfile": {
         "shared": "Shares",
     },
