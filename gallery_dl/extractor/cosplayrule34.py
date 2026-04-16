@@ -52,7 +52,7 @@ class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
     """Extractor for individual cosplayrule34 posts"""
     subcategory = "post"
     pattern = BASE_PATTERN + r"/post/(\d+)"
-    example = "https://cosplayrule34.com/post/101851"
+    example = "https://cosplayrule34.com/post/12345"
 
     def items(self):
         data, urls = self._extract_post(self.groups[0])
@@ -89,12 +89,7 @@ class Cosplayrule34PostExtractor(Cosplayrule34Extractor):
             "id"         : text.parse_int(post_id),
             "title"      : title,
             "description": description,
-            "model"      : tags["model"][0] if tags["model"] else "",
-            "models"     : tags["model"],
-            "cosplay"    : tags["cosplay"][0] if tags["cosplay"] else "",
-            "cosplays"   : tags["cosplay"],
-            "fandom"     : tags["fandom"][0] if tags["fandom"] else "",
-            "fandoms"    : tags["fandom"],
+            **tags,
             "tags"       : tags["model"] + tags["cosplay"] + tags["fandom"],
             "album_id"   : text.extr(page, 'const albumId = "', '"'),
             "owner_id"   : text.extr(page, 'const ownerId = "', '"'),
@@ -196,6 +191,7 @@ class Cosplayrule34ListingExtractor(Cosplayrule34Extractor):
     pattern = (BASE_PATTERN + r"(/"
                r"(model|cosplay|fandom|category|search)"
                r"/[^/?#]+(?:/?\?[^#]+)?)")
+    example = "https://cosplayrule34.com/model/MODEL"
 
     def __init__(self, match):
         self.subcategory = match[2]
