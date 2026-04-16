@@ -5651,14 +5651,15 @@ Description
 
     ``"auto"``
         Use ``"oauth"`` when a
-        `client_id <extractor.reddit.client-id & .user-agent_>`__
+        `client_id <extractor.reddit.client-id & .user-agent-oauth_>`__
         is given, ``"rest"`` otherwise.
 
     ``"oauth"``
         Use the OAuth API at ``https://oauth.reddit.com``
 
         Requires
-        `client-id & user-agent <extractor.reddit.client-id & .user-agent_>`__
+        `client-id & user-agent
+        <extractor.reddit.client-id & .user-agent-oauth_>`__
         and uses a
         `refresh token <extractor.reddit.refresh-token_>`__
         for authentication.
@@ -10449,8 +10450,10 @@ How To
       and paste it into your configuration file as ``"client-secret"``
 
 
-extractor.reddit.client-id & .user-agent
-----------------------------------------
+.. _extractor.reddit.client-id & .user-agent:
+
+extractor.reddit.client-id & .user-agent-oauth
+----------------------------------------------
 Type
     ``string``
 How To
@@ -10469,7 +10472,7 @@ How To
       "installed app") and put it in your configuration file
       as ``"client-id"``
     * use "``Python:<application name>:v1.0 (by /u/<username>)``" as
-      ``user-agent`` and replace ``<application name>`` and ``<username>``
+      ``user-agent-oauth`` and replace ``<application name>`` and ``<username>``
       accordingly (see Reddit's
       `API access rules <https://github.com/reddit/reddit/wiki/API>`__)
     * clear your `cache <cache.file_>`__ to delete any remaining

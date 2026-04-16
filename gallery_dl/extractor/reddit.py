@@ -434,7 +434,8 @@ class RedditAPI():
                 kind = "default"
             else:
                 self.client_id = client_id
-                self.headers = {"User-Agent": config("user-agent")}
+                self.headers = {"User-Agent": (config("user-agent-oauth") or
+                                               config("user-agent"))}
                 client_id = client_id[:5] + "*" * (len(client_id)-5)
                 kind = "custom"
 
