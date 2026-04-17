@@ -177,8 +177,8 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="bunkr" title="bunkr">
     <td>Bunkr</td>
-    <td>https://bunkr.si/</td>
-    <td>Albums, Media Files</td>
+    <td>https://bunkr.cr/</td>
+    <td>Albums, Direct Links, Media Files</td>
     <td></td>
 </tr>
 <tr id="catbox" title="catbox">
