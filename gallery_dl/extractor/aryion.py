@@ -52,7 +52,9 @@ class AryionExtractor(Extractor):
 
         response = self.request(url, method="POST", data=data)
         if b"You have been successfully logged in." not in response.content:
-            raise self.exc.AuthenticationError()
+            err = text.extr(response.text, '<div class="error">', "<")
+            raise self.exc.AuthenticationError(
+                f"'{text.unescape(err)}'" if err else None)
         return {c: response.cookies[c] for c in self.cookies_names}
 
     def items(self):
