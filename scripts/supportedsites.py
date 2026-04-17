@@ -264,6 +264,7 @@ SUBCATEGORY_MAP = {
     "user"   : "User Profiles",
     "watch"  : "Watches",
     "direct-messages": "DMs",
+    "direct-link"    : "Direct Links",
     "following"      : "Followed Users",
     "related-pin"    : "related Pins",
     "related-board"  : "",
