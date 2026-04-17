@@ -3293,9 +3293,9 @@ extractor.facebook.loop
 Type
     ``bool``
 Default
-    ``false``
+    ``true``
 Description
-    Continue when detecting a jump to a set's beginning.
+    Continue when detecting a possible jump to a set's beginning.
 
 
 extractor.facebook.videos
