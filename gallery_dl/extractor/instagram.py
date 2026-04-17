@@ -461,23 +461,7 @@ class InstagramExtractor(Extractor):
             self._extract_tagged_users(post, media)
             files.append(media)
 
-        if self._post_type(post) == "reel":
-            data["type"] = "reel"
-            data["post_url"] = f"{self.root}/reel/{post['shortcode']}/"
-        else:
-            data["type"] = "post"
-        
         return data
-
-    def _post_type(self, post):
-        product_type = post.get("product_type") or post.get("media_product_type")
-        if product_type == "clips":
-            return "reel"
-        if post.get("subtype_name_for_REST__") == "XDTClipsMedia":
-            return "reel"
-        if "clips_metadata" in post:
-            return "reel"
-        return "post"
     
     def _extract_tagged_users(self, src, dest):
         dest["tagged_users"] = tagged_users = []
@@ -511,6 +495,15 @@ class InstagramExtractor(Extractor):
                     tagged_users.append({"id"       : user["account_id"],
                                          "username" : user["username"],
                                          "full_name": user["full_name"]})
+    
+    def _is_reel(self, post):
+        product_type = post.get("product_type") or post.get(
+            "media_product_type")
+        return (
+            product_type == "clips" or
+            post.get("subtype_name_for_REST__") == "XDTClipsMedia" or
+            "clips_metadata" in post
+        )
 
     def _extract_pinned(self, post):
         return (post.get("timeline_pinned_user_ids") or
@@ -623,6 +616,7 @@ class InstagramUserExtractor(Dispatch, InstagramExtractor):
             (InstagramStoriesExtractor   , stories),
             (InstagramHighlightsExtractor, base + "highlights/"),
             (InstagramPostsExtractor     , base + "posts/"),
+            (InstagramPhotosExtractor    , base + "photos/"),
             (InstagramReelsExtractor     , base + "reels/"),
             (InstagramTaggedExtractor    , base + "tagged/"),
         ), ("posts",))
@@ -636,15 +630,26 @@ class InstagramPostsExtractor(InstagramExtractor):
 
     def posts(self):
         uid = self.api.user_id(self.item)
-        for post in self.api.user_feed(uid):
-            if self._post_type(post) != "reel":
-                yield post
+        return self.api.user_feed(uid)
 
     def _extract_pinned(self, post):
         try:
             return post["timeline_pinned_user_ids"]
         except KeyError:
             return ()
+
+
+class InstagramPhotosExtractor(InstagramExtractor):
+    """Extractor for an Instagram user's photos"""
+    subcategory = "photos"
+    pattern = USER_PATTERN + r"/photos"
+    example = "https://www.instagram.com/USER/photos/"
+
+    def posts(self):
+        uid = self.api.user_id(self.item)
+        for post in self.api.user_feed(uid):
+            if not self._is_reel(post):
+                yield post
 
 
 class InstagramReelsExtractor(InstagramExtractor):
@@ -655,9 +660,7 @@ class InstagramReelsExtractor(InstagramExtractor):
 
     def posts(self):
         uid = self.api.user_id(self.item)
-        for post in self.api.user_clips(uid):
-            if self._post_type(post) == "reel":
-                yield post
+        return self.api.user_clips(uid)
 
     def _extract_pinned(self, post):
         try:
