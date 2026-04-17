@@ -505,7 +505,7 @@ class FlickrAPI(oauth.OAuth1API):
     def _extract_apikey(self):
         extr = self.extractor
         extr.log.info("Retrieving public API key")
-        page = extr.request(extr.root + "/prints").text
+        page = extr.request(extr.root + "/photos/").text
         return text.extr(page, '.flickr.api.site_key = "', '"')
 
     def _extract_format(self, photo):

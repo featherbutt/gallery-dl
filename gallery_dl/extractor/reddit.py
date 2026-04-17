@@ -418,7 +418,8 @@ class RedditAPI():
         self.morecomments = config("morecomments", False)
         self._warn_429 = False
 
-        if config("api") != "oauth":
+        client_id = config("client-id")
+        if config("api") == "rest" or not client_id:
             self.root = "https://www.reddit.com"
             self.headers = None
             self.authenticate = util.noop
@@ -426,24 +427,21 @@ class RedditAPI():
         else:
             self.root = self.ROOT
 
-            client_id = config("client-id")
-            if client_id is None:
-                self.client_id = self.CLIENT_ID
+            if client_id is None or client_id == self.CLIENT_ID:
+                self.client_id = client_id = self.CLIENT_ID
                 self.headers = {"User-Agent": self.USER_AGENT}
-            else:
-                self.client_id = client_id
-                self.headers = {"User-Agent": config("user-agent")}
-
-            if self.client_id == self.CLIENT_ID:
-                client_id = self.client_id
                 self._warn_429 = True
                 kind = "default"
             else:
+                self.client_id = client_id
+                self.headers = {"User-Agent": (config("user-agent-oauth") or
+                                               config("user-agent"))}
                 client_id = client_id[:5] + "*" * (len(client_id)-5)
                 kind = "custom"
 
             self.log.debug(
-                "Using %s API credentials (client-id %s)", kind, client_id)
+                "Using OAuth API with %s credentials (client-id %s)",
+                kind, client_id)
 
             token = config("refresh-token")
             if token is None or token == "cache":

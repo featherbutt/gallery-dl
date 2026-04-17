@@ -354,4 +354,11 @@ __tests__ = (
     "uuid"      : "edf721b7-618b-4214-9305-845e1d210437",
 },
 
+{
+    "#url"     : "https://cdn123.bunkr.ru/image-sZrQUeOx.jpg",
+    "#category": ("lolisafe", "bunkr", "direct-link"),
+    "#class"   : bunkr.BunkrDirectLinkExtractor,
+    "#results" : "https://par1.scdn.st/image-sZrQUeOx.jpg",
+},
+
 )

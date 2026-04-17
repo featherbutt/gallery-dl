@@ -6,7 +6,7 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-"""Extractors for https://bunkr.si/"""
+"""Extractors for https://bunkr.cr/"""
 
 from .common import Extractor
 from .lolisafe import LolisafeAlbumExtractor
@@ -59,7 +59,7 @@ CF_DOMAINS = set()
 class BunkrAlbumExtractor(LolisafeAlbumExtractor):
     """Extractor for bunkr.si albums"""
     category = "bunkr"
-    root = "https://bunkr.si"
+    root = "https://bunkr.cr"
     root_dl = "https://get.bunkrr.su"
     root_api = "https://apidl.bunkr.ru"
     archive_fmt = "{album_id}_{id|id_url|slug}"
@@ -68,7 +68,7 @@ class BunkrAlbumExtractor(LolisafeAlbumExtractor):
 
     def __init__(self, match):
         LolisafeAlbumExtractor.__init__(self, match)
-        domain = self.groups[0] or self.groups[1]
+        domain = self.groups[0] or self.groups[1] or "bunkr.cr"
         if domain not in LEGACY_DOMAINS:
             self.root = "https://" + domain
 
@@ -254,3 +254,12 @@ class BunkrMediaExtractor(BunkrAlbumExtractor):
             except Exception:
                 pass
         return album_id, "", -1
+
+
+class BunkrDirectLinkExtractor(BunkrMediaExtractor):
+    subcategory = "direct-link"
+    pattern = r"https://cdn\d+\.bunkr\.ru()()(/.+)"
+    example = "https://cdn123.bunkr.ru/NAME-ID.EXT"
+
+    def fetch_album(self, album_id):
+        return BunkrMediaExtractor.fetch_album(self, "/f" + album_id)
