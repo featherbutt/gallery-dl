@@ -29,7 +29,4 @@ RUN : \
     && ( find /usr/local/lib/python3.*/site-packages/wheel      -name __pycache__ -exec rm -rf {} + || true ) \
     && :
 
-RUN : \
-    && :
-
 ENTRYPOINT [ "gallery-dl" ]
