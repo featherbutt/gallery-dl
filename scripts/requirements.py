@@ -56,7 +56,7 @@ def package_hashes(pkg, args):
 
         v = u["python_version"]
         n = u["filename"]
-        if v == "py3" and "-py3-none-any." in n:
+        if v in {"py3", "py2.py3"} and "py3-none-any." in n:
             py3 = u
             continue
 
