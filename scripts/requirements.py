@@ -45,8 +45,9 @@ def package_hashes(pkg, args):
         files.append(((file["filename"], file["digests"]["sha256"])))
 
     py3 = None
-    wheel = (0, None)
     files = result["files"]
+    wheels = {v: (0, ()) for v in args.versions}
+
     for u in d["urls"]:
         if u.get("yanked"):
             continue
@@ -67,24 +68,28 @@ def package_hashes(pkg, args):
             continue
 
         if v in args.python:
-            wheel = (99, ())
+            wheels[99] = (99, ())
         elif v.startswith("cp3"):
             if f"-{v}t-" in n:
                 continue
             v = int(v[3:])
-            if v > wheel[0]:
-                wheel = (v, [u])
-            elif v == wheel[0]:
-                wheel[1].append(u)
+            for version, (current, fs) in wheels.items():
+                if v > version:
+                    continue
+                if v > current:
+                    wheels[version] = (v, [u])
+                elif v == current:
+                    fs.append(u)
             continue
         else:
             continue
 
         append(u)
 
-    if not files and wheel[0]:
-        for u in wheel[1]:
-            append(u)
+    if not files and wheels:
+        for _, fs in wheels.values():
+            for u in fs:
+                append(u)
     if not files and py3:
         append(py3)
 
@@ -228,8 +233,7 @@ def parse_args(args=None):
     if args.windows:
         args.platform.append("win")
     if args.linux:
-        args.platform.append("manylinux\\d*")
-        args.platform.append("musllinux")
+        args.manylinux = args.musllinux = True
     if args.manylinux:
         args.platform.append("manylinux\\d*")
     if args.musllinux:
@@ -244,8 +248,10 @@ def parse_args(args=None):
         for i, p in enumerate(args.python):
             if p.isdecimal():
                 args.python[i] = f"cp3{p}"
+        args.versions = [int(p[3:]) for p in args.python]
     else:
         args.python.append("cp314")
+        args.versions = [14]
     args.python.append("py3")
 
     return args
