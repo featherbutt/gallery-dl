@@ -88,7 +88,7 @@ def package_hashes(pkg, args):
         append(py3)
 
     for d in i["requires_dist"] or ():
-        name = re.sub(r"([\w-]+).+", r"\1", d).lower()
+        name = re.sub(r"([\w-]+).*", r"\1", d).lower()
 
         pos = d.find(" extra == ")
         if pos < 0:
@@ -164,7 +164,7 @@ def parse_args(args=None):
     parser.add_argument("-E", "--Extra", action="store_true")
     parser.add_argument("-f", "--freethreaded", action="store_true")
     parser.add_argument("-F", "--filenames", action="store_true")
-    parser.add_argument("-i", "--input")
+    parser.add_argument("-i", "--input", action="append")
     parser.add_argument("-N", "--no-clobber", default="w",
                         dest="mode", action="store_const", const="x")
     parser.add_argument("-o", "--output")
@@ -186,22 +186,21 @@ def parse_args(args=None):
 
     parser.add_argument("PKGS", nargs="*")
     args = parser.parse_args()
+    pkgs = args.pkgs = args.PKGS
 
     if args.input:
-        pkgs = args.PKGS
-        with util.open(args.input) as fp:
-            for line in fp:
-                line = line.strip()
-                if not line or line[0] == "#":
-                    continue
-                pkgs.append(line)
+        for path in args.input:
+            with util.open(path) as fp:
+                for line in fp:
+                    line = line.strip()
+                    if not line or line[0] == "#":
+                        continue
+                    pkgs.append(line)
 
     if args.Output:
         if not args.pkgs:
             args.pkgs = (args.Output,)
         args.output = util.path("requirements", args.Output.lower())
-    else:
-        args.pkgs = args.PKGS
 
     if args.freethreaded:
         args.freethreaded = False
@@ -212,12 +211,10 @@ def parse_args(args=None):
     if args.x32:
         args.architecture.append("win32")
     if args.x64:
-        args.architecture.append("x86_64")
-        args.architecture.append("amd64")
+        args.architecture.append("(?:x86_|amd)64")
     if args.arm64:
         args.architecture.append("universal2")
-        args.architecture.append("aarch64")
-        args.architecture.append("arm64")
+        args.architecture.append("a(?:arch|rm)64")
     if args.architecture:
         args.architecture = re.compile(
             fr"_(?:{'|'.join(args.architecture)})\.").search
@@ -228,7 +225,7 @@ def parse_args(args=None):
         args.platform.append("manylinux\\d*")
         args.platform.append("musllinux")
     if args.manylinux:
-        args.platform.append("manylinux")
+        args.platform.append("manylinux\\d*")
     if args.musllinux:
         args.platform.append("musllinux")
     if args.macosx:
