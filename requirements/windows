@@ -11,7 +11,7 @@ pycryptodomex==3.23.0 \
     --hash=sha256:52e5ca58c3a0b0bd5e100a9fbc8015059b05cffc6c66ce9d98b4b45e023443b9 \
 
 pyinstaller==6.19.0 \
-    --hash=sha256:c2d5a539b0bfe6159d5522c8c70e1c0e487f22c2badae0f97d45246223b798ea \
+    --hash=sha256:b5bb6536c6560330d364d91522250f254b107cf69129d9cbcd0e6727c570be33 \
 
 PySocks==1.7.1 \
     --hash=sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5 \

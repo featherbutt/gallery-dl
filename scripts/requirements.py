@@ -54,21 +54,22 @@ def package_hashes(pkg, args):
             continue
 
         v = u["python_version"]
-        if v == "py3":
+        n = u["filename"]
+        if v == "py3" and "-py3-none-any." in n:
             py3 = u
             continue
 
-        if args.freethreaded and args.freethreaded(u["filename"]):
+        if args.freethreaded and args.freethreaded(n):
             continue
-        if args.architecture and not args.architecture(u["filename"]):
+        if args.architecture and not args.architecture(n):
             continue
-        if args.platform and not args.platform(u["filename"]):
+        if args.platform and not args.platform(n):
             continue
 
         if v in args.python:
             wheel = (99, ())
         elif v.startswith("cp3"):
-            if f"-{v}t-" in u["filename"]:
+            if f"-{v}t-" in n:
                 continue
             v = int(v[3:])
             if v > wheel[0]:
@@ -245,6 +246,7 @@ def parse_args(args=None):
                 args.python[i] = f"cp3{p}"
     else:
         args.python.append("cp314")
+    args.python.append("py3")
 
     return args
 
