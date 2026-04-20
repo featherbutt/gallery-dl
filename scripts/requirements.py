@@ -65,7 +65,7 @@ def package_hashes(pkg, args):
         if args.platform and not args.platform(u["filename"]):
             continue
 
-        if v == "cp314":
+        if v in args.python:
             wheel = (99, ())
         elif v.startswith("cp3"):
             if f"-{v}t-" in u["filename"]:
@@ -170,6 +170,7 @@ def parse_args(args=None):
     parser.add_argument("-o", "--output")
     parser.add_argument("-O", "--Output")
     parser.add_argument("-p", "--platform", action="append", default=[])
+    parser.add_argument("-P", "--python", action="append", default=[])
     parser.add_argument("-s", "--sdist", action="store_true")
     parser.add_argument("-x", "--exclude", action="append", default=[])
 
@@ -183,6 +184,10 @@ def parse_args(args=None):
     parser.add_argument("--manylinux", "--glibc", action="store_true")
     parser.add_argument("--musllinux", action="store_true")
     parser.add_argument("--macosx", "--osx", action="store_true")
+
+    for v in map(str, range(8, 15)):
+        parser.add_argument("--py" + v, dest="python",
+                            action="append_const", const="cp3" + v)
 
     parser.add_argument("PKGS", nargs="*")
     args = parser.parse_args()
@@ -233,6 +238,13 @@ def parse_args(args=None):
     if args.platform:
         args.platform = re.compile(
             fr"-(?:{'|'.join(args.platform)})_").search
+
+    if args.python:
+        for i, p in enumerate(args.python):
+            if p.isdecimal():
+                args.python[i] = f"cp3{p}"
+    else:
+        args.python.append("cp314")
 
     return args
 
