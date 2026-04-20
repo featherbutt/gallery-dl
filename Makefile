@@ -24,9 +24,9 @@ test:
 executable:
 	scripts/pyinstaller.py
 
-requirements: requirements/docker
-
 completion: data/completion/gallery-dl data/completion/_gallery-dl data/completion/gallery-dl.fish
+
+requirements: requirements/docker requirements/windows requirements/linux requirements/macos
 
 man: data/man/gallery-dl.1 data/man/gallery-dl.conf.5
 
@@ -58,4 +58,13 @@ data/completion/gallery-dl.fish: gallery_dl/option.py scripts/completion_fish.py
 	$(PYTHON) scripts/completion_fish.py
 
 requirements/docker: scripts/requirements.py requirements/versions
-	$(PYTHON) scripts/requirements.py -i requirements/versions -D -o requirements/docker --musl --x64 --arm
+	$(PYTHON) scripts/requirements.py -i requirements/versions -D --musl --x64 --arm --py14 -o requirements/docker
+
+requirements/windows: scripts/requirements.py requirements/versions requirements/versions_pyinstaller
+	$(PYTHON) scripts/requirements.py -i requirements/versions -i requirements/versions_pyinstaller -D --windows --x64 --py14 -o requirements/windows
+
+requirements/linux: scripts/requirements.py requirements/versions requirements/versions_pyinstaller requirements/versions_secretstorage
+	$(PYTHON) scripts/requirements.py -i requirements/versions -i requirements/versions_pyinstaller -i requirements/versions_secretstorage -D --glibc --x64 --py10 --py14 -o requirements/linux
+
+requirements/macos: scripts/requirements.py requirements/versions requirements/versions_pyinstaller
+	$(PYTHON) scripts/requirements.py -i requirements/versions -i requirements/versions_pyinstaller -D --macos --x64 --arm64 --py14 -o requirements/macos
