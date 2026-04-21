@@ -7227,6 +7227,16 @@ Description
     to accept before stopping.
 
 
+extractor.twitter.showreplies
+-----------------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Expand ``Show replies`` stubs.
+
+
 extractor.twitter.timeline.strategy
 -----------------------------------
 Type

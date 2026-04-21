@@ -34,6 +34,7 @@ class TwitterExtractor(Extractor):
         self.user = match[1]
 
     def _init(self):
+        self.showreplies = self.config("showreplies", True)
         self.unavailable = self.config("unavailable", False)
         self.textonly = self.config("text-tweets", False)
         self.retweets = self.config("retweets", False)
@@ -1486,7 +1487,7 @@ class TwitterAPI():
 
         return tweet
 
-    def tweet_detail(self, tweet_id):
+    def tweet_detail(self, tweet_id, cursor=None):
         endpoint = "/graphql/iFEr5AcP121Og4wx9Yqo3w/TweetDetail"
         variables = {
             "focalTweetId": tweet_id,
@@ -1508,7 +1509,7 @@ class TwitterAPI():
         return self._pagination_tweets(
             endpoint, variables,
             ("threaded_conversation_with_injections_v2",),
-            field_toggles=field_toggles)
+            field_toggles=field_toggles, cursor=cursor)
 
     def user_tweets(self, screen_name):
         endpoint = "/graphql/E8Wq-_jFSaU7hxVcuOPR9g/UserTweets"
@@ -2066,7 +2067,7 @@ class TwitterAPI():
 
     def _pagination_tweets(self, endpoint, variables,
                            path=None, stop_tweets=0, update_variables=None,
-                           features=None, field_toggles=None):
+                           features=None, field_toggles=None, cursor=None):
         extr = self.extractor
         original_retweets = (extr.retweets == "original")
         pinned_tweet = True if extr.pinned else None
@@ -2082,7 +2083,7 @@ class TwitterAPI():
             count = False
 
         params = {"variables": None}
-        if cursor := extr._init_cursor():
+        if cursor is not None or (cursor := extr._init_cursor()):
             variables["cursor"] = cursor
         if features is None:
             features = self.features_pagination
@@ -2194,7 +2195,10 @@ class TwitterAPI():
                 elif esw(("homeConversation-",
                           "profile-conversation-",
                           "conversationthread-")):
-                    tweets.extend(entry["content"]["items"])
+                    if "content" in entry:
+                        tweets.extend(entry["content"]["items"])
+                    else:
+                        tweets.append(entry)
                 elif esw("tombstone-"):
                     item = entry["content"]["itemContent"]
                     item["tweet_results"] = \
@@ -2255,10 +2259,21 @@ class TwitterAPI():
                         tweet = tweet["tweet"]
                     legacy = tweet["legacy"]
                     tweet["sortIndex"] = entry.get("sortIndex")
-                except KeyError:
-                    extr.log.debug(
-                        "Skipping %s (deleted)",
-                        (entry.get("entryId") or "").rpartition("-")[2])
+                except KeyError as exc:
+                    tid = (entry.get("entryId") or "").rpartition("-")[2]
+                    if exc.args[0] == "tweet_results" and item.get(
+                            "cursorType") == "ShowMore":
+                        if extr.showreplies:
+                            extr.log.debug(
+                                "Expanding %s ('Show replies' stub)", tid)
+                            yield from self.tweet_detail(
+                                variables.get("focalTweetId") or tid,
+                                cursor=item["value"])
+                        else:
+                            extr.log.debug(
+                                "Skipping %s ('Show More' stub)", tid)
+                    else:
+                        extr.log.debug("Skipping %s (deleted)", tid)
                     continue
 
                 if retry is None:
