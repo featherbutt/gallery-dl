@@ -20,6 +20,7 @@ __tests__ = (
         "https://www.instagram.com/stories/instagram/",
         "https://www.instagram.com/instagram/highlights/",
         "https://www.instagram.com/instagram/posts/",
+        "https://www.instagram.com/instagram/photos/",
         "https://www.instagram.com/instagram/reels/",
         "https://www.instagram.com/instagram/tagged/",
     ),
@@ -41,6 +42,14 @@ __tests__ = (
     "#url"     : "https://www.instagram.com/instagram/posts/",
     "#category": ("", "instagram", "posts"),
     "#class"   : instagram.InstagramPostsExtractor,
+    "#range"   : "1-16",
+    "#count"   : ">= 16",
+},
+
+{
+    "#url"     : "https://www.instagram.com/instagram/photos/",
+    "#category": ("", "instagram", "photos"),
+    "#class"   : instagram.InstagramPhotosExtractor,
     "#range"   : "1-16",
     "#count"   : ">= 16",
 },
