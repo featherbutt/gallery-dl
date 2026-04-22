@@ -212,6 +212,7 @@ modules = [
     "slickpic",
     "slideshare",
     "smugmug",
+    "snapchat",
     "soundgasm",
     "speakerdeck",
     "steamgriddb",
