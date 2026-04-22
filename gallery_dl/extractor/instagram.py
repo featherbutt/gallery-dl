@@ -462,7 +462,7 @@ class InstagramExtractor(Extractor):
             files.append(media)
 
         return data
-    
+
     def _extract_tagged_users(self, src, dest):
         dest["tagged_users"] = tagged_users = []
 
@@ -495,7 +495,7 @@ class InstagramExtractor(Extractor):
                     tagged_users.append({"id"       : user["account_id"],
                                          "username" : user["username"],
                                          "full_name": user["full_name"]})
-    
+
     def _is_reel(self, post):
         product_type = post.get("product_type") or post.get(
             "media_product_type")
