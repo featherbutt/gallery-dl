@@ -9472,6 +9472,18 @@ Note
     Only applies to ``"mode": "json"`` and ``"jsonl"``.
 
 
+metadata.empty
+--------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Write empty
+    JSON / ``tags`` / `content-format <metadata.content-format_>`__
+    data and create empty files.
+
+
 metadata.open
 -------------
 Type

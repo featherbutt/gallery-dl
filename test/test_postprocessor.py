@@ -1021,6 +1021,42 @@ class MetadataTest(BasePostprocessorTest):
 }
 """)
 
+    def test_metadata_option_empty_json(self):
+        self._create({"mode": "json", "include": "_"})
+
+        with patch("builtins.open", mock_open()) as m:
+            self._trigger()
+
+        m.assert_not_called()
+        self.assertEqual(self._output(m), "")
+
+    def test_metadata_option_empty_tags(self):
+        self._create({"mode": "tags"})
+
+        with patch("builtins.open", mock_open()) as m:
+            self._trigger()
+
+        m.assert_not_called()
+        self.assertEqual(self._output(m), "")
+
+    def test_metadata_option_empty_fmt(self):
+        self._create({"format": "{''}"})
+
+        with patch("builtins.open", mock_open()) as m:
+            self._trigger()
+
+        m.assert_not_called()
+        self.assertEqual(self._output(m), "")
+
+    def test_metadata_option_empty_true(self):
+        self._create({"empty": True, "format": "{''}"})
+
+        with patch("builtins.open", mock_open()) as m:
+            self._trigger()
+
+        m.assert_called_once()
+        self.assertEqual(self._output(m), "")
+
     def test_archive(self):
         pp = self._create({
             "archive": ":memory:",

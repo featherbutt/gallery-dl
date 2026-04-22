@@ -114,7 +114,8 @@ class MetadataPP(PostProcessor):
             self._archive_register(job)
 
         self.filter = self._make_filter(options)
-        self.mtime = options.get("mtime")
+        self.empty = options.get("empty", False)
+        self.mtime = options.get("mtime", False)
         self.omode = options.get("open", omode)
         self.encoding = options.get("encoding", "utf-8")
         self.newline = options.get("newline")
@@ -143,22 +144,23 @@ class MetadataPP(PostProcessor):
         if self.skip and os.path.exists(path):
             return
 
-        try:
-            with self.open(path) as fp:
-                self.write(fp, pathfmt.kwdict)
-        except FileNotFoundError:
-            os.makedirs(directory, exist_ok=True)
-            with self.open(path) as fp:
-                self.write(fp, pathfmt.kwdict)
+        content = self.write(pathfmt.kwdict)
+        if content or self.empty:
+            try:
+                with self.open(path) as fp:
+                    fp.write(content)
+            except FileNotFoundError:
+                os.makedirs(directory, exist_ok=True)
+                with self.open(path) as fp:
+                    fp.write(content)
+            if self.mtime:
+                pathfmt.set_mtime(path)
 
         if archive:
             archive.add(pathfmt.kwdict)
 
-        if self.mtime:
-            pathfmt.set_mtime(path)
-
     def _run_stdout(self, pathfmt):
-        self.write(sys.stdout, pathfmt.kwdict)
+        sys.stdout.write(self.write(pathfmt.kwdict))
 
     def _run_modify(self, pathfmt):
         kwdict = pathfmt.kwdict
@@ -222,12 +224,12 @@ class MetadataPP(PostProcessor):
         kwdict["extension"] = ext
         return filename
 
-    def _write_custom(self, fp, kwdict):
-        fp.write(self._content_fmt(kwdict))
+    def _write_custom(self, kwdict):
+        return self._content_fmt(kwdict)
 
-    def _write_tags(self, fp, kwdict):
+    def _write_tags(self, kwdict):
         if not (tags := kwdict.get("tags") or kwdict.get("tag_string")):
-            return
+            return ""
 
         if isinstance(tags, str):
             taglist = tags.split(", ")
@@ -244,12 +246,12 @@ class MetadataPP(PostProcessor):
             ]
             tags.sort()
 
-        fp.write("\n".join(tags) + "\n")
+        return "\n".join(tags) + "\n" if tags else ""
 
-    def _write_json(self, fp, kwdict):
+    def _write_json(self, kwdict):
         if self.filter:
             kwdict = self.filter(kwdict)
-        fp.write(self._json_encode(kwdict) + "\n")
+        return self._json_encode(kwdict) + "\n" if kwdict else ""
 
     def _make_filter(self, options):
         if include := options.get("include"):
