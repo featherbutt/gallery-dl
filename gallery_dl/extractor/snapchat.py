@@ -11,7 +11,7 @@ from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?snapchat\.com"
 USER = r"(?:@|add/)([^/\?#]+)"
-USER_PATTERN = BASE_PATTERN + r"/" + USER
+USER_PATTERN = f"{BASE_PATTERN}/{USER}"
 
 
 class SnapchatExtractor(Extractor):
@@ -137,8 +137,8 @@ class SnapchatStoryExtractor(SnapchatExtractor):
     # https://www.snapchat.com/@snackattackshow/
     # PnJFM8uuTRWo90OsrEH5pwAAgeGZvd2RrZGxxAZ1I2NonAZ1I2NmfAAAAAA.
     pattern = USER_PATTERN + r"/(?:highlight/)?[^/\?#]{20,}"
-    example = "https://www.snapchat.com/@username/highlight/" + \
-        "c3050cba-2f43-4e06-8ac4-d79069bac22f"
+    example = ("https://www.snapchat.com/@username/highlight"
+               "/c3050cba-2f43-4e06-8ac4-d79069bac22f")
 
     def items(self):
         next_data = self._request_next_data(self.url)
@@ -164,9 +164,9 @@ class SnapchatStoryExtractor(SnapchatExtractor):
 class SnapchatSpotlightExtractor(SnapchatExtractor):
     """Extracts an individual spotlight post"""
     subcategory = "spotlight"
-    pattern = BASE_PATTERN + rf"/(?:{USER}/)?spotlight/[^/\?#]+"
-    example = "https://www.snapchat.com/spotlight/" + \
-        "W7_EDlXWTBiXAEEniNoMPwAAYdGFzb3FpYXVuAZqDMm6sAZqDMm6VAAAAAQ"
+    pattern = rf"{BASE_PATTERN}/(?:{USER}/)?spotlight/[^/\?#]+"
+    example = ("https://www.snapchat.com/spotlight"
+               "/W7_EDlXWTBiXAEEniNoMPwAAYdGFzb3FpYXVuAZqDMm6sAZqDMm6VAAAAAQ")
 
     def items(self):
         next_data = self._request_next_data(self.url)
@@ -205,8 +205,7 @@ class SnapchatLimitedSupportExtractor(SnapchatExtractor):
 
 
 class SnapchatStoriesExtractor(SnapchatLimitedSupportExtractor):
-    """Extracts every [known] story belonging to a single Snapchat
-    user"""
+    """Extracts every [known] story belonging to a single Snapchat user"""
     subcategory = "stories"
     pattern = USER_PATTERN + r"/(?:stories|highlights)"
     example = "https://www.snapchat.com/@username/stories"
@@ -234,8 +233,7 @@ class SnapchatStoriesExtractor(SnapchatLimitedSupportExtractor):
 
 
 class SnapchatSpotlightsExtractor(SnapchatLimitedSupportExtractor):
-    """Extracts every [known] spotlight belonging to a single Snapchat
-    user"""
+    """Extracts every [known] spotlight belonging to a single Snapchat user"""
     subcategory = "spotlights"
     pattern = USER_PATTERN + r"/spotlights"
     example = "https://www.snapchat.com/@username/spotlights"
