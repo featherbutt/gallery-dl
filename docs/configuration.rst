@@ -2415,6 +2415,12 @@ Description
       ``R``, ``X``, and ``XXX`` rated images,
       while ``3`` (``1|2``) would return only
       ``None`` and ``Soft`` rated images,
+Note
+    Requires
+    `api-key <extractor.civitai.api-key_>`__
+    or authenticated
+    `cookies <extractor.*.cookies_>`__
+    to allow NSFW content.
 
 
 extractor.civitai.period
