@@ -537,8 +537,8 @@ URL_MAP = {
     "wikimedia": "https://www.wikimedia.org/",
 }
 
-_OAUTH = '<a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a>'
-_COOKIES = '<a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a>'
+_OAUTH = '<a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a>'
+_COOKIES = '<a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a>'
 _APIKEY_DB = ('<a href="https://gdl-org.github.io/docs/configuration.html'
               '#extractor-derpibooru-api-key">API Key</a>')
 _APIKEY_WH = ('<a href="https://gdl-org.github.io/docs/configuration.html'

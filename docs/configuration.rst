@@ -1195,7 +1195,7 @@ Default
     ``"_path"``
 Description
     Insert a reference to the current
-    `PathFormat <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/path.py#L27>`__
+    `PathFormat <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/path.py#L27>`__
     data structure into metadata dictionaries as the given name.
 
     For example, setting this option to ``"gdl_path"`` would make it possible
@@ -1212,7 +1212,7 @@ Default
     ``"_extr"``
 Description
     Insert a reference to the current
-    `Extractor <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/extractor/common.py#L28>`__
+    `Extractor <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/extractor/common.py#L30>`__
     object into metadata dictionaries as the given name.
 
 
@@ -10078,7 +10078,7 @@ Type
     ``list`` of ``strings``
 Default
     The ``modules`` list in
-    `extractor/__init__.py <https://github.com/mikf/gallery-dl/blob/master/gallery_dl/extractor/__init__.py#L12>`__
+    `extractor/__init__.py <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/extractor/__init__.py#L12>`__
 Example
     ``["reddit", "danbooru", "mangadex"]``
 Description
@@ -10101,7 +10101,7 @@ Description
     i.e. classes with a ``pattern`` attribute.
 Note
     ``null`` references internal extractors defined in
-    `extractor/__init__.py <https://github.com/mikf/gallery-dl/blob/master/gallery_dl/extractor/__init__.py#L12>`__
+    `extractor/__init__.py <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/extractor/__init__.py#L12>`__
     or by `extractor.modules`_.
 
 
@@ -10224,7 +10224,7 @@ Type
 Description
     A Python |Module|_ whose namespace,
     in addition to the ``GLOBALS`` dict in
-    `util.py <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/util.py#L566-L578>`__,
+    `util.py <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/util.py#L746-L763>`__,
     is used as |globals parameter|__ for compiled Expressions_.
 
 .. |globals parameter| replace:: ``globals`` parameter
@@ -10750,9 +10750,9 @@ Description
           In addition to the default
           `LogRecord attributes <https://docs.python.org/3/library/logging.html#logrecord-attributes>`__,
           it is also possible to access the current
-          `extractor <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/extractor/common.py#L28>`__,
-          `job <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/job.py#L33>`__,
-          `path <https://github.com/mikf/gallery-dl/blob/v1.27.0/gallery_dl/path.py#L27>`__,
+          `extractor <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/extractor/common.py#L30>`__,
+          `job <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/job.py#L35>`__,
+          `path <https://codeberg.org/mikf/gallery-dl/src/tag/v1.32.0/gallery_dl/path.py#L27>`__,
           and `keywords` objects and their attributes, for example
           ``"{extractor.url}"``, ``"{path.filename}"``, ``"{keywords.title}"``
         * Default:
@@ -10942,7 +10942,7 @@ Description
         Raise an exception.
 
         This can be an exception defined in
-        `exception.py <https://github.com/mikf/gallery-dl/blob/master/gallery_dl/exception.py>`_
+        `exception.py <https://codeberg.org/mikf/gallery-dl/src/branch/master/gallery_dl/exception.py>`_
         or a
         `built-in exception <https://docs.python.org/3/library/exceptions.html#exception-hierarchy>`_
         (e.g. ``ZeroDivisionError``)
@@ -11071,8 +11071,8 @@ Reference
 .. _open():             https://docs.python.org/3/library/functions.html#open
 .. _json.dump():        https://docs.python.org/3/library/json.html#json.dump
 .. _mature_content:     https://www.deviantart.com/developers/http/v1/20160316/object/deviation
-.. _Authentication:     https://github.com/mikf/gallery-dl#authentication
-.. _OAuth:              https://github.com/mikf/gallery-dl#oauth
+.. _Authentication:     https://codeberg.org/mikf/gallery-dl#authentication
+.. _OAuth:              https://codeberg.org/mikf/gallery-dl#oauth
 .. _youtube-dl:         https://github.com/ytdl-org/youtube-dl
 .. _yt-dlp:             https://github.com/yt-dlp/yt-dlp
 .. _FFmpeg:             https://www.ffmpeg.org/

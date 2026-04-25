@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright 2019-2020 Mike Fährmann
+# Copyright 2019-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -77,6 +77,7 @@ Per user configuration file.
 Alternate per user configuration file.
 
 .SH BUGS
+https://codeberg.org/mikf/gallery-dl/issues
 https://github.com/mikf/gallery-dl/issues
 
 .SH AUTHORS
@@ -188,6 +189,7 @@ those as makeshift comments by settings their values to arbitrary strings.
 %(options)s
 
 .SH BUGS
+https://codeberg.org/mikf/gallery-dl/issues
 https://github.com/mikf/gallery-dl/issues
 
 .SH AUTHORS
