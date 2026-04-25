@@ -709,6 +709,11 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.pixiv.net/search?q=touhou%20flandre&s_mode=tc&type=artwork",
+    "#class"   : pixiv.PixivSearchExtractor,
+},
+
+{
     "#url"     : "https://touch.pixiv.net/search.php?word=Original",
     "#class"   : pixiv.PixivSearchExtractor,
 },
