@@ -20,6 +20,7 @@ __tests__ = (
     "filename" : "test-ãƒ†ã‚¹ãƒˆ",
     "extension": "png",
     "post_url" : "https://imx.to/i/1qdeva",
+    "date"  : "dt:2018-04-09 00:00:00",
     "size"  : 18,
     "width" : 64,
     "height": 32,
