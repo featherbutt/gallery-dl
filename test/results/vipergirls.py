@@ -81,7 +81,37 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://planetviper.club/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
+    "#url"     : "https://viperbb.rocks/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
     "#url"     : "https://viper.to/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
+    "#url"     : "https://viperkats.eu/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
+    "#url"     : "https://viperohilia.art/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
+    "#url"     : "https://viperproxy.org/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
+    "#class"   : vipergirls.VipergirlsPostExtractor,
+},
+
+{
+    "#url"     : "https://vipervault.link/threads/4328304-2011-05-28-Danica-Simply-Beautiful-x112-4500x3000?p=116038081&viewfull=1#post116038081",
     "#class"   : vipergirls.VipergirlsPostExtractor,
 },
 
