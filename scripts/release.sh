@@ -85,7 +85,7 @@ build-vm() {
     # copy source files
     mkdir -p /tmp/gallery-dl/dist
     cp -a -t /tmp/gallery-dl -- \
-        ./gallery_dl ./scripts ./data ./setup.py ./README.rst
+        ./gallery_dl ./scripts ./requirements ./data ./setup.py ./README.rst
 
     # update __variant__
     sed -i \
@@ -137,9 +137,6 @@ changelog() {
     # - replace "#NN" with link to actual issue
     # - insert new version and date
     sed -i \
-        -e "s*\([( ]\)gh#\([0-9]\+\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
-        -e "s*\([( ]\)#\([0-9][0-9][0-9][0-9]\?\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
-        -e "s*\([( ]\)#\([0-9][0-9]\?\)*\1[#\2](https://codeberg.org/mikf/gallery-dl/issues/\2)*g" \
         -e "s*^## \w\+\$*## ${NEWVERSION} - $(date +%Y-%m-%d)*" \
         "${CHANGELOG}"
 
@@ -186,7 +183,7 @@ upload-git() {
     git add "gallery_dl/version.py" "${README}" "${CHANGELOG}"
     git commit -S -m "release version ${NEWVERSION}"
     git tag -s -m "version ${NEWVERSION}" "v${NEWVERSION}"
-    git push --atomic origin "(git rev-parse --abbrev-ref HEAD)" "v${NEWVERSION}"
+    git push --atomic origin "$(git rev-parse --abbrev-ref HEAD)" "v${NEWVERSION}"
 }
 
 upload-pypi() {
