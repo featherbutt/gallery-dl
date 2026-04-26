@@ -3248,6 +3248,8 @@ Description
     ``"metadata"``
         Load only a gallery's metadata from the
         `API <https://ehwiki.org/wiki/API#Gallery_Metadata>`_
+    ``"torrent"``
+        Download a gallery's ``.torrent`` files
 
 
 extractor.exhentai.tags
