@@ -400,7 +400,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="framedsc" title="framedsc">
     <td>framedsc</td>
     <td>https://framedsc.com/</td>
-    <td>Individual Images, Filtered Images by User, Filtered Images by Author, Filtered Images by Color</td>
+    <td>Individual Images, Search Results</td>
     <td></td>
 </tr>
 <tr id="furaffinity" title="furaffinity">

@@ -8,8 +8,14 @@
 
 # """Extractors for https://framedsc.com/"""
 
+import sys
+import urllib.parse
+from datetime import datetime
+
 from .common import Extractor, Message
 from .. import text
+
+RELATIONS = ["<", "=", ">"]
 
 IMAGE_DB = "https://raw.githubusercontent.com/originalnicodrgitbot/hall-of-framed-db/main/shotsdb.json"
 AUTHOR_DB = "https://raw.githubusercontent.com/originalnicodrgitbot/hall-of-framed-db/main/authorsdb.json"
@@ -23,6 +29,15 @@ class BaseFramedscExtractor(Extractor):
         self.image_db = self.request(IMAGE_DB).json()['_default']
         self.author_db = self.request(AUTHOR_DB).json()['_default']
 
+    def find_author(self, author_nick):
+        for author in self.author_db.values():
+            if author['authorNick'] == author_nick:
+                return author['authorid']
+    
+    def quit(self, url):
+        self.log.info(f"No results for {url}")
+        sys.exit()
+            
     def process_image(self, url):
         url = text.ensure_http_scheme(url)
         image = text.nameext_from_url(url, {"url": url})
@@ -34,7 +49,7 @@ class FramedscImageExtractor(BaseFramedscExtractor):
     subcategory = "image"
     archive_fmt = "{filename}"
     
-    pattern = r"(?:https?://)?(?:www\.)?framedsc\.com/HallOfFramed/\?imageId=(\d+)"
+    pattern = r"(?:https?://)?(?:www\.)?framedsc\.com/HallOfFramed/\?[^?]*imageId=(\d+)"
     example = "https://framedsc.com/HallOfFramed/?imageId=12345"
 
     def __init__(self, match):
@@ -55,3 +70,164 @@ class FramedscAltImageExtractor(BaseFramedscExtractor):
 
     def items(self):
         yield from self.process_image(self.url)
+
+class FramedscFilterExtractor(BaseFramedscExtractor):
+    """Extractor for framedsc images filtered"""
+    subcategory = "gallery"
+    archive_fmt = "{filename}"
+    
+    pattern = r"(?:https?://)?(?:www\.)?framedsc\.com/HallOfFramed/\?(?!.*imageId=)(.*)"
+    example = "https://framedsc.com/HallOfFramed/?author=AUTHOR&title=TITLE"
+
+    def __init__(self, match):
+        Extractor.__init__(self, match)
+        self.filters_str = match[1]
+                
+    def parse_filters(self, filter_str):
+        filters = {
+            'author': [], 
+            'title': [], 
+            'on': [], 
+            'before':[],
+            'after': [], 
+            'color': [],
+            'width': {
+                '>': [], 
+                '<': [], 
+                '=': []
+            },
+            'height': {
+                '>': [], 
+                '<': [], 
+                '=': []
+            },
+            'score': {
+                '>': [], 
+                '<': [], 
+                '=': []
+            },
+        }
+
+        i = 0
+        while len(filter_str) > 0:
+            filter_str = filter_str[i:]
+
+            j = filter_str.find('=')
+            if (j < 0):
+                break
+
+            end = filter_str.find('&')
+            if (end < 0):
+                end = len(filter_str)
+                
+            field = filter_str[:j]
+            value = urllib.parse.unquote(filter_str[j+1:end])
+            
+            if field not in filters.keys():
+                self.quit(self.url)
+
+            if field == 'author':
+                filters[field].append(self.find_author(value))
+            elif field == 'title':
+                filters[field].append(value.replace("+", " "))
+            elif field == 'width' or field == 'height' or field == 'score':
+                if len(value) == 0 or not(value[0] == '>' or value[0] == '<'):
+                    filters[field]['='].append(value[1:])
+                else:
+                    filters[field][value[0]].append(value[1:])
+            else:
+                filters[field].append(value)
+
+            if end < 0:
+                break
+
+            i = end + 1
+        
+        return filters
+
+    def clean_filters (self, filters):
+        def valid_date(date):
+            try:
+                datetime.strptime(date, "%Y-%m-%d")
+                return True
+            except(ValueError):
+                return False
+            
+        def valid_int(integer):
+            try:
+                int(integer)
+                return True
+            except(ValueError):
+                return False
+        
+        for field in ['on', 'before', 'after']:
+            if len(filters[field]) > 0:
+                filters[field] = [datetime.strptime(date, "%Y-%m-%d") for date in filters[field] if valid_date(date)]
+                if len(filters[field]) == 0:
+                    self.quit(self.url)
+        
+        for field in ['width', 'height', 'score']:
+            field_exists = False
+            for relation in RELATIONS:
+                field_exists = len(filters[field][relation]) > 0
+                filters[field][relation] = [int(integer) for integer in filters[field][relation] if valid_int(integer)]
+            
+            if field_exists and all([len(filters[field][relation]) == 0 for relation in RELATIONS]):
+                self.quit(self.url)
+
+    def find_images(self, filters):
+        def any_match_strict(image_field, target_fields):
+            return any([image_field == target_field for target_field in target_fields])
+        
+        def any_greater_strict(image_field, target_fields):
+            return any([image_field >= target_field for target_field in target_fields])
+        
+        def any_less_strict(image_field, target_fields):
+            return any([image_field <= target_field for target_field in target_fields])
+    
+        def any_match(image_field, target_fields):
+            return len(target_fields) == 0 or any_match_strict(image_field, target_fields)
+        
+        def any_greater(image_field, target_fields):
+            return len(target_fields) == 0 or any_greater_strict(image_field, target_fields)
+        
+        def any_less(image_field, target_fields):
+            return len(target_fields) == 0 or any_less_strict(image_field, target_fields)
+
+        def integer_field_check(image, field):
+            filter_dne = all([len(filters[field][relation]) == 0 for relation in RELATIONS])
+            
+            equal = any_match_strict(image[field], filters[field]["="])
+            greater = any_greater_strict(image[field], filters[field][">"])
+            less = any_less_strict(image[field], filters[field]["<"])
+
+            return filter_dne or equal or greater or less
+        
+        images = []
+        for image in self.image_db.values():
+            author = any_match(image['author'], filters['author'])
+            title = any_match(image['gameName'], filters['title']) 
+            color = any_match(image['colorName'], filters['color']) 
+
+            before = any_less(datetime.strptime(image['date'][:10], "%Y-%m-%d"), filters['before'])
+            on = any_match(datetime.strptime(image['date'][:10], "%Y-%m-%d"), filters['on'])
+            after = any_greater(datetime.strptime(image['date'][:10], "%Y-%m-%d"), filters['after'])
+            
+            width = integer_field_check(image, "width")
+            height = integer_field_check(image, "height")
+            score = integer_field_check(image, "score")
+
+            if all([author, title, color, before, on, after, width, height, score]):
+                images.append(image['shotUrl'])
+        
+        return images
+    
+    def download_images(self, images):
+        for image in images:
+            yield from self.process_image(image)
+            
+    def items(self):
+        filters = self.parse_filters(self.filters_str)
+        self.clean_filters(filters)
+        images = self.find_images(filters)
+        yield from self.download_images(images)
