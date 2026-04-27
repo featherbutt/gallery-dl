@@ -10,8 +10,8 @@ from gallery_dl.extractor import framedsc
 __tests__ = (
     {
         "#url"     : "https://cdn.framedsc.com/images/1770839864.63_44.png",
-        "#category": ("", "framedsc", "image"),
-        "#class"   : framedsc.FramedscAltImageExtractor,
+        "#category": ("", "framedsc", "raw"),
+        "#class"   : framedsc.FramedscRawExtractor,
         "#count"   : 1,
         "#results" : "https://cdn.framedsc.com/images/1770839864.63_44.png"
     },
@@ -24,8 +24,8 @@ __tests__ = (
     },
     {
         "#url"     : "https://framedsc.com/HallOfFramed/?author=Flurdy&before=2026-04-27",
-        "#category": ("", "framedsc", "gallery"),
-        "#class"   : framedsc.FramedscFilterExtractor,
+        "#category": ("", "framedsc", "search"),
+        "#class"   : framedsc.FramedscSearchExtractor,
         "#count"   : 6,
         "#results": ("https://cdn.framedsc.com/images/1590578979_NMS_2020_05_25_13_34_11_393-g.png",
                      "https://cdn.framedsc.com/images/1590578987_NMS_2020_05_26_13_38_52_15.png",
@@ -36,8 +36,8 @@ __tests__ = (
     },
     {
         "#url"     : "https://framedsc.com/HallOfFramed/?title=ADR1FT&before=2026-04-27",
-        "#category": ("", "framedsc", "gallery"),
-        "#class"   : framedsc.FramedscFilterExtractor,
+        "#category": ("", "framedsc", "search"),
+        "#class"   : framedsc.FramedscSearchExtractor,
         "#count"   : 5,
         "#results": ("https://cdn.framedsc.com/images/1623421152_ADR1FT-Win64-Shipping_2021_06_09_11_58_27_011.png",
                      "https://cdn.framedsc.com/images/1624727132_ADR1FT-Win64-Shipping_2021_06_23_11_41_21_342.png",
@@ -47,8 +47,8 @@ __tests__ = (
     },
     {
         "#url"     : "https://framedsc.com/HallOfFramed/?color=lawngreen&before=2026-04-27",
-        "#category": ("", "framedsc", "gallery"),
-        "#class"   : framedsc.FramedscFilterExtractor,
+        "#category": ("", "framedsc", "search"),
+        "#class"   : framedsc.FramedscSearchExtractor,
         "#count"   : 1,
         "#results": "https://cdn.framedsc.com/images/1632333696_MirrorsEdgeCatalyst_2021-09-15_22-36-35.png"
     }
