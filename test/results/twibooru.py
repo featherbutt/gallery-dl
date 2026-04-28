@@ -84,6 +84,25 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://twibooru.org/5",
+    "#comment" : "'comments' metadata (gh#9478)",
+    "#category": ("philomena", "twibooru", "post"),
+    "#class"   : twibooru.TwibooruPostExtractor,
+    "#options" : {"comments": True},
+    "#results" : "https://cdn.twibooru.org/img/2020/7/9/5/full.png",
+
+    "date"    : "dt:2020-07-09 11:47:00",
+    "id"      : 5,
+    "comments": {"comments": [{
+        "body"      : "God, I really love that moon mare",
+        "created_at": "2020-07-19T06:12:21.259Z",
+        "hidden_from_users": False,
+        "id"        : 13,
+        "updated_at": "2025-08-10T09:08:50.413Z",
+    }]},
+},
+
+{
     "#url"     : "https://twibooru.org/search?q=cute",
     "#category": ("philomena", "twibooru", "search"),
     "#class"   : twibooru.TwibooruSearchExtractor,
