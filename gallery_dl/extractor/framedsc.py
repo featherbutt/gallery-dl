@@ -6,10 +6,6 @@
 
 # """Extractors for https://framedsc.com/"""
 
-import sys
-import urllib.parse
-from datetime import datetime
-
 from .common import Extractor, Message
 from .. import text
 
@@ -49,10 +45,6 @@ class BaseFramedscExtractor(Extractor):
         for author in self.author_db.values():
             if author['authorNick'] == author_nick:
                 return author['authorid']
-
-    def quit(self, url):
-        self.log.info(f"No results for {url}")
-        sys.exit()
 
     def process_image(self, url):
         url = text.ensure_http_scheme(url)
@@ -112,7 +104,17 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
         Extractor.__init__(self, match)
         self.filters_str = match[1]
 
-    def parse_filters(self, filter_str):
+    def clean_filters(self, unclean_filters):
+        def valid_date(date):
+            return bool(self.parse_datetime_iso(date))
+
+        def valid_int(integer):
+            try:
+                int(integer)
+                return True
+            except (ValueError):
+                return False
+
         filters = {
             'author': [],
             'title': [],
@@ -137,23 +139,8 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
             },
         }
 
-        i = 0
-        while len(filter_str) > 0:
-            filter_str = filter_str[i:]
-
-            j = filter_str.find('=')
-            if (j < 0):
-                break
-
-            end = filter_str.find('&')
-            if (end < 0):
-                end = len(filter_str)
-
-            field = filter_str[:j]
-            value = urllib.parse.unquote(filter_str[j+1:end])
-
-            if field not in filters.keys():
-                self.quit(self.url)
+        for (field, value) in unclean_filters.items():
+            value = text.unquote(value)
 
             if field == 'author':
                 filters[field].append(self.find_author(value))
@@ -165,41 +152,17 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
                 else:
                     filters[field][value[0]].append(value[1:])
             else:
-                filters[field].append(value)
-
-            if end < 0:
-                break
-
-            i = end + 1
-
-        return filters
-
-    def clean_filters(self, filters):
-        def valid_date(date):
-            try:
-                datetime.strptime(date, "%Y-%m-%d")
-                return True
-            except (ValueError):
-                return False
-
-        def valid_int(integer):
-            try:
-                int(integer)
-                return True
-            except (ValueError):
-                return False
+                if field in filters.keys():
+                    filters[field].append(value)
 
         for field in ['on', 'before', 'after']:
             if len(filters[field]) > 0:
                 filters[field] = [
-                    datetime.strptime(
-                        date,
-                        "%Y-%m-%d"
-                    )
+                    self.parse_datetime_iso(date)
                     for date in filters[field] if valid_date(date)
                 ]
                 if len(filters[field]) == 0:
-                    self.quit(self.url)
+                    return
 
         for field in ['width', 'height', 'score']:
             field_exists = False
@@ -216,7 +179,9 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
                         len(filters[field][relation]) == 0
                         for relation in RELATIONS
                     ]):
-                self.quit(self.url)
+                return
+
+        return filters
 
     def find_images(self, filters):
         def any_match_strict(image_field, target_fields):
@@ -257,17 +222,30 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
             return filter_dne or equal or greater or less
 
         images = []
+
+        if not filters:
+            return images
+
         for image in self.image_db.values():
             author = any_match(image['author'], filters['author'])
             title = any_match(image['gameName'], filters['title'])
             color = any_match(image['colorName'], filters['color'])
 
-            before = any_less(datetime.strptime(
-                image['date'][:10], "%Y-%m-%d"), filters['before'])
-            on = any_match(datetime.strptime(
-                image['date'][:10], "%Y-%m-%d"), filters['on'])
-            after = any_greater(datetime.strptime(
-                image['date'][:10], "%Y-%m-%d"), filters['after'])
+            before = any_less(
+                self.parse_datetime_iso(
+                    image['date'][:10]
+                ), filters['before']
+            )
+            on = any_match(
+                self.parse_datetime_iso(
+                    image['date'][:10]
+                ), filters['on']
+            )
+            after = any_greater(
+                self.parse_datetime_iso(
+                    image['date'][:10]
+                ), filters['after']
+            )
 
             width = integer_field_check(image, "width")
             height = integer_field_check(image, "height")
@@ -285,7 +263,7 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
 
     def items(self):
         self.setup_db()
-        filters = self.parse_filters(self.filters_str)
-        self.clean_filters(filters)
+        unclean_filters = text.parse_query(self.filters_str)
+        filters = self.clean_filters(unclean_filters)
         images = self.find_images(filters)
         yield from self.download_images(images)
