@@ -221,6 +221,12 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
 
             return filter_dne or equal or greater or less
 
+        def title_check(title, target_titles):
+            return len(target_titles) == 0 or any(
+                [title.find(target_title) != -1
+                 for target_title in target_titles]
+            )
+
         images = []
 
         if not filters:
@@ -228,7 +234,7 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
 
         for image in self.image_db.values():
             author = any_match(image['author'], filters['author'])
-            title = any_match(image['gameName'], filters['title'])
+            title = title_check(image['gameName'], filters['title'])
             color = any_match(image['colorName'], filters['color'])
 
             before = any_less(
