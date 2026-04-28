@@ -5177,6 +5177,16 @@ Description
     See `Filters <https://derpibooru.org/filters>`_ for details.
 
 
+extractor.[philomena].comments
+------------------------------
+Type
+    ``bool``
+Default
+    ``false``
+Description
+    Extract ``comments`` metadata.
+
+
 extractor.[philomena].svg
 -------------------------
 Type
