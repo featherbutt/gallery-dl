@@ -8650,7 +8650,8 @@ Description
     Controls whether the output strings should be shortened to fit
     on one console line.
 
-    Set this option to ``"eaw"`` to also work with east-asian characters
+    Set this option to ``"eaw"`` (East Asian Width)
+    to display the correct result for east-asian characters
     with a display width greater than 1.
 
 
@@ -8697,6 +8698,20 @@ Description
 
 .. __: `output.mode`_
 
+
+output.units
+------------
+Type
+    ``string``
+Default
+    ``decimal``
+Description
+    Selects which units to use when displaying byte values.
+
+    ``decimal`` | ``base-10`` | ``si`` | ``metric``
+        Decimal units (``KB``, ``MB``, ``GB``, ...)
+    ``binary`` | ``base-2`` | ``iec``
+        Binary units (``KiB``, ``MiB``, ``GiB``, ...)
 
 output.ansi
 -----------
