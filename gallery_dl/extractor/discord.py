@@ -358,13 +358,14 @@ class DiscordServerExtractor(DiscordExtractor):
 
     def items(self):
         server_id = self.groups[0]
-
         self.build_server_and_channels(server_id)
 
+        base = f"{self.root}/channels/{server_id}/"
         for channel in self.server_channels_metadata.copy().values():
             if channel["channel_type"] in {0, 5, 15, 16}:
-                yield from self.extract_channel(
-                    channel["channel_id"], safe=True)
+                channel["_extractor"] = DiscordChannelExtractor
+                url = base + channel["channel_id"]
+                yield Message.Queue, url, channel
 
 
 class DiscordDirectMessagesExtractor(DiscordExtractor):
