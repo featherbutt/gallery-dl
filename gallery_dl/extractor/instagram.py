@@ -364,6 +364,14 @@ class InstagramExtractor(Extractor):
             except Exception as exc:
                 self.log.traceback(exc)
 
+        if clips := post.get("clips_metadata"):
+            try:
+                if audio := self._extract_audio(post, data, clips):
+                    audio["num"] = num
+                    files.append(audio)
+            except Exception as exc:
+                self.log.traceback(exc)
+
         if "subscription_media_visibility" in post:
             data["subscription"] = post["subscription_media_visibility"]
         if "type" not in data:
@@ -510,27 +518,36 @@ class InstagramExtractor(Extractor):
                 post.get("clips_tab_pinned_user_ids") or ())
 
     def _extract_audio(self, src, dest, info):
-        if not info or not (audio := info.get("music_asset_info")):
+        if not info or not (audio := info.get("music_asset_info") or
+                            info.get("original_sound_info")):
             return None
         cinfo = info.get("music_consumption_info") or audio
 
-        dest["audio_title"] = title = audio.get("title")
+        dest["audio_title"] = title = audio.get("title") or audio.get(
+            "original_audio_title")
         dest["audio_duration"] = duration = audio.get(
             "duration_in_ms", 0) / 1000
-        dest["audio_timestamps"] = timestamps = audio.get(
-            "highlight_start_times_in_ms")
-        dest["audio_artist"] = artist = audio.get(
-            "display_artist") or cinfo.get("display_artist")
         dest["audio_user"] = user = audio.get(
             "ig_artist") or cinfo.get("ig_artist")
 
+        if parts := audio.get("audio_parts"):
+            artist = [a for p in parts if (a := p.get("display_artist"))]
+            timestamps = [p.get("parent_start_time_in_ms") for p in parts]
+        else:
+            artist = audio.get("display_artist") or cinfo.get("display_artist")
+            timestamps = audio.get("highlight_start_times_in_ms")
+        dest["audio_artist"] = artist
+        dest["audio_timestamps"] = timestamps
+
         if not (url := audio["progressive_download_url"]):
             return None
-        return {
+        audio_id = audio.get("id") or audio.get("audio_asset_id") or 0
+
+        file = {
             "date"       : self.parse_timestamp(src.get("taken_at")),
-            "media_id"   : audio["id"],
-            "shortcode"  : shortcode_from_id(audio["id"]),
-            "display_url": audio["cover_artwork_uri"],
+            "media_id"   : audio_id,
+            "shortcode"  : shortcode_from_id(audio_id),
+            "display_url": audio.get("cover_artwork_uri"),
             "audio_url"  : url,
             "width"           : 0,
             "width_original"  : 0,
@@ -542,6 +559,10 @@ class InstagramExtractor(Extractor):
             "audio_duration"  : duration,
             "audio_timestamps": timestamps,
         }
+
+        if manifest := audio.get("dash_manifest"):
+            file["_ytdl_manifest_data"] = manifest
+        return file
 
     def _init_cursor(self):
         cursor = self.config("cursor", True)
