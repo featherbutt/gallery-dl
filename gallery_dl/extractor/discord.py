@@ -408,11 +408,13 @@ class DiscordAPI():
 
     def get_server(self, server_id):
         """Get server information"""
-        return self._call("/guilds/" + server_id)
+        return self.extractor.cache(
+            self._call, "/guilds/" + server_id)
 
     def get_server_channels(self, server_id):
         """Get server channels"""
-        return self._call("/guilds/" + server_id + "/channels")
+        return self.extractor.cache(
+            self._call, f"/guilds/{server_id}/channels")
 
     def get_channel(self, channel_id):
         """Get channel information"""
@@ -423,7 +425,7 @@ class DiscordAPI():
         THREADS_BATCH = 25
 
         def _method(offset):
-            return self._call("/channels/" + channel_id + "/threads/search", {
+            return self._call(f"/channels/{channel_id}/threads/search", {
                 "sort_by": "last_message_time",
                 "sort_order": "desc",
                 "limit": THREADS_BATCH,
@@ -440,7 +442,7 @@ class DiscordAPI():
 
         def _method(_):
             nonlocal before
-            messages = self._call("/channels/" + channel_id + "/messages", {
+            messages = self._call(f"/channels/{channel_id}/messages", {
                 "limit": MESSAGES_BATCH,
                 "before": before
             })
@@ -472,7 +474,7 @@ class DiscordAPI():
 
     def get_message(self, channel_id, message_id):
         """Get message information"""
-        return self._call("/channels/" + channel_id + "/messages", {
+        return self._call(f"/channels/{channel_id}/messages", {
             "limit": 1,
             "around": message_id
         })[0]
