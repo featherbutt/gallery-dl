@@ -69,6 +69,11 @@ class InstagramExtractor(Extractor):
         else:
             self.videos_dash = False
 
+        if audio := self.config("audio", False):
+            audio_dash = (audio != "merged")
+        else:
+            audio_dash = False
+
         if previews := self.config("previews", False):
             if isinstance(previews, str):
                 previews = previews.split(",")
@@ -80,7 +85,6 @@ class InstagramExtractor(Extractor):
             previews_video = previews_audio = False
         del previews
 
-        audio = self.config("audio", False)
         max_posts = self.config("max-posts")
         order = self.config("order-files")
         reverse = order[0] in {"r", "d"} if order else False
@@ -114,6 +118,10 @@ class InstagramExtractor(Extractor):
                     if audio:
                         file["_http_headers"] = videos_headers
                         text.nameext_from_url(url, file)
+                        if audio_dash and "_ytdl_manifest_data" in file:
+                            file["_fallback"] = (url,)
+                            file["_ytdl_manifest"] = "dash"
+                            url = f"ytdl:{post['post_url']}{file['num']}.m4a"
                         yield Message.Url, url, file
                     if previews_audio:
                         file["media_id"] += "p"

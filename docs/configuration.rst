@@ -3970,11 +3970,20 @@ Description
 extractor.instagram.audio
 -------------------------
 Type
-    ``bool``
+    * ``bool``
+    * ``string``
 Default
     ``false``
 Description
-    Download background music files.
+    Controls audio download behavior.
+
+    ``true`` | ``"dash"`` | ``"ytdl"``
+        Download audio from ``dash_manifest`` data using |ytdl| when available
+        and a non-DASH format otherwise
+    ``"merged"``
+        Download non-DASH formats
+    ``false``
+        Do not download audio files
 
 
 extractor.instagram.cursor
