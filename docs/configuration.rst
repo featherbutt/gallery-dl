@@ -4949,6 +4949,18 @@ Note
     It is possible to use ``"all"`` instead of listing all values separately.
 
 
+extractor.[nitter].fallback-retries
+-----------------------------------
+Type
+    ``integer``
+Default
+    ``2``
+Description
+    Number of times fetching a Tweets results page is retried
+    after receiving an empty response,
+    or ``-1`` for infinite retries.
+
+
 extractor.[nitter].quoted
 -------------------------
 Type

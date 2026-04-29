@@ -197,6 +197,8 @@ class NitterExtractor(BaseExtractor):
         return (html, None)
 
     def _pagination(self, path):
+        tries = 0
+        retries = self.config("fallback-retries", 2) + 1
         quoted = self.config("quoted", False)
 
         if self.user_id:
@@ -210,10 +212,18 @@ class NitterExtractor(BaseExtractor):
             tweets_html = self.request(url).text.split(
                 '<div class="timeline-item')
 
+            if len(tweets_html) == 1:
+                tries += 1
+                self.log.warning("Empty Tweet results (%s/%s)", tries, retries)
+                if tries >= retries:
+                    break
+                continue
+
             if self.user_obj is None:
                 self.user_obj = self._user_from_html(tweets_html[0])
 
-            for html, quote in map(self._extract_quote, tweets_html[1:]):
+            del tweets_html[0]
+            for html, quote in map(self._extract_quote, tweets_html):
                 tweet = self._tweet_from_html(html)
                 if not tweet["date"]:
                     continue
@@ -224,8 +234,8 @@ class NitterExtractor(BaseExtractor):
             more = text.extr(
                 tweets_html[-1], '<div class="show-more"><a href="?', '"')
             if not more:
-                return
-            url = base_url + "?" + text.unescape(more)
+                break
+            url = f"{base_url}?{text.unescape(more)}"
 
 
 BASE_PATTERN = NitterExtractor.update({
