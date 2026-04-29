@@ -3150,7 +3150,7 @@ Type
 Default
     ``2``
 Description
-    Number of times a failed image gets retried
+    Number of times a failed image gets retried,
     or ``-1`` for infinite retries.
 
 
@@ -3272,6 +3272,17 @@ Default
     ``false``
 description
     Extract comments that include photo attachments made by the author of the post.
+
+
+extractor.facebook.fallback-retries
+-----------------------------------
+Type
+    ``integer``
+Default
+    ``2``
+Description
+    Number of times empty pages get retried,
+    or ``-1`` for infinite retries.
 
 
 extractor.facebook.include
@@ -6758,7 +6769,7 @@ Type
 Default
     ``2``
 Description
-    Number of retries for fetching full-resolution images
+    Number of retries for fetching full-resolution images,
     or ``-1`` for infinite retries.
 
 

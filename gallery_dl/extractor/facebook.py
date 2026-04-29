@@ -34,6 +34,8 @@ class FacebookExtractor(Extractor):
         headers["Sec-Fetch-Site"] = "same-origin"
 
         self.fallback_retries = self.config("fallback-retries", 2)
+        if self.fallback_retries < 0:
+            self.fallback_retries = float("inf")
         self.videos = self.config("videos", True)
         self.author_followups = self.config("author-followups", False)
         self._detect_jump = True
