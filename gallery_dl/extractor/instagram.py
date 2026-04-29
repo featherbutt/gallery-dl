@@ -1084,8 +1084,9 @@ class InstagramRestAPI():
             return screen_name[3:]
 
         user = self.user_by_screen_name(screen_name)
-        if check_private and user.get("is_private") and \
-                not user.get("followed_by_viewer", True):
+        if check_private and user.get("is_private") and (
+                not user.get("followed_by_viewer", True) or
+                not user.get("friendship_status", {}).get("following", True)):
             name = user["username"]
             s = "" if name.endswith("s") else "s"
             self.extractor.log.warning("%s'%s posts are private", name, s)
