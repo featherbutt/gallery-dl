@@ -280,6 +280,10 @@ SUBCATEGORY_MAP = {
     "audiochan": {
         "audio": "Audios",
     },
+    "aryion": {
+        "messagepage": "Message Page Submissions",
+        "watch": "Watched Users",
+    },
     "bilibili": {
         "user-articles-favorite": "User Article Favorites",
     },

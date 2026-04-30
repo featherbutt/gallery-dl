@@ -310,7 +310,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="aryion" title="aryion">
     <td>Eka's Portal</td>
     <td>https://aryion.com/</td>
-    <td>Favorites, Galleries, Posts, Search Results, Tag Searches, Watches</td>
+    <td>Favorites, Galleries, Message Page Submissions, Posts, Search Results, Tag Searches, Watched Users</td>
     <td>Supported</td>
 </tr>
 <tr id="eporner" title="eporner">

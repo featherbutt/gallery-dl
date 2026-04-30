@@ -169,7 +169,14 @@ __tests__ = (
 
 {
     "#url"     : "https://aryion.com/g4/messagepage.php",
+    "#class"   : aryion.AryionMessagepageExtractor,
+},
+
+{
+    "#url"     : "https://aryion.com/g4/watch.php?id=jameshoward",
     "#class"   : aryion.AryionWatchExtractor,
+    "#pattern" : aryion.AryionGalleryExtractor.pattern,
+    "#count"   : range(80, 120),
 },
 
 )

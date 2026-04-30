@@ -3150,7 +3150,7 @@ Type
 Default
     ``2``
 Description
-    Number of times a failed image gets retried
+    Number of times a failed image gets retried,
     or ``-1`` for infinite retries.
 
 
@@ -3272,6 +3272,17 @@ Default
     ``false``
 description
     Extract comments that include photo attachments made by the author of the post.
+
+
+extractor.facebook.fallback-retries
+-----------------------------------
+Type
+    ``integer``
+Default
+    ``2``
+Description
+    Number of times empty pages get retried,
+    or ``-1`` for infinite retries.
 
 
 extractor.facebook.include
@@ -3959,11 +3970,20 @@ Description
 extractor.instagram.audio
 -------------------------
 Type
-    ``bool``
+    * ``bool``
+    * ``string``
 Default
     ``false``
 Description
-    Download background music files.
+    Controls audio download behavior.
+
+    ``true`` | ``"dash"`` | ``"ytdl"``
+        Download audio from ``dash_manifest`` data using |ytdl| when available
+        and a non-DASH format otherwise
+    ``"merged"``
+        Download non-DASH formats
+    ``false``
+        Do not download audio files
 
 
 extractor.instagram.cursor
@@ -4947,6 +4967,18 @@ Supported Values
     * ``nuita``
 Note
     It is possible to use ``"all"`` instead of listing all values separately.
+
+
+extractor.[nitter].fallback-retries
+-----------------------------------
+Type
+    ``integer``
+Default
+    ``2``
+Description
+    Number of times fetching a Tweets results page is retried
+    after receiving an empty response,
+    or ``-1`` for infinite retries.
 
 
 extractor.[nitter].quoted
@@ -6746,7 +6778,7 @@ Type
 Default
     ``2``
 Description
-    Number of retries for fetching full-resolution images
+    Number of retries for fetching full-resolution images,
     or ``-1`` for infinite retries.
 
 

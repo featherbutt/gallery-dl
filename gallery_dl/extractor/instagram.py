@@ -69,6 +69,11 @@ class InstagramExtractor(Extractor):
         else:
             self.videos_dash = False
 
+        if audio := self.config("audio", False):
+            audio_dash = (audio != "merged")
+        else:
+            audio_dash = False
+
         if previews := self.config("previews", False):
             if isinstance(previews, str):
                 previews = previews.split(",")
@@ -80,7 +85,6 @@ class InstagramExtractor(Extractor):
             previews_video = previews_audio = False
         del previews
 
-        audio = self.config("audio", False)
         max_posts = self.config("max-posts")
         order = self.config("order-files")
         reverse = order[0] in {"r", "d"} if order else False
@@ -114,6 +118,10 @@ class InstagramExtractor(Extractor):
                     if audio:
                         file["_http_headers"] = videos_headers
                         text.nameext_from_url(url, file)
+                        if audio_dash and "_ytdl_manifest_data" in file:
+                            file["_fallback"] = (url,)
+                            file["_ytdl_manifest"] = "dash"
+                            url = f"ytdl:{post['post_url']}{file['num']}.m4a"
                         yield Message.Url, url, file
                     if previews_audio:
                         file["media_id"] += "p"
@@ -364,6 +372,14 @@ class InstagramExtractor(Extractor):
             except Exception as exc:
                 self.log.traceback(exc)
 
+        if clips := post.get("clips_metadata"):
+            try:
+                if audio := self._extract_audio(post, data, clips):
+                    audio["num"] = num
+                    files.append(audio)
+            except Exception as exc:
+                self.log.traceback(exc)
+
         if "subscription_media_visibility" in post:
             data["subscription"] = post["subscription_media_visibility"]
         if "type" not in data:
@@ -510,27 +526,36 @@ class InstagramExtractor(Extractor):
                 post.get("clips_tab_pinned_user_ids") or ())
 
     def _extract_audio(self, src, dest, info):
-        if not info or not (audio := info.get("music_asset_info")):
+        if not info or not (audio := info.get("music_asset_info") or
+                            info.get("original_sound_info")):
             return None
         cinfo = info.get("music_consumption_info") or audio
 
-        dest["audio_title"] = title = audio.get("title")
+        dest["audio_title"] = title = audio.get("title") or audio.get(
+            "original_audio_title")
         dest["audio_duration"] = duration = audio.get(
             "duration_in_ms", 0) / 1000
-        dest["audio_timestamps"] = timestamps = audio.get(
-            "highlight_start_times_in_ms")
-        dest["audio_artist"] = artist = audio.get(
-            "display_artist") or cinfo.get("display_artist")
         dest["audio_user"] = user = audio.get(
             "ig_artist") or cinfo.get("ig_artist")
 
+        if parts := audio.get("audio_parts"):
+            artist = [a for p in parts if (a := p.get("display_artist"))]
+            timestamps = [p.get("parent_start_time_in_ms") for p in parts]
+        else:
+            artist = audio.get("display_artist") or cinfo.get("display_artist")
+            timestamps = audio.get("highlight_start_times_in_ms")
+        dest["audio_artist"] = artist
+        dest["audio_timestamps"] = timestamps
+
         if not (url := audio["progressive_download_url"]):
             return None
-        return {
+        audio_id = audio.get("id") or audio.get("audio_asset_id") or 0
+
+        file = {
             "date"       : self.parse_timestamp(src.get("taken_at")),
-            "media_id"   : audio["id"],
-            "shortcode"  : shortcode_from_id(audio["id"]),
-            "display_url": audio["cover_artwork_uri"],
+            "media_id"   : audio_id,
+            "shortcode"  : shortcode_from_id(audio_id),
+            "display_url": audio.get("cover_artwork_uri"),
             "audio_url"  : url,
             "width"           : 0,
             "width_original"  : 0,
@@ -542,6 +567,10 @@ class InstagramExtractor(Extractor):
             "audio_duration"  : duration,
             "audio_timestamps": timestamps,
         }
+
+        if manifest := audio.get("dash_manifest"):
+            file["_ytdl_manifest_data"] = manifest
+        return file
 
     def _init_cursor(self):
         cursor = self.config("cursor", True)
@@ -1084,8 +1113,9 @@ class InstagramRestAPI():
             return screen_name[3:]
 
         user = self.user_by_screen_name(screen_name)
-        if check_private and user.get("is_private") and \
-                not user.get("followed_by_viewer", True):
+        if check_private and user.get("is_private") and (
+                not user.get("followed_by_viewer", True) or
+                not user.get("friendship_status", {}).get("following", True)):
             name = user["username"]
             s = "" if name.endswith("s") else "s"
             self.extractor.log.warning("%s'%s posts are private", name, s)
