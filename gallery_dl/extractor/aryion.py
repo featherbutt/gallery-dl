@@ -251,9 +251,9 @@ class AryionFavoriteExtractor(AryionExtractor):
         return self._pagination_folders(url, self.groups[1])
 
 
-class AryionWatchExtractor(AryionExtractor):
-    """Extractor for your watched users and tags"""
-    subcategory = "watch"
+class AryionMessagepageExtractor(AryionExtractor):
+    """Extractor for submissions by watched users and tags"""
+    subcategory = "messagepage"
     directory_fmt = ("{category}", "{user!l}",)
     pattern = BASE_PATTERN + r"/messagepage\.php()"
     example = "https://aryion.com/g4/messagepage.php"
