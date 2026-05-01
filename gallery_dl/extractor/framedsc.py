@@ -4,105 +4,73 @@
 # it under the terms of the GNU General Public License version 2 as
 # published by the Free Software Foundation.
 
-# """Extractors for https://framedsc.com/"""
+"""Extractors for https://framedsc.com/"""
 
 from .common import Extractor, Message
 from .. import text
 
-RELATIONS = ["<", "=", ">"]
-
-IMAGE_DB = (
-    "https://raw.githubusercontent.com/"
-    "originalnicodrgitbot/"
-    "hall-of-framed-db/"
-    "main/"
-    "shotsdb.json"
-)
-
-AUTHOR_DB = (
-    "https://raw.githubusercontent.com/"
-    "originalnicodrgitbot/"
-    "hall-of-framed-db/"
-    "main/"
-    "authorsdb.json"
-)
+BASE_PATTERN = r"(?:https?://)?(?:cdn\.|www\.)?framedsc.com"
+RELATIONS = "<=>"
 
 
-class BaseFramedscExtractor(Extractor):
-    """Base Class for framedsc extractors"""
+class FramedscExtractor(Extractor):
+    """Base class for framedsc extractors"""
     category = "framedsc"
     archive_fmt = "{filename}"
 
-    def _init(self):
-        self.image_db = {}
-        self.author_db = {}
+    def _load_db(self):
+        base = ("https://raw.githubusercontent.com"
+                "/originalnicodrgitbot/hall-of-framed-db/main/")
+        return (
+            self.request_json(base + "shotsdb.json")["_default"],
+            self.request_json(base + "authorsdb.json")["_default"],
+        )
 
-    def setup_db(self):
-        self.image_db = self.request(IMAGE_DB).json()['_default']
-        self.author_db = self.request(AUTHOR_DB).json()['_default']
+    def items(self):
+        self.image_db, self.author_db = self.cache(self._load_db, _key=None)
 
-    def find_author(self, author_nick):
-        for author in self.author_db.values():
-            if author['authorNick'] == author_nick:
-                return author['authorid']
-
-    def process_image(self, url):
-        url = text.ensure_http_scheme(url)
-        image = text.nameext_from_url(url, {"url": url})
-        yield Message.Directory, "", image
-        yield Message.Url, url, image
+        for image in self.images():
+            url = image["shotUrl"]
+            image = text.nameext_from_url(url, image.copy())
+            image["date"] = self.parse_datetime_iso(image["date"])
+            yield Message.Directory, "", image
+            yield Message.Url, url, image
 
 
-class FramedscImageExtractor(BaseFramedscExtractor):
+class FramedscImageExtractor(FramedscExtractor):
     """Extractor for single framedsc image"""
     subcategory = "image"
     archive_fmt = "{filename}"
-
-    pattern = (
-        r"(?:https?://)?(?:www\.)?"
-        r"framedsc\.com/HallOfFramed/\?"
-        r"[^?]*imageId=(\d+)"
-    )
-
+    pattern = BASE_PATTERN + r"/HallOfFramed/?\?[^#]*\bimageId=(\d+)"
     example = "https://framedsc.com/HallOfFramed/?imageId=12345"
 
-    def __init__(self, match):
-        Extractor.__init__(self, match)
-        self.image_id = int(match[1])
-
-    def items(self):
-        self.setup_db()
+    def images(self):
+        image_id = int(self.groups[0])
         for image in self.image_db.values():
-            if image['epochTime'] == self.image_id:
-                yield from self.process_image(image['shotUrl'])
-                return
+            if image["epochTime"] == image_id:
+                return (image,)
+        return ()
 
 
-class FramedscRawExtractor(BaseFramedscExtractor):
+class FramedscRawExtractor(FramedscExtractor):
     """Extractor for single framedsc image (raw image link)"""
     subcategory = "raw"
-    pattern = r"(?:https?://)?cdn\.framedsc\.com/images/([^/?#]+)"
-    example = "https://cdn.framedsc.com/images/NAME.EXT"
+    pattern = BASE_PATTERN + r"/images(/[^/?#]+)"
+    example = "https://cdn.framedsc.com/images/12345_NAME.EXT"
 
-    def items(self):
-        yield from self.process_image(self.url)
+    def images(self):
+        filename = self.groups[0]
+        for image in self.image_db.values():
+            if image["shotUrl"].endswith(filename):
+                return (image,)
+        return ()
 
 
-class FramedscSearchExtractor(BaseFramedscExtractor):
+class FramedscSearchExtractor(FramedscExtractor):
     """Extractor for framedsc image searches"""
     subcategory = "search"
-    archive_fmt = "{filename}"
-
-    pattern = (
-        r"(?:https?://)?(?:www\.)?"
-        r"framedsc\.com/HallOfFramed/\?"
-        r"(?!.*imageId=)(.*)"
-    )
+    pattern = BASE_PATTERN + r"/HallOfFramed/?\?(?![^#]*\bimageId=)([^#]*)"
     example = "https://framedsc.com/HallOfFramed/?author=AUTHOR&title=TITLE"
-
-    def __init__(self, match):
-        Extractor.__init__(self, match)
-        self.filters_str = match[1]
 
     def clean_filters(self, unclean_filters):
         def valid_date(date):
@@ -116,55 +84,56 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
                 return False
 
         filters = {
-            'author': [],
-            'title': [],
-            'on': [],
-            'before': [],
-            'after': [],
-            'color': [],
-            'width': {
-                '>': [],
-                '<': [],
-                '=': []
+            "author": [],
+            "title": [],
+            "on": [],
+            "before": [],
+            "after": [],
+            "color": [],
+            "width": {
+                ">": [],
+                "<": [],
+                "=": []
             },
-            'height': {
-                '>': [],
-                '<': [],
-                '=': []
+            "height": {
+                ">": [],
+                "<": [],
+                "=": []
             },
-            'score': {
-                '>': [],
-                '<': [],
-                '=': []
+            "score": {
+                ">": [],
+                "<": [],
+                "=": []
             },
         }
 
         for (field, value) in unclean_filters.items():
             value = text.unquote(value)
 
-            if field == 'author':
+            if field == "author":
                 filters[field].append(self.find_author(value))
-            elif field == 'title':
+            elif field == "title":
                 filters[field].append(value.replace("+", " "))
-            elif field == 'width' or field == 'height' or field == 'score':
-                if len(value) == 0 or not (value[0] == '>' or value[0] == '<'):
-                    filters[field]['='].append(value[1:])
+            elif field in {"width", "height", "score"}:
+                if not value or value[0] not in "<>":
+                    filters[field]["="].append(value[1:])
                 else:
                     filters[field][value[0]].append(value[1:])
             else:
                 if field in filters.keys():
                     filters[field].append(value)
 
-        for field in ['on', 'before', 'after']:
-            if len(filters[field]) > 0:
+        for field in ("on", "before", "after"):
+            if filters[field]:
                 filters[field] = [
                     self.parse_datetime_iso(date)
-                    for date in filters[field] if valid_date(date)
+                    for date in filters[field]
+                    if valid_date(date)
                 ]
-                if len(filters[field]) == 0:
+                if not filters[field]:
                     return
 
-        for field in ['width', 'height', 'score']:
+        for field in ("width", "height", "score"):
             field_exists = False
             for relation in RELATIONS:
                 field_exists = len(filters[field][relation]) > 0
@@ -175,15 +144,26 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
                 ]
 
             if field_exists and all(
-                    [
-                        len(filters[field][relation]) == 0
-                        for relation in RELATIONS
-                    ]):
+                not filters[field][relation]
+                for relation in RELATIONS
+            ):
                 return
 
         return filters
 
-    def find_images(self, filters):
+    def find_author(self, author_nick):
+        for author in self.author_db.values():
+            if author["authorNick"] == author_nick:
+                return author["authorid"]
+        raise self.exc.NotFoundError("author")
+
+    def images(self):
+        unclean_filters = text.parse_query(self.groups[0])
+        filters = self.clean_filters(unclean_filters)
+
+        if not filters:
+            return self.image_db.values()
+
         def any_match_strict(image_field, target_fields):
             return any(
                 [image_field == target_field for target_field in target_fields]
@@ -200,15 +180,15 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
             )
 
         def any_match(image_field, target_fields):
-            return len(target_fields) == 0 or any_match_strict(
+            return not target_fields or any_match_strict(
                 image_field, target_fields)
 
         def any_greater(image_field, target_fields):
-            return len(target_fields) == 0 or any_greater_strict(
+            return not target_fields or any_greater_strict(
                 image_field, target_fields)
 
         def any_less(image_field, target_fields):
-            return len(target_fields) == 0 or any_less_strict(
+            return not target_fields or any_less_strict(
                 image_field, target_fields)
 
         def integer_field_check(image, field):
@@ -222,54 +202,25 @@ class FramedscSearchExtractor(BaseFramedscExtractor):
             return filter_dne or equal or greater or less
 
         def title_check(title, target_titles):
-            return len(target_titles) == 0 or any(
-                [title.find(target_title) != -1
-                 for target_title in target_titles]
+            return not target_titles or any(
+                target_title in title
+                for target_title in target_titles
             )
-
-        images = []
-
-        if not filters:
-            return images
 
         for image in self.image_db.values():
-            author = any_match(image['author'], filters['author'])
-            title = title_check(image['gameName'], filters['title'])
-            color = any_match(image['colorName'], filters['color'])
+            author = any_match(image["author"], filters["author"])
+            title = title_check(image["gameName"], filters["title"])
+            color = any_match(image["colorName"], filters["color"])
 
-            before = any_less(
-                self.parse_datetime_iso(
-                    image['date'][:10]
-                ), filters['before']
-            )
-            on = any_match(
-                self.parse_datetime_iso(
-                    image['date'][:10]
-                ), filters['on']
-            )
-            after = any_greater(
-                self.parse_datetime_iso(
-                    image['date'][:10]
-                ), filters['after']
-            )
+            date = self.parse_datetime_iso(image["date"][:10])
+            before = any_less(date, filters["before"])
+            on = any_match(date, filters["on"])
+            after = any_greater(date, filters["after"])
 
             width = integer_field_check(image, "width")
             height = integer_field_check(image, "height")
             score = integer_field_check(image, "score")
 
-            if all([author, title, color, before,
-                   on, after, width, height, score]):
-                images.append(image['shotUrl'])
-
-        return images
-
-    def download_images(self, images):
-        for image in images:
-            yield from self.process_image(image)
-
-    def items(self):
-        self.setup_db()
-        unclean_filters = text.parse_query(self.filters_str)
-        filters = self.clean_filters(unclean_filters)
-        images = self.find_images(filters)
-        yield from self.download_images(images)
+            if author and title and color and before and on and after and \
+                    width and height and score:
+                yield image
