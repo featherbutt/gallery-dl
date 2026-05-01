@@ -237,13 +237,6 @@ class ComickMangaExtractor(ComickBase, MangaExtractor):
         slug, query = self.groups
 
         url = f"https://api.comick.io/comic/{manga['manga_hid']}/chapters"
-        headers = {
-            "Origin": "https://comick.io",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-site",
-        }
-
         query = text.parse_query_list(query, ("lang",))
 
         if (lang := query.get("lang")) or (lang := self.config("lang")):
@@ -268,7 +261,7 @@ class ComickMangaExtractor(ComickBase, MangaExtractor):
             group = None
 
         while True:
-            data = self.request_json(url, params=params, headers=headers)
+            data = self.request_json(url, params=params)
             limit = data["limit"]
 
             if info:

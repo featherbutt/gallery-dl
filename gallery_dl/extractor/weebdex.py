@@ -21,18 +21,9 @@ class WeebdexBase():
     root_api = "https://api.weebdex.org"
     request_interval = 0.2  # 5 requests per second
 
-    def _init(self):
-        self.headers_api = {
-            "Referer": self.root + "/",
-            "Origin" : self.root,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-site",
-        }
-
     def _manga_info(self, mid):
         url = f"{self.root_api}/manga/{mid}"
-        manga = self.request_json(url, headers=self.headers_api)
+        manga = self.request_json(url)
         rel = manga["relationships"]
 
         return {
@@ -60,7 +51,7 @@ class WeebdexChapterExtractor(WeebdexBase, ChapterExtractor):
     def metadata(self, _):
         cid = self.groups[0]
         url = f"{self.root_api}/chapter/{cid}"
-        self.data = data = self.request_json(url, headers=self.headers_api)
+        self.data = data = self.request_json(url)
 
         rel = data.pop("relationships")
         try:
@@ -127,8 +118,7 @@ class WeebdexMangaExtractor(WeebdexBase, MangaExtractor):
         results = []
 
         while True:
-            data = self.request_json(
-                url, params=params, headers=self.headers_api)
+            data = self.request_json(url, params=params)
 
             for ch in data["data"]:
                 try:

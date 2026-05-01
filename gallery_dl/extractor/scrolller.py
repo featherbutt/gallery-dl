@@ -90,13 +90,7 @@ class ScrolllerExtractor(Extractor):
         return data["login"]["token"]
 
     def _request_graphql(self, opname, variables, admin=True):
-        headers = {
-            "Content-Type"  : None,
-            "Origin"        : self.root,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-site",
-        }
+        headers = {}
         data = {
             "query"        : self.utils("graphql", opname),
             "variables"    : variables,

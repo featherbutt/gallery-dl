@@ -1178,10 +1178,6 @@ class InstagramRestAPI():
             "X-IG-WWW-Claim"  : extr.www_claim,
             "X-Requested-With": "XMLHttpRequest",
             "Connection"      : "keep-alive",
-            "Referer"         : extr.root + "/",
-            "Sec-Fetch-Dest"  : "empty",
-            "Sec-Fetch-Mode"  : "cors",
-            "Sec-Fetch-Site"  : "same-origin",
         }
         return extr.request_json(url, **kwargs)
 
@@ -1345,7 +1341,6 @@ class InstagramGraphqlAPI():
             "X-ASBD-ID"       : "198387",
             "X-IG-WWW-Claim"  : extr.www_claim,
             "X-Requested-With": "XMLHttpRequest",
-            "Referer"         : extr.root + "/",
         }
         return extr.request_json(url, params=params, headers=headers)["data"]
 
