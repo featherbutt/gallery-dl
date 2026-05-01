@@ -167,7 +167,7 @@ class ScrolllerSubredditExtractor(ScrolllerExtractor):
 class ScrolllerUserExtractor(ScrolllerExtractor):
     """Extractor for media from a scrolller Reddit user"""
     subcategory = "user"
-    directory_fmt = ("{category}", "User", "{posted_by}")
+    directory_fmt = ("{category}", "User", "{reddit_posted_by}")
     pattern = BASE_PATTERN + r"/reddit-user/([^/?#]+)(?:/?\?([^#]+))?"
     example = "https://scrolller.com/reddit-user/USER"
 

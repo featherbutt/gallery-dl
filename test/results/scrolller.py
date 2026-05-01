@@ -35,7 +35,7 @@ __tests__ = (
     "tags"            : None,
     "title"           : str,
     "url"             : str,
-    "username"        : str,
+    "username"        : {str, None},
     "width"           : int,
 },
 
@@ -82,7 +82,7 @@ __tests__ = (
     "tags"            : None,
     "title"           : "Cabin in northern Finland",
     "url"             : "https://images.scrolller.com/yocto/cabin-in-northern-finland-93vjsuxmcz.jpg",
-    "username"        : "",
+    "username"        : None,
     "width"           : 1080,
 },
 
@@ -145,7 +145,7 @@ __tests__ = (
     "isPaid"          : False,
     "num"             : 0,
     "ownerAvatar"     : None,
-    "posted_by"       : "Jonttufromesbo",
+    "!posted_by"      : "Jonttufromesbo",
     "redditPath"      : r"re:/r/AmateurPhotography/comments/\w+/\w+/",
     "reddit_posted_by": "Jonttufromesbo",
     "redgifsSource"   : None,
@@ -156,7 +156,7 @@ __tests__ = (
     "tags"            : None,
     "title"           : str,
     "url"             : "re:https://images.scrolller.com/.+",
-    "username"        : "",
+    "username"        : None,
     "mediaSources"    : list
 },
 
