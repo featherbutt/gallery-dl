@@ -72,7 +72,7 @@ CATEGORY_MAP = {
     "filester"       : "filester.me",
     "fitnakedgirls"  : "FitNakedGirls",
     "foriio"         : "foriio",
-    "framedsc"       : "framedsc",
+    "framedsc"       : "FRAMED. Screenshot Community",
     "furaffinity"    : "Fur Affinity",
     "furry34"        : "Furry 34 com",
     "girlswithmuscle": "Girls with Muscle",

@@ -398,9 +398,9 @@ Consider all listed sites to potentially be NSFW.
     <td></td>
 </tr>
 <tr id="framedsc" title="framedsc">
-    <td>Framedsc</td>
+    <td>FRAMED. Screenshot Community</td>
     <td>https://framedsc.com/</td>
-    <td>Images, Raws, Search Results</td>
+    <td>individual Images, Raws, Search Results</td>
     <td></td>
 </tr>
 <tr id="furaffinity" title="furaffinity">
