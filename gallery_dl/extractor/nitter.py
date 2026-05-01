@@ -203,10 +203,9 @@ class NitterExtractor(BaseExtractor):
         quoted = self.config("quoted", False)
 
         if self.user_id:
-            self.user = self.request(
-                f"{self.root}/i/user/{self.user_id}",
-                allow_redirects=False,
-            ).headers["location"].rpartition("/")[2]
+            self.user = self.request_location(
+                f"{self.root}/i/user/{self.user_id}", method="GET",
+            ).rpartition("/")[2]
         base_url = url = f"{self.root}/{self.user}{path}"
 
         while True:
