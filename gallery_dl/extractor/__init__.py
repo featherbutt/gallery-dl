@@ -76,6 +76,7 @@ modules = [
     "fitnakedgirls",
     "flickr",
     "foriio",
+    "framedsc",
     "furaffinity",
     "furry34",
     "fuskator",

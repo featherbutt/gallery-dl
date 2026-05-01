@@ -391,6 +391,12 @@ Consider all listed sites to potentially be NSFW.
     <td>User Profiles, Works</td>
     <td></td>
 </tr>
+<tr id="framedsc" title="framedsc">
+    <td>FRAMED. Screenshot Community</td>
+    <td>https://framedsc.com/</td>
+    <td>individual Images, Raws, Search Results</td>
+    <td></td>
+</tr>
 <tr id="furaffinity" title="furaffinity">
     <td>Fur Affinity</td>
     <td>https://www.furaffinity.net/</td>
