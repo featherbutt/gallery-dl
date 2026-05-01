@@ -1333,12 +1333,6 @@ Consider all listed sites to potentially be NSFW.
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
-<tr id="weebdex" title="weebdex">
-    <td>WeebDex</td>
-    <td>https://weebdex.org/</td>
-    <td>Chapters, Manga</td>
-    <td></td>
-</tr>
 <tr id="weibo" title="weibo">
     <td>Weibo</td>
     <td>https://www.weibo.com/</td>

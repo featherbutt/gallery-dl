@@ -7625,26 +7625,6 @@ Description
     Useful for creating CBZ archives with actual source thumbnails.
 
 
-extractor.weebdex.data-saver
-----------------------------
-Type
-    ``bool``
-Default
-    ``false``
-Description
-    Enable `Data Saver` mode and download lower quality versions of chapters.
-
-
-extractor.weebdex.manga.lang
-----------------------------
-Type
-    ``string``
-Default
-    ``"en"``
-Description
-    |ISO 639-1| code selecting which chapters to download.
-
-
 extractor.weibo.gifs
 --------------------
 Type

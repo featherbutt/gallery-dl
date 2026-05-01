@@ -250,7 +250,6 @@ modules = [
     "webmshare",
     "webtoons",
     "weebcentral",
-    "weebdex",
     "weibo",
     "whyp",
     "wikiart",
