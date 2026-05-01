@@ -229,12 +229,6 @@ Consider all listed sites to potentially be NSFW.
     <td>Tag Searches</td>
     <td></td>
 </tr>
-<tr id="comick" title="comick">
-    <td>Comick</td>
-    <td>https://comick.io/</td>
-    <td>Chapters, Covers, Manga</td>
-    <td></td>
-</tr>
 <tr id="coomer" title="coomer">
     <td>Coomer</td>
     <td>https://coomer.st/</td>

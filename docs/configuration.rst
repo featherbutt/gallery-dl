@@ -2514,19 +2514,6 @@ Description
     ``Authorization`` header value used for `/multi-search` queries.
 
 
-extractor.comick.lang
----------------------
-Type
-    * ``string``
-    * ``list`` of ``strings``
-Example
-    * ``"en"``
-    * ``"fr,it,pl"``
-    * ``["fr", "it", "pl"]``
-Description
-    |ISO 639-1| code(s) to filter chapters by.
-
-
 extractor.coomer.files
 ----------------------
 Type
