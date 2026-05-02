@@ -4082,6 +4082,16 @@ Note
     This option only affects ``highlights``.
 
 
+extractor.instagram.pinned
+--------------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Process pinned posts.
+
+
 extractor.instagram.previews
 ----------------------------
 Type

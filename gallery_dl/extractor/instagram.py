@@ -90,6 +90,7 @@ class InstagramExtractor(Extractor):
             previews_video = previews_audio = False
         del previews
 
+        pinned = self.config("pinned", True)
         max_posts = self.config("max-posts")
         order = self.config("order-files")
         reverse = order[0] in {"r", "d"} if order else False
@@ -104,6 +105,10 @@ class InstagramExtractor(Extractor):
                 post = self._parse_post_graphql(post)
             else:
                 post = self._parse_post_rest(post)
+
+            if not pinned and post.get("pinned"):
+                self.log.debug("%s: Skipping pinned post", post.get("post_id"))
+                continue
 
             if self._user:
                 post["user"] = self._user
