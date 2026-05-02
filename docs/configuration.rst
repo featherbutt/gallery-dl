@@ -5806,6 +5806,16 @@ Description
     and letting Reddit chose a default.
 
 
+extractor.reddit.pinned
+-----------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Process pinned submissions.
+
+
 extractor.reddit.previews
 -------------------------
 Type
