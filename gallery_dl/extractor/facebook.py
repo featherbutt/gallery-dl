@@ -307,7 +307,7 @@ class FacebookExtractor(Extractor):
                         "Extraction is over."
                     )
             elif self._detect_jump and not set_id.startswith('pcb.') and \
-                    int(photo["next_photo_id"]) > int(photo["id"]) + i*120:
+                    (int(photo["next_photo_id"]) >> 1) > int(photo["id"]) :
                 self.log.info(
                     "Detected possible jump to the beginning of the set. "
                     "(%s -> %s)", photo["id"], photo["next_photo_id"])
