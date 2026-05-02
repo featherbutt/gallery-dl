@@ -24,11 +24,7 @@ class SkebExtractor(Extractor):
     def _init(self):
         self.thumbnails = self.config("thumbnails", False)
         self.article = self.config("article", False)
-        self.headers = {
-            "Accept": "application/json, text/plain, */*",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-        }
+        self.headers = {"Accept": "application/json, text/plain, */*"}
 
         if "Authorization" not in self.session.headers:
             self.headers["Authorization"] = "Bearer null"
@@ -57,7 +53,7 @@ class SkebExtractor(Extractor):
 
             files = self._get_files_from_post(response)
             post["count"] = len(files)
-            yield Message.Directory, post
+            yield Message.Directory, "", post
             for post["num"], file in enumerate(files, 1):
                 post.update(file)
                 url = file["file_url"]
@@ -258,7 +254,6 @@ class SkebSearchExtractor(SkebExtractor):
             "x-algolia-agent": "Algolia for JavaScript (4.13.1); Browser",
         }
         headers = {
-            "Origin": self.root,
             "x-algolia-api-key": "9a4ce7d609e71bf29e977925e4c6740c",
             "x-algolia-application-id": "HB1JT3KRE9",
         }

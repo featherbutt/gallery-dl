@@ -130,6 +130,55 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.webtoons.com/en/super-hero/unordinary/episode-20/viewer?title_no=679&episode_no=21",
+    "#comment" : "background music (#8733)",
+    "#class"   : webtoons.WebtoonsEpisodeExtractor,
+    "#options" : {"bgm": True},
+    "#range"   : "1",
+    "#pattern" : r"ytdl:https://apis.naver.com/audioc/audiocplay/play/audio/4A10DDE1B92388DA164C48B0356AA442/hls/manifest\.m3u8\?apigw-routing-key=KR&codec=AAC&kbps=64&tt=\d+&tv=.+",
+
+    "audioId"         : "4A10DDE1B92388DA164C48B0356AA442",
+    "author_name"     : "uru-chan",
+    "codec"           : "AAC",
+    "comic"           : "unordinary",
+    "comic_name"      : "unOrdinary",
+    "count"           : 63,
+    "cpContentId"     : None,
+    "cpNo"            : 5,
+    "description"     : "Nobody paid much attention to John – just a normal teenager at a high school where the social elite happen to possess unthinkable powers and abilities. But John’s got a secret past that threatens to bring down the school’s whole social order – and much more. Fulfilling his destiny won’t be easy though, because there are battles, frenemies and deadly conspiracies around every corner.",
+    "duration"        : 90.096692,
+    "encodingTargetYn": False,
+    "episode"         : "21",
+    "episodeNo"       : 21,
+    "episode_name"    : "Episode 20",
+    "episode_no"      : "21",
+    "expireTime"      : int,
+    "extension"       : "mp3",
+    "filePath"        : "679_21/1475723621351drama7.mp3",
+    "genre"           : "super-hero",
+    "kbps"            : 64,
+    "lang"            : "en",
+    "language"        : "English",
+    "num"             : 0,
+    "num_play"        : 17,
+    "num_stop"        : 0,
+    "filename_play"   : "1475724249934679214",
+    "filename_stop"   : "",
+    "objectType"      : "mp4a.40.2",
+    "originalFileSize": 0,
+    "playImageUrl"    : "/20161006_271/1475724249957QlGUF_JPEG/1475724249934679214.jpg",
+    "region"          : "KR",
+    "registerYmdt"    : "2016-10-06 12:25:09",
+    "sortOrder"       : 1,
+    "stopImageUrl"    : "",
+    "title"           : "unOrdinary - Episode 20",
+    "titleNo"         : 679,
+    "title_no"        : "679",
+    "type"            : "bgm",
+    "username"        : "62610",
+},
+
+{
     "#url"     : "https://www.webtoons.com/en/comedy/live-with-yourself/list?title_no=919",
     "#comment" : "english",
     "#category": ("", "webtoons", "comic"),
@@ -141,6 +190,91 @@ __tests__ = (
     "page"      : range(1, 2),
     "title_no"  : 919,
     "episode_no": range(1, 14),
+    "date"      : "type:datetime",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/en/comedy/live-with-yourself/list?title_no=919",
+    "#comment" : "episode date, english",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "14",
+    "#count"   : 1,
+
+    "title_no"  : 919,
+    "episode_no": 1,
+    "date"      : "dt:2017-01-01 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/fr/romance/subzero/list?title_no=1845&page=24",
+    "#comment" : "episode date, french",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "7",
+    "#count"   : 1,
+
+    "title_no"  : 1845,
+    "episode_no": 1,
+    "date"      : "dt:2019-12-19 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/es/romance/lore-olympus/list?title_no=1725",
+    "#comment" : "episode date, spanish",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "9",
+    "#count"   : 1,
+
+    "title_no"  : 1725,
+    "episode_no": 1,
+    "date"      : "dt:2019-11-21 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/de/fantasy/werewolves-going-crazy-over-me/list?title_no=8127&page=5",
+    "#comment" : "episode date, german",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "10",
+    "#count"   : 1,
+
+    "title_no"  : 8127,
+    "episode_no": 1,
+    "date"      : "dt:2025-05-17 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/id/romance/daytime-in-the-bunker/list?title_no=9889",
+    "#comment" : "episode date, indonesian",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "4",
+    "#count"   : 1,
+
+    "title_no"  : 9889,
+    "episode_no": 1,
+    "date"      : "dt:2026-04-07 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/zh-hant/school/kanlianshidai/list?title_no=546&page=60",
+    "#comment" : "episode date, chinese traditional",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "5",
+    "#count"   : 1,
+
+    "title_no"  : 546,
+    "episode_no": 1,
+    "date"      : "dt:2015-09-30 00:00:00",
+},
+
+{
+    "#url"     : "https://www.webtoons.com/th/action/lookism/list?title_no=576&page=60",
+    "#comment" : "episode date, thai",
+    "#class"   : webtoons.WebtoonsComicExtractor,
+    "#range"   : "7",
+    "#count"   : 1,
+
+    "title_no"  : 576,
+    "episode_no": 1,
+    "date"      : "dt:2015-11-04 00:00:00",
 },
 
 {
@@ -160,6 +294,7 @@ __tests__ = (
     "?type"      : "banner",
     "title_no"   : 919,
     "?episode_no": range(12, 14),
+    "?date"      : "type:datetime",
 },
 
 {
@@ -172,6 +307,7 @@ __tests__ = (
     "page"      : range(7, 25),
     "title_no"  : 1845,
     "episode_no": int,
+    "date"      : "type:datetime",
 },
 
 {
@@ -184,6 +320,7 @@ __tests__ = (
     "page"      : int,
     "title_no"  : 210827,
     "episode_no": int,
+    "date"      : "type:datetime",
 },
 
 {

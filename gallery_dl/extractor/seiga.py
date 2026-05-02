@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2016-2025 Mike Fährmann
+# Copyright 2016-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://seiga.nicovideo.jp/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
-from ..cache import cache
+from .. import text, util
 
 
 class SeigaExtractor(Extractor):
@@ -31,7 +30,7 @@ class SeigaExtractor(Extractor):
         images = iter(self.get_images())
         data = next(images)
 
-        yield Message.Directory, data
+        yield Message.Directory, "", data
         for image in util.advance(images, self.start_image):
             data.update(image)
             data["extension"] = None
@@ -45,7 +44,7 @@ class SeigaExtractor(Extractor):
         url = f"{self.root}/image/source/{image_id}"
         location = self.request_location(url, notfound="image")
         if "nicovideo.jp/login" in location:
-            raise exception.AbortExtraction(
+            raise self.exc.AbortExtraction(
                 f"HTTP redirect to login page ({location.partition('?')[0]})")
         return location.replace("/o/", "/priv/", 1)
 
@@ -55,12 +54,13 @@ class SeigaExtractor(Extractor):
 
         username, password = self._get_auth_info()
         if username:
-            return self.cookies_update(self._login_impl(username, password))
+            return self.cookies_update(self.cache(
+                self._login_impl, username, password,
+                _exp=365*86400, _mem=False))
 
-        raise exception.AuthorizationError(
+        raise self.exc.AuthorizationError(
             "username & password or 'user_session' cookie required")
 
-    @cache(maxage=365*86400, keyarg=1)
     def _login_impl(self, username, password):
         self.log.info("Logging in as %s", username)
 
@@ -76,7 +76,7 @@ class SeigaExtractor(Extractor):
         response = self.request(url, method="POST", data=data)
 
         if "message=cant_login" in response.url:
-            raise exception.AuthenticationError()
+            raise self.exc.AuthenticationError()
 
         if "/mfa" in response.url:
             page = response.text
@@ -93,7 +93,7 @@ class SeigaExtractor(Extractor):
 
             if not response.history and \
                     b"Confirmation code is incorrect" in response.content:
-                raise exception.AuthenticationError(
+                raise self.exc.AuthenticationError(
                     "Incorrect Confirmation Code")
 
         return {
@@ -117,7 +117,7 @@ class SeigaUserExtractor(SeigaExtractor):
         self.user_id, self.order = match.groups()
         self.start_page = 1
 
-    def skip(self, num):
+    def skip_files(self, num):
         pages, images = divmod(num, 40)
         self.start_page += pages
         self.start_image += images
@@ -133,7 +133,7 @@ class SeigaUserExtractor(SeigaExtractor):
         ))[0]
 
         if not data["name"] and "ユーザー情報が取得出来ませんでした" in page:
-            raise exception.NotFoundError("user")
+            raise self.exc.NotFoundError("user")
 
         return {
             "user": {
@@ -189,7 +189,7 @@ class SeigaImageExtractor(SeigaExtractor):
         SeigaExtractor.__init__(self, match)
         self.image_id = match[1]
 
-    def skip(self, num):
+    def skip_files(self, num):
         self.start_image += num
         return num
 
@@ -198,7 +198,7 @@ class SeigaImageExtractor(SeigaExtractor):
             "skip_fetish_warning", "1", domain="seiga.nicovideo.jp")
 
         url = f"{self.root}/seiga/im{self.image_id}"
-        page = self.request(url, notfound="image").text
+        page = self.request(url, notfound=True).text
 
         data = text.extract_all(page, (
             ("date"        , '<li class="date"><span class="created">', '<'),
@@ -213,7 +213,7 @@ class SeigaImageExtractor(SeigaExtractor):
 
         data["description"] = text.remove_html(data["description"])
         data["image_id"] = text.parse_int(self.image_id)
-        data["date"] = text.parse_datetime(
+        data["date"] = self.parse_datetime(
             data["date"] + ":00+0900", "%Y年%m月%d日 %H:%M:%S%z")
 
         return (data, data)

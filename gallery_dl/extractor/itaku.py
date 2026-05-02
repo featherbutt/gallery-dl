@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2022-2025 Mike Fährmann
+# Copyright 2022-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,6 @@
 """Extractors for https://itaku.ee/"""
 
 from .common import Extractor, Message, Dispatch
-from ..cache import memcache
 from .. import text, util
 
 BASE_PATTERN = r"(?:https?://)?itaku\.ee"
@@ -33,7 +32,7 @@ class ItakuExtractor(Extractor):
         if images := self.images():
             for image in images:
                 url = self.format_image_metatdata(image)
-                yield Message.Directory, image
+                yield Message.Directory, "", image
                 yield Message.Url, url, text.nameext_from_url(url, image)
             return
 
@@ -41,15 +40,13 @@ class ItakuExtractor(Extractor):
             for post in posts:
                 images = post.get("gallery_images") or ()
                 post["count"] = len(images)
-                post["date"] = text.parse_datetime(
-                    post["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                post["date"] = self.parse_datetime_iso(post["date_added"])
                 post["tags"] = [t["name"] for t in post["tags"]]
 
                 for image in images:
-                    image["date"] = text.parse_datetime(
-                        image["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    image["date"] = self.parse_datetime_iso(image["date_added"])
 
-                yield Message.Directory, post
+                yield Message.Directory, "", post
                 del post["gallery_images"]
                 for post["num"], image in enumerate(images, 1):
                     image.update(self.api.image(image["id"]))
@@ -59,9 +56,9 @@ class ItakuExtractor(Extractor):
             return
 
         if users := self.users():
-            base = f"{self.root}/profile/"
+            base = self.root + "/profile/"
             for user in users:
-                url = f"{base}{user['owner_username']}"
+                url = base + user["owner_username"]
                 user["_extractor"] = ItakuUserExtractor
                 yield Message.Queue, url, user
             return
@@ -69,8 +66,7 @@ class ItakuExtractor(Extractor):
     images = posts = users = util.noop
 
     def format_image_metatdata(self, image: dict) -> str:
-        image["date"] = text.parse_datetime(
-        image["date_added"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        image["date"] = self.parse_datetime_iso(image["date_added"])
         for category, tags in image.pop("categorized_tags").items():
             image[f"tags_{category.lower()}"] = [
                 t["name"] for t in tags]
@@ -265,7 +261,7 @@ class ItakuAPI():
             "cursor"    : None,
             "date_range": "",
             "maturity_rating": ("SFW", "Questionable", "NSFW"),
-            "ordering"  : "-date_added",
+            "ordering"  : self._order(),
             "page"      : "1",
             "page_size" : "30",
             "visibility": ("PUBLIC", "PROFILE_ONLY"),
@@ -279,7 +275,7 @@ class ItakuAPI():
             "cursor"    : None,
             "date_range": "",
             "maturity_rating": ("SFW", "Questionable", "NSFW"),
-            "ordering"  : "-date_added",
+            "ordering"  : self._order(),
             "page"      : "1",
             "page_size" : "30",
             **params,
@@ -290,7 +286,7 @@ class ItakuAPI():
         endpoint = "/user_profiles/"
         params = {
             "cursor"   : None,
-            "ordering" : "-date_added",
+            "ordering" : self._order(),
             "page"     : "1",
             "page_size": "50",
             "sfw_only" : "false",
@@ -306,14 +302,13 @@ class ItakuAPI():
         endpoint = f"/posts/{post_id}/"
         return self._call(endpoint)
 
-    @memcache(keyarg=1)
     def user(self, username):
         return self._call(f"/user_profiles/{username}/")
 
     def user_id(self, username):
         if username.startswith("id:"):
             return int(username[3:])
-        return self.user(username)["owner"]
+        return self.extractor.cache(self.user, username)["owner"]
 
     def _call(self, endpoint, params=None):
         if not endpoint.startswith("http"):
@@ -336,3 +331,11 @@ class ItakuAPI():
                 return
 
             data = self._call(url_next)
+
+    def _order(self):
+        if order := self.extractor.config("order"):
+            if order in {"a", "asc", "r", "reverse"}:
+                return "date_added"
+            if order not in {"d", "desc"}:
+                return order
+        return "-date_added"

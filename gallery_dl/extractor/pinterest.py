@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2016-2025 Mike Fährmann
+# Copyright 2016-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://www.pinterest.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
+from .. import text, util
 import itertools
 
 BASE_PATTERN = r"(?:https?://)?(?:\w+\.)?pinterest\.[\w.]+"
@@ -46,7 +46,7 @@ class PinterestExtractor(Extractor):
             try:
                 files = self._extract_files(pin)
             except Exception as exc:
-                self.log.debug("", exc_info=exc)
+                self.log.traceback(exc)
                 self.log.warning(
                     "%s: Error when extracting download URLs (%s: %s)",
                     pin.get("id"), exc.__class__.__name__, exc)
@@ -63,7 +63,7 @@ class PinterestExtractor(Extractor):
                 if value := pin.get(key):
                     pin[key] = value.strip()
 
-            yield Message.Directory, pin
+            yield Message.Directory, "", pin
             for pin["num"], file in enumerate(files, 1):
                 url = file["url"]
                 text.nameext_from_url(url, pin)
@@ -394,7 +394,7 @@ class PinterestPinitExtractor(PinterestExtractor):
                f"/{self.groups[0]}/redirect/")
         location = self.request_location(url)
         if not location:
-            raise exception.NotFoundError("pin")
+            raise self.exc.NotFoundError("pin")
         elif PinterestPinExtractor.pattern.match(location):
             yield Message.Queue, location, {
                 "_extractor": PinterestPinExtractor}
@@ -402,7 +402,7 @@ class PinterestPinitExtractor(PinterestExtractor):
             yield Message.Queue, location, {
                 "_extractor": PinterestBoardExtractor}
         else:
-            raise exception.NotFoundError("pin")
+            raise self.exc.NotFoundError("pin")
 
 
 class PinterestAPI():
@@ -545,9 +545,9 @@ class PinterestAPI():
             return data
         if response.status_code == 404:
             resource = self.extractor.subcategory.rpartition("-")[2]
-            raise exception.NotFoundError(resource)
+            raise self.extractor.exc.NotFoundError(resource)
         self.extractor.log.debug("Server response: %s", response.text)
-        raise exception.AbortExtraction("API request failed")
+        raise self.extractor.exc.AbortExtraction("API request failed")
 
     def _pagination(self, resource, options):
         while True:

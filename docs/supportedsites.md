@@ -15,13 +15,7 @@ Consider all listed sites to potentially be NSFW.
 <tbody valign="top">
 <tr id="2ch" title="2ch">
     <td>2ch</td>
-    <td>https://2ch.su/</td>
-    <td>Boards, Threads</td>
-    <td></td>
-</tr>
-<tr id="2chen" title="2chen">
-    <td>2chen</td>
-    <td>https://sturdychan.help/</td>
+    <td>https://2ch.org/</td>
     <td>Boards, Threads</td>
     <td></td>
 </tr>
@@ -91,6 +85,18 @@ Consider all listed sites to potentially be NSFW.
     <td>Posts, Tag Searches</td>
     <td></td>
 </tr>
+<tr id="ahottie" title="ahottie">
+    <td>AHottie</td>
+    <td>https://ahottie.top/</td>
+    <td>Galleries, Search Results, Tag Searches</td>
+    <td></td>
+</tr>
+<tr id="allporncomic" title="allporncomic">
+    <td>AllPornComic</td>
+    <td>https://allporncomic.com/</td>
+    <td>Chapters, Manga, Tag Searches</td>
+    <td></td>
+</tr>
 <tr id="arcalive" title="arcalive">
     <td>Arcalive</td>
     <td>https://arca.live/</td>
@@ -109,16 +115,22 @@ Consider all listed sites to potentially be NSFW.
     <td>Search Results, Series, Subscriptions, Tag Searches, User Profiles, User Bookmarks, User Series, User Works, Works</td>
     <td>Supported</td>
 </tr>
+<tr id="arena" title="arena">
+    <td>Are.na</td>
+    <td>https://are.na/</td>
+    <td>Channels</td>
+    <td></td>
+</tr>
 <tr id="artstation" title="artstation">
     <td>ArtStation</td>
     <td>https://www.artstation.com/</td>
     <td>Albums, Artwork Listings, Challenges, Collections, Followed Users, individual Images, Likes, Search Results, User Profiles</td>
     <td></td>
 </tr>
-<tr id="batoto" title="batoto">
-    <td>BATO.TO</td>
-    <td>https://bato.to/</td>
-    <td>Chapters, Manga</td>
+<tr id="audiochan" title="audiochan">
+    <td>Audiochan</td>
+    <td>https://audiochan.com/</td>
+    <td>Audios, Collections, Search Results, User Profiles</td>
     <td></td>
 </tr>
 <tr id="bbc" title="bbc">
@@ -148,31 +160,37 @@ Consider all listed sites to potentially be NSFW.
 <tr id="bluesky" title="bluesky">
     <td>Bluesky</td>
     <td>https://bsky.app/</td>
-    <td>Avatars, Backgrounds, Feeds, Followed Users, Hashtags, User Profile Information, Likes, Lists, Media Files, Posts, Replies, Search Results, User Profiles, Videos</td>
+    <td>Avatars, Backgrounds, Bookmarks, Feeds, Followed Users, Hashtags, User Profile Information, Likes, Lists, Media Files, Posts, Replies, Search Results, User Profiles, Videos</td>
     <td>Supported</td>
 </tr>
 <tr id="boosty" title="boosty">
     <td>Boosty</td>
     <td>https://www.boosty.to/</td>
     <td>DMs, Subscriptions Feed, Followed Users, Media Files, Posts, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="booth" title="booth">
     <td>BOOTH</td>
     <td>https://booth.pm/</td>
-    <td>Items, Shops</td>
+    <td>Item Categories, Items, Shops</td>
     <td></td>
 </tr>
 <tr id="bunkr" title="bunkr">
     <td>Bunkr</td>
-    <td>https://bunkr.si/</td>
-    <td>Albums, Media Files</td>
+    <td>https://bunkr.cr/</td>
+    <td>Albums, Direct Links, Media Files</td>
     <td></td>
 </tr>
 <tr id="catbox" title="catbox">
     <td>Catbox</td>
     <td>https://catbox.moe/</td>
     <td>Albums, Files</td>
+    <td></td>
+</tr>
+<tr id="cfake" title="cfake">
+    <td>Celebrity Fakes</td>
+    <td>https://cfake.com/</td>
+    <td>Categories, Celebrities, Countries, Created</td>
     <td></td>
 </tr>
 <tr id="naver-chzzk" title="naver-chzzk">
@@ -193,16 +211,22 @@ Consider all listed sites to potentially be NSFW.
     <td>Collections, Generated Files, individual Images, Image Listings, Models, Model Listings, Posts, Post Listings, Image Searches, Model Searches, Tag Searches, User Profiles, User Collections, User Images, Image Reactions, User Models, User Posts, User Videos, Video Reactions, Video Listings</td>
     <td></td>
 </tr>
+<tr id="comedywildlifephoto" title="comedywildlifephoto">
+    <td>Comedy Wildlife Photography Awards</td>
+    <td>https://www.comedywildlifephoto.com/</td>
+    <td>Galleries</td>
+    <td></td>
+</tr>
+<tr id="comicartfans" title="comicartfans">
+    <td>Comic Art Fans</td>
+    <td>https://www.comicartfans.com/</td>
+    <td>Artists, Artworks, Galleries, Search Results</td>
+    <td></td>
+</tr>
 <tr id="comicvine" title="comicvine">
     <td>Comic Vine</td>
     <td>https://comicvine.gamespot.com/</td>
     <td>Tag Searches</td>
-    <td></td>
-</tr>
-<tr id="comick" title="comick">
-    <td>Comick</td>
-    <td>https://comick.io/</td>
-    <td>Chapters, Covers, Manga</td>
     <td></td>
 </tr>
 <tr id="coomer" title="coomer">
@@ -211,16 +235,34 @@ Consider all listed sites to potentially be NSFW.
     <td>Artists, Favorites, Posts, User Profiles</td>
     <td>Supported</td>
 </tr>
+<tr id="cosmos" title="cosmos">
+    <td>Cosmos</td>
+    <td>https://www.cosmos.so/</td>
+    <td>Collections, Collections, Elements, Search Results, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="cosplayrule34" title="cosplayrule34">
+    <td>Cosplayrule34</td>
+    <td>https://cosplayrule34.com/</td>
+    <td>Models, Cosplays, Fandoms, Categories, Searches, Posts, Frontpage Posts, Top Pages</td>
+    <td></td>
+</tr>
 <tr id="cyberdrop" title="cyberdrop">
     <td>Cyberdrop</td>
-    <td>https://cyberdrop.me/</td>
+    <td>https://cyberdrop.cr/</td>
     <td>Albums, Media Files</td>
     <td></td>
 </tr>
 <tr id="cyberfile" title="cyberfile">
     <td>CyberFile</td>
     <td>https://cyberfile.me/</td>
-    <td>Files, Folders</td>
+    <td>Files, Folders, Shares</td>
+    <td></td>
+</tr>
+<tr id="dandadan" title="dandadan">
+    <td>Dandadan</td>
+    <td>https://dandadan.net/</td>
+    <td>Chapters, Manga</td>
     <td></td>
 </tr>
 <tr id="dankefuerslesen" title="dankefuerslesen">
@@ -239,12 +281,12 @@ Consider all listed sites to potentially be NSFW.
     <td>DeviantArt</td>
     <td>https://www.deviantart.com/</td>
     <td>Avatars, Backgrounds, Collections, Deviations, Favorites, Folders, Followed Users, Galleries, Gallery Searches, Journals, Scraps, Search Results, Sta.sh, Status Updates, Tag Searches, User Profiles, Watches</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="discord" title="discord">
     <td>Discord</td>
     <td>https://discord.com/</td>
-    <td>Channels, DMs, Messages, Servers</td>
+    <td>Channels, DMs, Messages, Servers, Server Assets, Server Searches</td>
     <td></td>
 </tr>
 <tr id="dynastyscans" title="dynastyscans">
@@ -262,8 +304,14 @@ Consider all listed sites to potentially be NSFW.
 <tr id="aryion" title="aryion">
     <td>Eka's Portal</td>
     <td>https://aryion.com/</td>
-    <td>Favorites, Galleries, Posts, Tag Searches</td>
+    <td>Favorites, Galleries, Message Page Submissions, Posts, Search Results, Tag Searches, Watched Users</td>
     <td>Supported</td>
+</tr>
+<tr id="eporner" title="eporner">
+    <td>EPORNER</td>
+    <td>https://www.eporner.com/</td>
+    <td>Galleries</td>
+    <td></td>
 </tr>
 <tr id="erome" title="erome">
     <td>EroMe</td>
@@ -287,7 +335,7 @@ Consider all listed sites to potentially be NSFW.
     <td>Facebook</td>
     <td>https://www.facebook.com/</td>
     <td>Albums, Avatars, User Profile Information, Photos, Profile Photos, Sets, User Profiles, Videos</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="fansly" title="fansly">
     <td>Fansly</td>
@@ -298,8 +346,8 @@ Consider all listed sites to potentially be NSFW.
 <tr id="fantia" title="fantia">
     <td>Fantia</td>
     <td>https://fantia.jp/</td>
-    <td>Creators, Posts</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td>Creators, Posts, Supported Creators</td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="fapachi" title="fapachi">
     <td>Fapachi</td>
@@ -313,17 +361,47 @@ Consider all listed sites to potentially be NSFW.
     <td>Models, Videos, Trending Posts, Popular Videos, Top Models, Posts</td>
     <td></td>
 </tr>
+<tr id="fikfap" title="fikfap">
+    <td>FikFap</td>
+    <td>https://fikfap.com/</td>
+    <td>Hashtags, Posts, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="filester" title="filester">
+    <td>filester.me</td>
+    <td>https://filester.me/</td>
+    <td>Files, Folders</td>
+    <td></td>
+</tr>
+<tr id="fitnakedgirls" title="fitnakedgirls">
+    <td>FitNakedGirls</td>
+    <td>https://fitnakedgirls.com/</td>
+    <td>Blogs, Categories, Galleries, Tag Searches, Videos</td>
+    <td></td>
+</tr>
 <tr id="flickr" title="flickr">
     <td>Flickr</td>
     <td>https://www.flickr.com/</td>
     <td>Albums, Favorites, Galleries, Groups, individual Images, Search Results, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
+</tr>
+<tr id="foriio" title="foriio">
+    <td>foriio</td>
+    <td>https://foriio.com/</td>
+    <td>User Profiles, Works</td>
+    <td></td>
+</tr>
+<tr id="framedsc" title="framedsc">
+    <td>FRAMED. Screenshot Community</td>
+    <td>https://framedsc.com/</td>
+    <td>individual Images, Raws, Search Results</td>
+    <td></td>
 </tr>
 <tr id="furaffinity" title="furaffinity">
     <td>Fur Affinity</td>
     <td>https://www.furaffinity.net/</td>
     <td>Favorites, Folders, Followed Users, Galleries, Posts, Scraps, Search Results, New Submissions, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="furry34" title="furry34">
     <td>Furry 34 com</td>
@@ -365,6 +443,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Gofile</td>
     <td>https://gofile.io/</td>
     <td>Folders</td>
+    <td></td>
+</tr>
+<tr id="harvardlawnuremberg" title="harvardlawnuremberg">
+    <td>Harvard Law School Nuremberg Trials Project</td>
+    <td>https://nuremberg.law.harvard.edu/</td>
+    <td>Documents</td>
     <td></td>
 </tr>
 <tr id="hatenablog" title="hatenablog">
@@ -451,6 +535,18 @@ Consider all listed sites to potentially be NSFW.
     <td>Folders, Galleries, individual Images, User Profiles</td>
     <td></td>
 </tr>
+<tr id="imagepond" title="imagepond">
+    <td>ImagePond</td>
+    <td>https://www.imagepond.net/</td>
+    <td>Albums, Files, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="imageshack" title="imageshack">
+    <td>ImageShack</td>
+    <td>https://imageshack.com/</td>
+    <td>Galleries, individual Images, User Profiles</td>
+    <td></td>
+</tr>
 <tr id="imgbb" title="imgbb">
     <td>ImgBB</td>
     <td>https://imgbb.com/</td>
@@ -490,8 +586,8 @@ Consider all listed sites to potentially be NSFW.
 <tr id="instagram" title="instagram">
     <td>Instagram</td>
     <td>https://www.instagram.com/</td>
-    <td>Avatars, Collections, Followers, Followed Users, Guides, Highlights, User Profile Information, Posts, Reels, Saved Posts, Stories, Stories Home Tray, Tag Searches, Tagged Posts, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td>Avatars, Collections, Followers, Followed Users, Guides, Highlights, User Profile Information, Photos, Posts, Reels, Saved Posts, Stories, Stories Home Tray, Tag Searches, Tagged Posts, User Profiles</td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="issuu" title="issuu">
     <td>Issuu</td>
@@ -517,6 +613,18 @@ Consider all listed sites to potentially be NSFW.
     <td>Favorites, Followers, Followed Users, individual Images, Playlists, Search Results, Tag Searches, User Profiles, User Images, User Playlists, User Videos, Videos</td>
     <td>Supported</td>
 </tr>
+<tr id="joyreactor" title="joyreactor">
+    <td>JoyReactor</td>
+    <td>https://joyreactor.com/</td>
+    <td>Posts, Search Results, Tag Searches, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="kaliscan" title="kaliscan">
+    <td>KaliScan</td>
+    <td>https://kaliscan.me/</td>
+    <td>Chapters, Manga</td>
+    <td></td>
+</tr>
 <tr id="keenspot" title="keenspot">
     <td>Keenspot</td>
     <td>http://www.keenspot.com/</td>
@@ -541,6 +649,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
+<tr id="koofr" title="koofr">
+    <td>Koofr</td>
+    <td>https://koofr.net/</td>
+    <td>Shared Links</td>
+    <td></td>
+</tr>
 <tr id="leakgallery" title="leakgallery">
     <td>Leak Gallery</td>
     <td>https://leakgallery.com</td>
@@ -563,6 +677,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Lightroom</td>
     <td>https://lightroom.adobe.com/</td>
     <td>Galleries</td>
+    <td></td>
+</tr>
+<tr id="listal" title="listal">
+    <td>Listal</td>
+    <td>https://listal.com</td>
+    <td>individual Images, People</td>
     <td></td>
 </tr>
 <tr id="livedoor" title="livedoor">
@@ -613,6 +733,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
+<tr id="mangafreak" title="mangafreak">
+    <td>MangaFreak</td>
+    <td>https://ww2.mangafreak.me/</td>
+    <td>Chapters, Manga</td>
+    <td></td>
+</tr>
 <tr id="mangapark" title="mangapark">
     <td>MangaPark</td>
     <td>https://mangapark.net/</td>
@@ -625,9 +751,21 @@ Consider all listed sites to potentially be NSFW.
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
+<tr id="mangareader" title="mangareader">
+    <td>MangaReader</td>
+    <td>https://mangareader.to/</td>
+    <td>Chapters, Manga</td>
+    <td></td>
+</tr>
 <tr id="mangataro" title="mangataro">
     <td>MangaTaro</td>
     <td>https://mangataro.org/</td>
+    <td>Chapters, Manga</td>
+    <td></td>
+</tr>
+<tr id="mangatown" title="mangatown">
+    <td>MangaTown</td>
+    <td>https://www.mangatown.com/</td>
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
@@ -636,6 +774,12 @@ Consider all listed sites to potentially be NSFW.
     <td>https://www.mangoxo.com/</td>
     <td>Albums, Channels</td>
     <td>Supported</td>
+</tr>
+<tr id="mixdrop" title="mixdrop">
+    <td>MixDrop</td>
+    <td>https://mixdrop.ag/</td>
+    <td>Files</td>
+    <td></td>
 </tr>
 <tr id="motherless" title="motherless">
     <td>Motherless</td>
@@ -646,7 +790,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="myhentaigallery" title="myhentaigallery">
     <td>My Hentai Gallery</td>
     <td>https://myhentaigallery.com/</td>
-    <td>Galleries</td>
+    <td>Galleries, Tag Searches</td>
     <td></td>
 </tr>
 <tr id="naver-blog" title="naver-blog">
@@ -694,7 +838,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="nsfwalbum" title="nsfwalbum">
     <td>NSFWalbum.com</td>
     <td>https://nsfwalbum.com/</td>
-    <td>Albums</td>
+    <td>Albums, individual Images</td>
     <td></td>
 </tr>
 <tr id="nudostar" title="nudostar">
@@ -703,16 +847,28 @@ Consider all listed sites to potentially be NSFW.
     <td>individual Images, Models</td>
     <td></td>
 </tr>
+<tr id="okporn" title="okporn">
+    <td>OK.PORN</td>
+    <td>https://ok.porn/</td>
+    <td>Galleries</td>
+    <td></td>
+</tr>
 <tr id="patreon" title="patreon">
     <td>Patreon</td>
     <td>https://www.patreon.com/</td>
     <td>Collections, Creators, Posts, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="pexels" title="pexels">
     <td>Pexels</td>
     <td>https://pexels.com/</td>
     <td>Collections, individual Images, Search Results, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="pholder" title="pholder">
+    <td>pholder</td>
+    <td>https://pholder.com/</td>
+    <td>Search Results, Subreddits, User Profiles</td>
     <td></td>
 </tr>
 <tr id="photovogue" title="photovogue">
@@ -725,6 +881,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Picarto</td>
     <td>https://picarto.tv/</td>
     <td>Galleries</td>
+    <td></td>
+</tr>
+<tr id="picazor" title="picazor">
+    <td>Picazor</td>
+    <td>https://picazor.com/</td>
+    <td>User Profiles</td>
     <td></td>
 </tr>
 <tr id="pictoa" title="pictoa">
@@ -749,7 +911,7 @@ Consider all listed sites to potentially be NSFW.
     <td>Pinterest</td>
     <td>https://www.pinterest.com/</td>
     <td>All Pins, Created Pins, Pins, pin.it Links, related Pins, Search Results, Sections, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="pixeldrain" title="pixeldrain">
     <td>pixeldrain</td>
@@ -761,19 +923,19 @@ Consider all listed sites to potentially be NSFW.
     <td>[pixiv]</td>
     <td>https://www.pixiv.net/</td>
     <td>Artworks, Avatars, Backgrounds, Favorites, Follows, pixiv.me Links, pixivision, Rankings, Search Results, Series, Sketch, Unlisted Works, User Profiles, individual Images</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="pixiv-novel" title="pixiv-novel">
     <td>[pixiv] Novels</td>
     <td>https://www.pixiv.net/novel</td>
     <td>Bookmarks, Novels, Series, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="fanbox" title="fanbox">
     <td>pixivFANBOX</td>
     <td>https://www.fanbox.cc/</td>
-    <td>Creators, Home Feed, Posts, Pixiv Redirects, Supported User Feed</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td>Creators, Home Feed, Posts, Pixiv Redirects, Supported User Feed, Tag Searches</td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="pixnet" title="pixnet">
     <td>Pixnet</td>
@@ -791,7 +953,7 @@ Consider all listed sites to potentially be NSFW.
     <td>Poipiku</td>
     <td>https://poipiku.com/</td>
     <td>Posts, User Profiles</td>
-    <td></td>
+    <td>Supported</td>
 </tr>
 <tr id="poringa" title="poringa">
     <td>Poringa</td>
@@ -808,7 +970,19 @@ Consider all listed sites to potentially be NSFW.
 <tr id="pornpics" title="pornpics">
     <td>PornPics.com</td>
     <td>https://www.pornpics.com/</td>
-    <td>Galleries, Search Results, Tag Searches</td>
+    <td>Categories, Galleries, Listings, Search Results, Tag Searches</td>
+    <td></td>
+</tr>
+<tr id="pornstarstube" title="pornstarstube">
+    <td>PORNSTARS.TUBE</td>
+    <td>https://pornstars.tube/</td>
+    <td>Galleries</td>
+    <td></td>
+</tr>
+<tr id="postype" title="postype">
+    <td>Postype</td>
+    <td>https://www.postype.com/</td>
+    <td>Channels, Posts</td>
     <td></td>
 </tr>
 <tr id="rule34vault" title="rule34vault">
@@ -826,7 +1000,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="readcomiconline" title="readcomiconline">
     <td>Read Comic Online</td>
     <td>https://readcomiconline.li/</td>
-    <td>Comic Issues, Comics</td>
+    <td>Comic Issues, Comics, Tag Searches</td>
     <td></td>
 </tr>
 <tr id="realbooru" title="realbooru">
@@ -835,17 +1009,11 @@ Consider all listed sites to potentially be NSFW.
     <td>Favorites, Pools, Posts, Tag Searches</td>
     <td></td>
 </tr>
-<tr id="redbust" title="redbust">
-    <td>RedBust</td>
-    <td>https://redbust.com/</td>
-    <td>Archives, Galleries, Categories, individual Images, Tag Searches</td>
-    <td></td>
-</tr>
 <tr id="reddit" title="reddit">
     <td>Reddit</td>
     <td>https://www.reddit.com/</td>
     <td>Home Feed, individual Images, Redirects, Submissions, Subreddits, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="redgifs" title="redgifs">
     <td>RedGIFs</td>
@@ -865,16 +1033,22 @@ Consider all listed sites to potentially be NSFW.
     <td>Posts, Tag Searches</td>
     <td></td>
 </tr>
+<tr id="rule34world" title="rule34world">
+    <td>Rule 34 World</td>
+    <td>https://rule34.world/</td>
+    <td>Playlists, Posts, Tag Searches</td>
+    <td>Supported</td>
+</tr>
 <tr id="rule34xyz" title="rule34xyz">
     <td>Rule 34 XYZ</td>
     <td>https://rule34.xyz/</td>
     <td>Playlists, Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
-<tr id="saint" title="saint">
-    <td>Saint</td>
-    <td>https://saint2.su/</td>
-    <td>Albums, Media Files</td>
+<tr id="s3ndpics" title="s3ndpics">
+    <td>S3ND</td>
+    <td>https://s3nd.pics/</td>
+    <td>Posts, Search Results, User Profiles</td>
     <td></td>
 </tr>
 <tr id="sankaku" title="sankaku">
@@ -889,6 +1063,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Articles, Tag Searches</td>
     <td></td>
 </tr>
+<tr id="scatbooru" title="scatbooru">
+    <td>Scatbooru</td>
+    <td>https://scatbooru.co.uk/</td>
+    <td>Favorites, Posts, Tag Searches</td>
+    <td></td>
+</tr>
 <tr id="schalenetwork" title="schalenetwork">
     <td>Schale Network</td>
     <td>https://niyaniya.moe/</td>
@@ -898,7 +1078,7 @@ Consider all listed sites to potentially be NSFW.
 <tr id="scrolller" title="scrolller">
     <td>Scrolller</td>
     <td>https://scrolller.com/</td>
-    <td>Followed Subreddits, Posts, Subreddits</td>
+    <td>Followed Subreddits, Posts, Subreddits, Reddit Users</td>
     <td>Supported</td>
 </tr>
 <tr id="senmanga" title="senmanga">
@@ -910,19 +1090,13 @@ Consider all listed sites to potentially be NSFW.
 <tr id="sexcom" title="sexcom">
     <td>Sex.com</td>
     <td>https://www.sex.com/</td>
-    <td>Boards, Likes, Pins, User Pins, related Pins, Search Results</td>
-    <td></td>
-</tr>
-<tr id="simpcity" title="simpcity">
-    <td>SimpCity Forums</td>
-    <td>https://simpcity.cr/</td>
-    <td>Forums, Posts, Threads</td>
+    <td>Boards, Feed, Likes, Pins, User Pins, related Pins, Search Results</td>
     <td></td>
 </tr>
 <tr id="simplyhentai" title="simplyhentai">
     <td>Simply Hentai</td>
     <td>https://www.simply-hentai.com/</td>
-    <td>Galleries, individual Images, Videos</td>
+    <td>Galleries, Languages, Manga, Series, Tag Searches</td>
     <td></td>
 </tr>
 <tr id="sizebooru" title="sizebooru">
@@ -953,7 +1127,13 @@ Consider all listed sites to potentially be NSFW.
     <td>SmugMug</td>
     <td>https://www.smugmug.com/</td>
     <td>Albums, individual Images, Images from Users and Folders</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
+</tr>
+<tr id="snapchat" title="snapchat">
+    <td>Snapchat</td>
+    <td>https://www.snapchat.com/</td>
+    <td>Avatars, Spotlights, Stories, User Profiles</td>
+    <td></td>
 </tr>
 <tr id="soundgasm" title="soundgasm">
     <td>Soundgasm</td>
@@ -979,6 +1159,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Posts, User Profiles</td>
     <td>Supported</td>
 </tr>
+<tr id="sxypix" title="sxypix">
+    <td>Sxypix</td>
+    <td>https://sxypix.com/</td>
+    <td>Galleries</td>
+    <td></td>
+</tr>
 <tr id="tapas" title="tapas">
     <td>Tapas</td>
     <td>https://tapas.io/</td>
@@ -987,7 +1173,7 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="tcbscans" title="tcbscans">
     <td>TCB Scans</td>
-    <td>https://tcbscans.me/</td>
+    <td>https://tcbonepiecechapters.com/</td>
     <td>Chapters, Manga</td>
     <td></td>
 </tr>
@@ -1009,11 +1195,17 @@ Consider all listed sites to potentially be NSFW.
     <td>Posts, Tag Searches</td>
     <td></td>
 </tr>
+<tr id="thefap" title="thefap">
+    <td>TheFap</td>
+    <td>https://thefap.net/</td>
+    <td>Models, Posts</td>
+    <td></td>
+</tr>
 <tr id="tiktok" title="tiktok">
     <td>TikTok</td>
     <td>https://www.tiktok.com/</td>
-    <td>Posts, User Profiles, VM Posts</td>
-    <td><a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a></td>
+    <td>Avatars, Followed Users (Stories Only), Likes, Posts, User Posts, Reposts, Saved Posts, Stories, User Profiles, VM Posts</td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="tmohentai" title="tmohentai">
     <td>TMOHentai</td>
@@ -1027,17 +1219,11 @@ Consider all listed sites to potentially be NSFW.
     <td>Art, individual Images</td>
     <td></td>
 </tr>
-<tr id="tsumino" title="tsumino">
-    <td>Tsumino</td>
-    <td>https://www.tsumino.com/</td>
-    <td>Galleries, Search Results</td>
-    <td>Supported</td>
-</tr>
 <tr id="tumblr" title="tumblr">
     <td>Tumblr</td>
     <td>https://www.tumblr.com/</td>
     <td>Days, Followers, Followed Users, Likes, Posts, Search Results, Tag Searches, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="tumblrgallery" title="tumblrgallery">
     <td>TumblrGallery</td>
@@ -1051,6 +1237,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Models, Posts, User Profiles</td>
     <td></td>
 </tr>
+<tr id="turbo" title="turbo">
+    <td>turbo.cr</td>
+    <td>https://turbo.cr/</td>
+    <td>Albums, Media Files</td>
+    <td></td>
+</tr>
 <tr id="twibooru" title="twibooru">
     <td>Twibooru</td>
     <td>https://twibooru.org/</td>
@@ -1060,8 +1252,8 @@ Consider all listed sites to potentially be NSFW.
 <tr id="twitter" title="twitter">
     <td>Twitter</td>
     <td>https://x.com/</td>
-    <td>Avatars, Backgrounds, Bookmarks, Communities, Events, Followers, Followed Users, Hashtags, Highlights, Home Feed, individual Images, User Profile Information, Likes, Lists, List Members, Media Timelines, Quotes, Search Results, Timelines, Tweets, User Profiles</td>
-    <td>Supported</td>
+    <td>Avatars, Backgrounds, Bookmarks, Communities, Events, Followers, Followed Users, Hashtags, Highlights, Home Feed, individual Images, User Profile Information, Likes, Lists, List Members, Media Timelines, Notifications, Quotes, Search Results, Timelines, Tweets, User Profiles</td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a></td>
 </tr>
 <tr id="unsplash" title="unsplash">
     <td>Unsplash</td>
@@ -1077,7 +1269,7 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="urlgalleries" title="urlgalleries">
     <td>Urlgalleries</td>
-    <td>https://urlgalleries.net/</td>
+    <td>https://urlgalleries.com/</td>
     <td>Galleries</td>
     <td></td>
 </tr>
@@ -1147,6 +1339,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Albums, Articles, Feeds, Images from Statuses, User Profiles, Videos</td>
     <td></td>
 </tr>
+<tr id="whyp" title="whyp">
+    <td>Whyp</td>
+    <td>https://whyp.it/</td>
+    <td>Audio, Collections, User Profiles</td>
+    <td></td>
+</tr>
 <tr id="wikiart" title="wikiart">
     <td>WikiArt.org</td>
     <td>https://www.wikiart.org/</td>
@@ -1195,6 +1393,12 @@ Consider all listed sites to potentially be NSFW.
     <td>Playlists, Posts, Tag Searches</td>
     <td></td>
 </tr>
+<tr id="yourlesbians" title="yourlesbians">
+    <td>YourLesbians</td>
+    <td>https://yourlesbians.com/</td>
+    <td>Albums</td>
+    <td></td>
+</tr>
 <tr id="zerochan" title="zerochan">
     <td>Zerochan</td>
     <td>https://www.zerochan.net/</td>
@@ -1214,6 +1418,22 @@ Consider all listed sites to potentially be NSFW.
     <td></td>
 </tr>
 
+<tr id="2chen" title="2chen">
+    <td colspan="4"><strong>2chen Instances</strong></td>
+</tr>
+<tr id="sturdychan" title="sturdychan">
+    <td>Sturdychan</td>
+    <td>https://sturdychan.help/</td>
+    <td>Boards, Threads</td>
+    <td></td>
+</tr>
+<tr id="schan" title="schan">
+    <td>Schan</td>
+    <td>https://schan.help/</td>
+    <td>Boards, Threads</td>
+    <td></td>
+</tr>
+
 <tr id="blogger" title="blogger">
     <td colspan="4"><strong>Blogger Instances</strong></td>
 </tr>
@@ -1229,26 +1449,20 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="jpgfish" title="jpgfish">
     <td>JPG Fish</td>
-    <td>https://jpg6.su/</td>
-    <td>Albums, Categories, individual Images, User Profiles, Videos</td>
-    <td></td>
-</tr>
-<tr id="imgkiwi" title="imgkiwi">
-    <td>IMG.Kiwi</td>
-    <td>https://img.kiwi/</td>
-    <td>Albums, Categories, individual Images, User Profiles, Videos</td>
-    <td></td>
-</tr>
-<tr id="imagepond" title="imagepond">
-    <td>ImagePond</td>
-    <td>https://imagepond.net/</td>
-    <td>Albums, Categories, individual Images, User Profiles, Videos</td>
+    <td>https://jpg7.cr/</td>
+    <td>Albums, Categories, Files, User Profiles</td>
     <td></td>
 </tr>
 <tr id="imglike" title="imglike">
     <td>Nude Celeb</td>
     <td>https://imglike.com/</td>
-    <td>Albums, Categories, individual Images, User Profiles, Videos</td>
+    <td>Albums, Categories, Files, User Profiles</td>
+    <td></td>
+</tr>
+<tr id="putmega" title="putmega">
+    <td>Putmega</td>
+    <td>https://putmega.com/</td>
+    <td>Albums, Categories, Files, User Profiles</td>
     <td></td>
 </tr>
 
@@ -1258,25 +1472,25 @@ Consider all listed sites to potentially be NSFW.
 <tr id="danbooru" title="danbooru">
     <td>Danbooru</td>
     <td>https://danbooru.donmai.us/</td>
-    <td>Artists, Artist Searches, Favorite Groups, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorite Groups, Media Assets, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 <tr id="atfbooru" title="atfbooru">
     <td>ATFBooru</td>
     <td>https://booru.allthefallen.moe/</td>
-    <td>Artists, Artist Searches, Favorite Groups, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorite Groups, Media Assets, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 <tr id="aibooru" title="aibooru">
     <td>AIBooru</td>
     <td>https://aibooru.online/</td>
-    <td>Artists, Artist Searches, Favorite Groups, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorite Groups, Media Assets, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 <tr id="booruvar" title="booruvar">
     <td>Booruvar</td>
     <td>https://booru.borvar.art/</td>
-    <td>Artists, Artist Searches, Favorite Groups, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorite Groups, Media Assets, Pools, Popular Images, Posts, Random Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 
@@ -1286,19 +1500,19 @@ Consider all listed sites to potentially be NSFW.
 <tr id="e621" title="e621">
     <td>e621</td>
     <td>https://e621.net/</td>
-    <td>Favorites, Pools, Popular Images, Posts, Tag Searches, Frontends</td>
+    <td>Artists, Artist Searches, Favorites, Pools, Popular Images, Posts, Tag Searches, Frontends</td>
     <td>Supported</td>
 </tr>
 <tr id="e926" title="e926">
     <td>e926</td>
     <td>https://e926.net/</td>
-    <td>Favorites, Pools, Popular Images, Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorites, Pools, Popular Images, Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 <tr id="e6ai" title="e6ai">
     <td>e6AI</td>
     <td>https://e6ai.net/</td>
-    <td>Favorites, Pools, Popular Images, Posts, Tag Searches</td>
+    <td>Artists, Artist Searches, Favorites, Pools, Popular Images, Posts, Tag Searches</td>
     <td>Supported</td>
 </tr>
 
@@ -1470,25 +1684,25 @@ Consider all listed sites to potentially be NSFW.
 <tr id="nelomanga" title="nelomanga">
     <td>MangaNelo</td>
     <td>https://www.nelomanga.net/</td>
-    <td>Chapters, Manga</td>
+    <td>Bookmarks, Chapters, Manga</td>
     <td></td>
 </tr>
 <tr id="natomanga" title="natomanga">
     <td>MangaNato</td>
     <td>https://www.natomanga.com/</td>
-    <td>Chapters, Manga</td>
+    <td>Bookmarks, Chapters, Manga</td>
     <td></td>
 </tr>
 <tr id="manganato" title="manganato">
     <td>MangaNato</td>
     <td>https://www.manganato.gg/</td>
-    <td>Chapters, Manga</td>
+    <td>Bookmarks, Chapters, Manga</td>
     <td></td>
 </tr>
 <tr id="mangakakalot" title="mangakakalot">
     <td>MangaKakalot</td>
     <td>https://www.mangakakalot.gg/</td>
-    <td>Chapters, Manga</td>
+    <td>Bookmarks, Chapters, Manga</td>
     <td></td>
 </tr>
 
@@ -1545,9 +1759,33 @@ Consider all listed sites to potentially be NSFW.
 <tr id="nitter" title="nitter">
     <td colspan="4"><strong>Nitter Instances</strong></td>
 </tr>
-<tr id="" title="">
+<tr id="nitter.net" title="nitter.net">
+    <td>Nitter.net</td>
+    <td>https://nitter.net/</td>
+    <td>Media Files, Replies, Search Results, Tweets</td>
     <td></td>
+</tr>
+<tr id="nitter.space" title="nitter.space">
+    <td>Nitter.space</td>
+    <td>https://nitter.space/</td>
+    <td>Media Files, Replies, Search Results, Tweets</td>
     <td></td>
+</tr>
+<tr id="nitter.tiekoetter" title="nitter.tiekoetter">
+    <td>Nitter.tiekoetter</td>
+    <td>https://nitter.tiekoetter/</td>
+    <td>Media Files, Replies, Search Results, Tweets</td>
+    <td></td>
+</tr>
+<tr id="xcancel" title="xcancel">
+    <td>Xcancel</td>
+    <td>https://xcancel.com/</td>
+    <td>Media Files, Replies, Search Results, Tweets</td>
+    <td></td>
+</tr>
+<tr id="lightbrd" title="lightbrd">
+    <td>Lightbrd</td>
+    <td>https://lightbrd.com/</td>
     <td>Media Files, Replies, Search Results, Tweets</td>
     <td></td>
 </tr>
@@ -1590,12 +1828,6 @@ Consider all listed sites to potentially be NSFW.
 <tr id="reactor" title="reactor">
     <td>Reactor</td>
     <td>http://reactor.cc/</td>
-    <td>Posts, Search Results, Tag Searches, User Profiles</td>
-    <td></td>
-</tr>
-<tr id="joyreactor" title="joyreactor">
-    <td>JoyReactor</td>
-    <td>http://joyreactor.cc/</td>
     <td>Posts, Search Results, Tag Searches, User Profiles</td>
     <td></td>
 </tr>
@@ -1642,6 +1874,12 @@ Consider all listed sites to potentially be NSFW.
 <tr id="thecollectionS" title="thecollectionS">
     <td>The /co/llection</td>
     <td>https://co.llection.pics/</td>
+    <td>Posts, Tag Searches</td>
+    <td></td>
+</tr>
+<tr id="soybooru" title="soybooru">
+    <td>Soybooru</td>
+    <td>https://soybooru.com/</td>
     <td>Posts, Tag Searches</td>
     <td></td>
 </tr>
@@ -1769,6 +2007,64 @@ Consider all listed sites to potentially be NSFW.
     <td>Articles, Categories, Files, Wikis</td>
     <td></td>
 </tr>
+<tr id="mgewiki" title="mgewiki">
+    <td>Monster Girl Encyclopedia Wiki</td>
+    <td>https://mgewiki.moe/</td>
+    <td>Articles, Categories, Files, Wikis</td>
+    <td></td>
+</tr>
+
+<tr id="xenforo" title="xenforo">
+    <td colspan="4"><strong>XenForo Forums</strong></td>
+</tr>
+<tr id="simpcity" title="simpcity">
+    <td>SimpCity Forums</td>
+    <td>https://simpcity.cr/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td>Supported</td>
+</tr>
+<tr id="nudostarforum" title="nudostarforum">
+    <td>NudoStar Forums</td>
+    <td>https://nudostar.com/forum/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td>Supported</td>
+</tr>
+<tr id="atfforum" title="atfforum">
+    <td>All The Fallen</td>
+    <td>https://allthefallen.moe/forum/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
+<tr id="celebforum" title="celebforum">
+    <td>celebforum</td>
+    <td>https://celebforum.to/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
+<tr id="titsintops" title="titsintops">
+    <td>Tits In Tops Forum</td>
+    <td>https://titsintops.com/phpBB2/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
+<tr id="socialmediagirlsforum" title="socialmediagirlsforum">
+    <td>Social Media Girls Forums</td>
+    <td>https://forums.socialmediagirls.com/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
+<tr id="blacktowhite" title="blacktowhite">
+    <td>BlacktoWhite</td>
+    <td>https://www.blacktowhite.net/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
+<tr id="thefappeningforum" title="thefappeningforum">
+    <td>The Fappening Forum</td>
+    <td>https://thefappeningblog.com/forum/</td>
+    <td>Forums, Albums, Media Categories, Media Files, User Media, Posts, Profiles, Threads</td>
+    <td></td>
+</tr>
 
 <tr id="moebooru" title="moebooru">
     <td colspan="4"><strong>Moebooru and MyImouto</strong></td>
@@ -1873,19 +2169,19 @@ Consider all listed sites to potentially be NSFW.
     <td>mastodon.social</td>
     <td>https://mastodon.social/</td>
     <td>Bookmarks, Favorites, Followed Users, Hashtags, Lists, Images from Statuses, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="pawoo" title="pawoo">
     <td>Pawoo</td>
     <td>https://pawoo.net/</td>
     <td>Bookmarks, Favorites, Followed Users, Hashtags, Lists, Images from Statuses, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 <tr id="baraag" title="baraag">
     <td>baraag</td>
     <td>https://baraag.net/</td>
     <td>Bookmarks, Favorites, Followed Users, Hashtags, Lists, Images from Statuses, User Profiles</td>
-    <td><a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a></td>
+    <td><a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a></td>
 </tr>
 
 <tr id="shopify" title="shopify">
@@ -2013,6 +2309,12 @@ Consider all listed sites to potentially be NSFW.
     <td>individual Images</td>
     <td></td>
 </tr>
+<tr id="imgpv" title="imgpv">
+    <td>IMGPV</td>
+    <td>https://imgpv.com/</td>
+    <td>individual Images</td>
+    <td></td>
+</tr>
 <tr id="imgspice" title="imgspice">
     <td>Imgspice</td>
     <td>https://imgspice.com/</td>
@@ -2057,7 +2359,7 @@ Consider all listed sites to potentially be NSFW.
 </tr>
 <tr id="silverpic" title="silverpic">
     <td>SilverPic.com</td>
-    <td>https://silverpic.com/</td>
+    <td>https://silverpic.net/</td>
     <td>individual Images</td>
     <td></td>
 </tr>

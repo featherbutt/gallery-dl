@@ -20,6 +20,7 @@ __tests__ = (
         "https://www.instagram.com/stories/instagram/",
         "https://www.instagram.com/instagram/highlights/",
         "https://www.instagram.com/instagram/posts/",
+        "https://www.instagram.com/instagram/photos/",
         "https://www.instagram.com/instagram/reels/",
         "https://www.instagram.com/instagram/tagged/",
     ),
@@ -41,6 +42,14 @@ __tests__ = (
     "#url"     : "https://www.instagram.com/instagram/posts/",
     "#category": ("", "instagram", "posts"),
     "#class"   : instagram.InstagramPostsExtractor,
+    "#range"   : "1-16",
+    "#count"   : ">= 16",
+},
+
+{
+    "#url"     : "https://www.instagram.com/instagram/photos/",
+    "#category": ("", "instagram", "photos"),
+    "#class"   : instagram.InstagramPhotosExtractor,
     "#range"   : "1-16",
     "#count"   : ">= 16",
 },
@@ -278,8 +287,21 @@ __tests__ = (
 
 {
     "#url"     : "https://www.instagram.com/reel/CDg_6Y1pxWu/",
+    "#category": ("", "instagram", "reel"),
+    "#class"   : instagram.InstagramPostExtractor,
+},
+
+{
+    "#url"     : "https://www.instagram.com/reels/CDg_6Y1pxWu/",
+    "#category": ("", "instagram", "reel"),
+    "#class"   : instagram.InstagramPostExtractor,
+},
+
+{
+    "#url"     : "https://www.instagram.com/share/BACiUUUYQV",
     "#category": ("", "instagram", "post"),
     "#class"   : instagram.InstagramPostExtractor,
+    "shortcode"  : "C6q-XdvsU5v",
 },
 
 {
@@ -291,7 +313,7 @@ __tests__ = (
 
 {
     "#url"     : "https://www.instagram.com/share/reel/BARSSL4rTu",
-    "#category": ("", "instagram", "post"),
+    "#category": ("", "instagram", "reel"),
     "#class"   : instagram.InstagramPostExtractor,
     "shortcode"  : "DHbVbT4Jx0c",
 }

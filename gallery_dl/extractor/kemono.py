@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2021-2025 Mike Fährmann
+# Copyright 2021-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://kemono.cr/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
-from ..cache import cache, memcache
+from .. import text, util
 import itertools
 import json
 
@@ -42,9 +41,9 @@ class KemonoExtractor(Extractor):
         if self.revisions:
             self.revisions_unique = (self.revisions == "unique")
         order = self.config("order-revisions")
-        self.revisions_reverse = order[0] in ("r", "a") if order else False
+        self.revisions_reverse = order[0] in {"r", "a"} if order else False
 
-        self._find_inline = util.re(
+        self._find_inline = text.re(
             r'src="(?:https?://(?:kemono\.cr|coomer\.st))?(/inline/[^"]+'
             r'|/[0-9a-f]{2}/[0-9a-f]{2}/[0-9a-f]{64}\.[^"]+)').findall
         self._json_dumps = json.JSONEncoder(
@@ -52,10 +51,12 @@ class KemonoExtractor(Extractor):
             sort_keys=True, separators=(",", ":")).encode
 
     def items(self):
-        find_hash = util.re(HASH_PATTERN).match
+        find_hash = text.re(HASH_PATTERN).match
         generators = self._build_file_generators(self.config("files"))
         announcements = True if self.config("announcements") else None
         archives = True if self.config("archives") else False
+        archives_type = dict if self.config("archives-format") in {
+            "dict", "object"} else list
         comments = True if self.config("comments") else False
         dms = True if self.config("dms") else None
         max_posts = self.config("max-posts")
@@ -82,6 +83,8 @@ class KemonoExtractor(Extractor):
             posts = self._revisions(posts)
 
         for post in posts:
+            if "post" in post:
+                post = post["post"]
             headers["Referer"] = (f"{self.root}/{post['service']}/user/"
                                   f"{post['user']}/post/{post['id']}")
             post["_http_headers"] = headers
@@ -93,8 +96,13 @@ class KemonoExtractor(Extractor):
             if creator_info is not None:
                 key = f"{service}_{creator_id}"
                 if key not in creator_info:
-                    creator = creator_info[key] = self.api.creator_profile(
-                        service, creator_id)
+                    try:
+                        creator = creator_info[key] = self.api.creator_profile(
+                            service, creator_id)
+                    except self.exc.HttpError:
+                        self.log.warning("%s/%s/%s: 'Creator not found'",
+                                         service, creator_id, post["id"])
+                        creator = creator_info[key] = util.NONE
                 else:
                     creator = creator_info[key]
 
@@ -120,7 +128,7 @@ class KemonoExtractor(Extractor):
 
             files = []
             hashes = set()
-            post_archives = post["archives"] = []
+            post_archives = post["archives"] = archives_type()
 
             for file in itertools.chain.from_iterable(
                     g(post) for g in generators):
@@ -140,38 +148,47 @@ class KemonoExtractor(Extractor):
                     file["hash"] = hash = ""
 
                 if url[0] == "/":
-                    url = self.root + "/data" + url
+                    url = f"{self.root}/data{url}"
                 elif url.startswith(self.root):
-                    url = self.root + "/data" + url[20:]
+                    url = f"{self.root}/data{url[20:]}"
                 file["url"] = url
 
-                text.nameext_from_url(file.get("name", url), file)
-                ext = text.ext_from_url(url)
-                if not file["extension"]:
-                    file["extension"] = ext
-                elif ext == "txt" and file["extension"] != "txt":
-                    file["_http_validate"] = _validate
-                elif ext in exts_archive or \
+                if name := file.get("name"):
+                    text.nameext_from_name(name, file)
+                    ext = text.ext_from_url(url)
+
+                    if not file["extension"]:
+                        file["extension"] = ext
+                    elif ext == "txt" and file["extension"] != "txt":
+                        file["_http_validate"] = _validate
+                else:
+                    text.nameext_from_url(url, file)
+                    ext = file["extension"]
+
+                if ext in exts_archive or \
                         ext == "bin" and file["extension"] in exts_archive:
                     file["type"] = "archive"
                     if archives:
                         try:
-                            data = self.api.file(hash)
-                            data.update(file)
-                            post_archives.append(data)
+                            archive = self.api.file(hash)
+                            archive.update(file)
                         except Exception as exc:
                             self.log.warning(
                                 "%s: Failed to retrieve archive metadata of "
                                 "'%s' (%s: %s)", post["id"], file.get("name"),
                                 exc.__class__.__name__, exc)
-                            post_archives.append(file.copy())
+                            archive = file.copy()
                     else:
-                        post_archives.append(file.copy())
+                        archive = file.copy()
+                    if archives_type is dict:
+                        post_archives[hash] = archive
+                    else:
+                        post_archives.append(archive)
 
                 files.append(file)
 
             post["count"] = len(files)
-            yield Message.Directory, post
+            yield Message.Directory, "", post
             for post["num"], file in enumerate(files, 1):
                 if "id" in file:
                     del file["id"]
@@ -181,10 +198,10 @@ class KemonoExtractor(Extractor):
     def login(self):
         username, password = self._get_auth_info()
         if username:
-            self.cookies_update(self._login_impl(
-                (username, self.cookies_domain), password))
+            self.cookies_update(self.cache(
+                self._login_impl, (username, self.cookies_domain), password),
+                _exp=3650*86400, _mem=False)
 
-    @cache(maxage=3650*86400, keyarg=1)
     def _login_impl(self, username, password):
         username = username[0]
         self.log.info("Logging in as %s", username)
@@ -195,10 +212,10 @@ class KemonoExtractor(Extractor):
         response = self.request(url, method="POST", json=data, fatal=False)
         if response.status_code >= 400:
             try:
-                msg = '"' + response.json()["error"] + '"'
+                msg = f'"{response.json()["error"]}"'
             except Exception:
                 msg = '"Username or password is incorrect"'
-            raise exception.AuthenticationError(msg)
+            raise self.exc.AuthenticationError(msg)
 
         return {c.name: c.value for c in response.cookies}
 
@@ -220,6 +237,8 @@ class KemonoExtractor(Extractor):
 
     def _build_file_generators(self, filetypes):
         if filetypes is None:
+            if self.category == "coomer":
+                return (self._file, self._attachments, self._inline)
             return (self._attachments, self._file, self._inline)
         genmap = {
             "file"       : self._file,
@@ -233,17 +252,29 @@ class KemonoExtractor(Extractor):
     def _parse_datetime(self, date_string):
         if len(date_string) > 19:
             date_string = date_string[:19]
-        return text.parse_datetime(date_string, "%Y-%m-%dT%H:%M:%S")
+        return self.parse_datetime_iso(date_string)
 
     def _revisions(self, posts):
         return itertools.chain.from_iterable(
             self._revisions_post(post) for post in posts)
 
+    def _revisions_get(self, post):
+        if (props := post.get("props")) and "revisions" in props:
+            return [
+                rev[1]
+                for rev in props["revisions"]
+                if "revision_id" in rev[1]
+            ]
+        return self.api.creator_post_revisions(
+            post["service"], post["user"], post["id"])
+
     def _revisions_post(self, post):
+        revs = self._revisions_get(post)
+
+        if "post" in post:
+            post = post["post"]
         post["revision_id"] = 0
 
-        revs = self.api.creator_post_revisions(
-            post["service"], post["user"], post["id"])
         if not revs:
             post["revision_hash"] = self._revision_hash(post)
             post["revision_index"] = 1
@@ -274,8 +305,8 @@ class KemonoExtractor(Extractor):
 
         return revs
 
-    def _revisions_all(self, service, creator_id, post_id):
-        revs = self.api.creator_post_revisions(service, creator_id, post_id)
+    def _revisions_all(self, post):
+        revs = self._revisions_get(post)
 
         cnt = idx = len(revs)
         for rev in revs:
@@ -290,6 +321,11 @@ class KemonoExtractor(Extractor):
         return revs
 
     def _revision_hash(self, revision):
+        if isinstance(revision["file"], str):
+            revision["file"] = util.json_loads(revision["file"])
+            revision["attachments"] = [
+                util.json_loads(a) for a in revision["attachments"]]
+
         rev = revision.copy()
         rev.pop("revision_id", None)
         rev.pop("added", None)
@@ -301,6 +337,13 @@ class KemonoExtractor(Extractor):
         for a in rev["attachments"]:
             a.pop("name", None)
         return util.sha1(self._json_dumps(rev))
+
+    def _discord_server_info(self, server_id):
+        server = self.api.discord_server(server_id)
+        return server, {
+            channel["id"]: channel
+            for channel in server.pop("channels")
+        }
 
 
 def _validate(response):
@@ -322,7 +365,7 @@ class KemonoUserExtractor(KemonoExtractor):
         _, _, service, creator_id, query = self.groups
         params = text.parse_query(query)
 
-        if self.config("endpoint") in ("posts+", "legacy+"):
+        if self.config("endpoint") in {"posts+", "legacy+"}:
             endpoint = self.api.creator_posts_expand
         else:
             endpoint = self.api.creator_posts
@@ -357,11 +400,11 @@ class KemonoPostExtractor(KemonoExtractor):
         _, _, service, creator_id, post_id, revision, revision_id = self.groups
         post = self.api.creator_post(service, creator_id, post_id)
         if not revision:
-            return (post["post"],)
+            return (post,)
 
         self.revisions = False
 
-        revs = self._revisions_all(service, creator_id, post_id)
+        revs = self._revisions_all(post)
         if not revision_id:
             return revs
 
@@ -369,7 +412,7 @@ class KemonoPostExtractor(KemonoExtractor):
             if str(rev["revision_id"]) == revision_id:
                 return (rev,)
 
-        raise exception.NotFoundError("revision")
+        raise self.exc.NotFoundError("revision")
 
 
 class KemonoDiscordExtractor(KemonoExtractor):
@@ -386,12 +429,12 @@ class KemonoDiscordExtractor(KemonoExtractor):
         _, _, server_id, channel_id = self.groups
 
         try:
-            server, channels = discord_server_info(self, server_id)
+            server, channels = self.cache(self._discord_server_info, server_id)
             channel = channels[channel_id]
         except Exception:
-            raise exception.NotFoundError("channel")
+            raise self.exc.NotFoundError("channel")
 
-        data = {
+        metadata = {
             "server"       : server["name"],
             "server_id"    : server["id"],
             "channel"      : channel["name"],
@@ -402,12 +445,16 @@ class KemonoDiscordExtractor(KemonoExtractor):
             "parent_id"    : channel["parent_channel_id"],
         }
 
-        find_inline = util.re(
+        find_inline = text.re(
             r"https?://(?:cdn\.discordapp.com|media\.discordapp\.net)"
             r"(/[A-Za-z0-9-._~:/?#\[\]@!$&'()*+,;%=]+)").findall
-        find_hash = util.re(HASH_PATTERN).match
+        find_hash = text.re(HASH_PATTERN).match
+        archives = True if self.config("archives") else False
+        archives_type = dict if self.config("archives-format") in {
+            "dict", "object"} else list
+        exts_archive = util.EXTS_ARCHIVE
 
-        if (order := self.config("order-posts")) and order[0] in ("r", "d"):
+        if (order := self.config("order-posts")) and order[0] in {"r", "d"}:
             posts = self.api.discord_channel(channel_id, channel["post_count"])
         else:
             posts = self.api.discord_channel(channel_id)
@@ -426,35 +473,63 @@ class KemonoDiscordExtractor(KemonoExtractor):
                 files.append({"path": "https://cdn.discordapp.com" + path,
                               "name": path, "type": "inline", "hash": ""})
 
-            post.update(data)
+            post.update(metadata)
             post["date"] = self._parse_datetime(post["published"])
             post["count"] = len(files)
-            yield Message.Directory, post
+            post["archives"] = post_archives = ()
+
+            yield Message.Directory, "", post
 
             for post["num"], file in enumerate(files, 1):
-                post["hash"] = file["hash"]
+                post["hash"] = hash = file["hash"]
                 post["type"] = file["type"]
                 url = file["path"]
 
-                text.nameext_from_url(file.get("name", url), post)
-                if not post["extension"]:
-                    post["extension"] = text.ext_from_url(url)
+                if name := file.get("name"):
+                    text.nameext_from_name(name, post)
+                    ext = text.ext_from_url(url)
+                    if not post["extension"]:
+                        post["extension"] = ext
+                else:
+                    text.nameext_from_url(url, post)
+                    ext = post["extension"]
+
+                if ext in exts_archive:
+                    if not post_archives:
+                        post["archives"] = post_archives = archives_type()
+                    post["type"] = "archive"
+                    if archives:
+                        try:
+                            archive = self.api.file(hash)
+                            archive.update(file)
+                        except Exception as exc:
+                            self.log.warning(
+                                "%s: Failed to retrieve archive metadata of "
+                                "'%s' (%s: %s)", post["id"], file.get("name"),
+                                exc.__class__.__name__, exc)
+                            archive = file.copy()
+                    else:
+                        archive = file.copy()
+                    if archives_type is dict:
+                        post_archives[hash] = archive
+                    else:
+                        post_archives.append(archive)
 
                 if url[0] == "/":
-                    url = self.root + "/data" + url
+                    url = f"{self.root}/data{url}"
                 elif url.startswith(self.root):
-                    url = self.root + "/data" + url[20:]
+                    url = f"{self.root}/data{url[20:]}"
                 yield Message.Url, url, post
 
 
 class KemonoDiscordServerExtractor(KemonoExtractor):
     subcategory = "discord-server"
-    pattern = BASE_PATTERN + r"/discord/server/(\d+)$"
+    pattern = BASE_PATTERN + r"/discord/server/(\d+)"
     example = "https://kemono.cr/discord/server/12345"
 
     def items(self):
         server_id = self.groups[2]
-        server, channels = discord_server_info(self, server_id)
+        server, channels = self.cache(self._discord_server_info, server_id)
         for channel in channels.values():
             url = (f"{self.root}/discord/server/{server_id}/"
                    f"{channel['id']}#{channel['name']}")
@@ -463,15 +538,6 @@ class KemonoDiscordServerExtractor(KemonoExtractor):
                 "channel"   : channel,
                 "_extractor": KemonoDiscordExtractor,
             }
-
-
-@memcache(keyarg=1)
-def discord_server_info(extr, server_id):
-    server = extr.api.discord_server(server_id)
-    return server, {
-        channel["id"]: channel
-        for channel in server.pop("channels")
-    }
 
 
 class KemonoFavoriteExtractor(KemonoExtractor):
@@ -559,32 +625,32 @@ class KemonoArtistsExtractor(KemonoExtractor):
 
 
 class KemonoAPI():
-    """Interface for the Kemono API v1.1.0
+    """Interface for the Kemono API v1.3.0
 
     https://kemono.cr/documentation/api
     """
 
     def __init__(self, extractor):
         self.extractor = extractor
-        self.root = extractor.root + "/api/v1"
+        self.root = extractor.root + "/api"
         self.headers = {"Accept": "text/css"}
 
     def posts(self, offset=0, query=None, tags=None):
-        endpoint = "/posts"
+        endpoint = "/v1/posts"
         params = {"q": query, "o": offset, "tag": tags}
         return self._pagination(endpoint, params, 50, "posts")
 
     def file(self, file_hash):
-        endpoint = "/file/" + file_hash
+        endpoint = "/v1/file/" + file_hash
         return self._call(endpoint)
 
     def creators(self):
-        endpoint = "/creators"
+        endpoint = "/v1/creators"
         return self._call(endpoint)
 
     def creator_posts(self, service, creator_id,
                       offset=0, query=None, tags=None):
-        endpoint = f"/{service}/user/{creator_id}/posts"
+        endpoint = f"/v1/{service}/user/{creator_id}/posts"
         params = {"o": offset, "tag": tags, "q": query}
         return self._pagination(endpoint, params, 50)
 
@@ -596,58 +662,58 @@ class KemonoAPI():
                 service, creator_id, post["id"])["post"]
 
     def creator_announcements(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/announcements"
+        endpoint = f"/v1/{service}/user/{creator_id}/announcements"
         return self._call(endpoint)
 
     def creator_dms(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/dms"
+        endpoint = f"/v1/{service}/user/{creator_id}/dms"
         return self._call(endpoint)
 
     def creator_fancards(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/fancards"
+        endpoint = f"/v1/{service}/user/{creator_id}/fancards"
         return self._call(endpoint)
 
     def creator_post(self, service, creator_id, post_id):
-        endpoint = f"/{service}/user/{creator_id}/post/{post_id}"
+        endpoint = f"/v1/{service}/user/{creator_id}/post/{post_id}"
         return self._call(endpoint)
 
     def creator_post_comments(self, service, creator_id, post_id):
-        endpoint = f"/{service}/user/{creator_id}/post/{post_id}/comments"
+        endpoint = f"/v1/{service}/user/{creator_id}/post/{post_id}/comments"
         return self._call(endpoint, fatal=False)
 
     def creator_post_revisions(self, service, creator_id, post_id):
-        endpoint = f"/{service}/user/{creator_id}/post/{post_id}/revisions"
+        endpoint = f"/v1/{service}/user/{creator_id}/post/{post_id}/revisions"
         return self._call(endpoint, fatal=False)
 
     def creator_profile(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/profile"
+        endpoint = f"/v1/{service}/user/{creator_id}/profile"
         return self._call(endpoint)
 
     def creator_links(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/links"
+        endpoint = f"/v1/{service}/user/{creator_id}/links"
         return self._call(endpoint)
 
     def creator_tags(self, service, creator_id):
-        endpoint = f"/{service}/user/{creator_id}/tags"
+        endpoint = f"/v1/{service}/user/{creator_id}/tags"
         return self._call(endpoint)
 
     def discord_channel(self, channel_id, post_count=None):
-        endpoint = f"/discord/channel/{channel_id}"
+        endpoint = "/v1/discord/channel/" + channel_id
         if post_count is None:
             return self._pagination(endpoint, {}, 150)
         else:
             return self._pagination_reverse(endpoint, {}, 150, post_count)
 
     def discord_channel_lookup(self, server_id):
-        endpoint = f"/discord/channel/lookup/{server_id}"
+        endpoint = "/v1/discord/channel/lookup/" + server_id
         return self._call(endpoint)
 
     def discord_server(self, server_id):
-        endpoint = f"/discord/server/{server_id}"
+        endpoint = "/v1/discord/server/" + server_id
         return self._call(endpoint)
 
     def account_favorites(self, type):
-        endpoint = "/account/favorites"
+        endpoint = "/v1/account/favorites"
         params = {"type": type}
         return self._call(endpoint, params)
 
@@ -658,7 +724,7 @@ class KemonoAPI():
             headers = {**self.headers, **headers}
 
         return self.extractor.request_json(
-            f"{self.root}{endpoint}", params=params, headers=headers,
+            self.root + endpoint, params=params, headers=headers,
             encoding="utf-8", fatal=fatal)
 
     def _pagination(self, endpoint, params, batch=50, key=None):

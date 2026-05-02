@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2016-2025 Mike Fährmann
+# Copyright 2016-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://www.tumblr.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, oauth, exception
-from datetime import datetime, date, timedelta
+from .. import text, util, dt, oauth
 
 
 BASE_PATTERN = (
@@ -33,7 +32,7 @@ class TumblrExtractor(Extractor):
 
     def _init(self):
         if name := self.groups[1]:
-            self.blog = f"{name}.tumblr.com"
+            self.blog = name + ".tumblr.com"
         else:
             self.blog = self.groups[0] or self.groups[2]
 
@@ -57,20 +56,24 @@ class TumblrExtractor(Extractor):
 
         self.date_min, self.api.before = self._get_date_min_max(0, None)
 
+    def skip_date(self, date):
+        self.api.before = int(dt.to_ts(date))
+        return True
+
     def items(self):
         blog = None
 
         # pre-compile regular expressions
-        self._sub_video = util.re(
+        self._sub_video = text.re(
             r"https?://((?:vt|vtt|ve)(?:\.media)?\.tumblr\.com"
             r"/tumblr_[^_]+)_\d+\.([0-9a-z]+)").sub
         if self.inline:
-            self._sub_image = util.re(
+            self._sub_image = text.re(
                 r"https?://(\d+\.media\.tumblr\.com(?:/[0-9a-f]+)?"
                 r"/tumblr(?:_inline)?_[^_]+)_\d+\.([0-9a-z]+)").sub
-            self._subn_orig_image = util.re(r"/s\d+x\d+/").subn
-            _findall_image = util.re('<img src="([^"]+)"').findall
-            _findall_video = util.re('<source src="([^"]+)"').findall
+            self._subn_orig_image = text.re(r"/s\d+x\d+/").subn
+            _findall_image = text.re('<img [^>]*src="([^"]+)"').findall
+            _findall_video = text.re('<source [^>]*src="([^"]+)"').findall
 
         for post in self.posts():
             if self.date_min > post["timestamp"]:
@@ -88,19 +91,21 @@ class TumblrExtractor(Extractor):
 
                     if self.avatar:
                         url = self.api.avatar(self.blog)
-                        yield Message.Directory, {"blog": blog}
+                        yield Message.Directory, "", {"blog": blog}
                         yield self._prepare_avatar(url, post.copy(), blog)
 
                 post["blog"] = blog
 
             reblog = "reblogged_from_id" in post
             if reblog and self._skip_reblog(post):
+                self.log.debug("%s: Skipping reblogged post from %s",
+                               post.get("id"), post.get("reblogged_from_name"))
                 continue
             post["reblogged"] = reblog
 
             if "trail" in post:
                 del post["trail"]
-            post["date"] = text.parse_timestamp(post["timestamp"])
+            post["date"] = self.parse_timestamp(post["timestamp"])
             posts = []
 
             if "photos" in post:  # type "photo" or "link"
@@ -143,7 +148,10 @@ class TumblrExtractor(Extractor):
                 # only "chat" posts are missing a "reblog" key in their
                 # API response, but they can't contain images/videos anyway
                 body = post["reblog"]["comment"] + post["reblog"]["tree_html"]
-                for url in _findall_image(body):
+                if "question" in post:
+                    body = (f"{body} {post['question']} "
+                            f"{post.get('answer') or ''}")
+                for url in util.unique(_findall_image(body)):
                     url, fb = self._original_inline_image(url)
                     if fb:
                         post["_fallback"] = self._original_image_fallback(
@@ -161,7 +169,7 @@ class TumblrExtractor(Extractor):
                     del post["extension"]
 
             post["count"] = len(posts)
-            yield Message.Directory, post
+            yield Message.Directory, "", post
 
             for num, (msg, url, post) in enumerate(posts, 1):
                 post["num"] = num
@@ -234,7 +242,10 @@ class TumblrExtractor(Extractor):
         return not self.reblogs
 
     def _skip_reblog_same_blog(self, post):
-        return self.blog != post.get("reblogged_root_uuid")
+        try:
+            return post["blog"]["uuid"] != post.get("reblogged_root_uuid")
+        except Exception:
+            return self.blog != post.get("reblogged_root_uuid")
 
     def _original_photo(self, url):
         resized = url.replace("/s2048x3072/", "/s99999x99999/", 1)
@@ -285,7 +296,6 @@ class TumblrPostExtractor(TumblrExtractor):
     example = "https://www.tumblr.com/BLOG/12345"
 
     def posts(self):
-        self.reblogs = True
         self.date_min = 0
         return self.api.posts(self.blog, {"id": self.groups[3]})
 
@@ -313,7 +323,7 @@ class TumblrDayExtractor(TumblrExtractor):
 
     def posts(self):
         year, month, day = self.groups[3].split("/")
-        ordinal = date(int(year), int(month), int(day)).toordinal()
+        ordinal = dt.date(int(year), int(month), int(day)).toordinal()
 
         # 719163 == date(1970, 1, 1).toordinal()
         self.date_min = (ordinal - 719163) * 86400
@@ -474,7 +484,16 @@ class TumblrAPI(oauth.OAuth1API):
             self.log.debug(data)
 
             if status == 403:
-                raise exception.AuthorizationError()
+                msg = data.get("response")
+                if msg == "You do not have permission to view this blog" and \
+                        self.api_key is None:
+                    self.log.debug("Retrying with 'api_key' authentication")
+                    self.api_key = params["api_key"] = \
+                        self.session.auth.consumer_key
+                    self.session = self.extractor.session
+                    continue
+                msg = f"'{msg}'" if isinstance(msg, str) else None
+                raise self.exc.AuthorizationError(msg)
 
             elif status == 404:
                 try:
@@ -493,8 +512,8 @@ class TumblrAPI(oauth.OAuth1API):
                     else:
                         self.log.info("Run 'gallery-dl oauth:tumblr' "
                                       "to access dashboard-only blogs")
-                    raise exception.AuthorizationError(error)
-                raise exception.NotFoundError("user or post")
+                    raise self.exc.AuthorizationError(error)
+                raise self.exc.NotFoundError("user or post")
 
             elif status == 429:
                 # daily rate limit
@@ -514,8 +533,8 @@ class TumblrAPI(oauth.OAuth1API):
                         self.extractor.wait(seconds=reset)
                         continue
 
-                    t = (datetime.now() + timedelta(0, float(reset))).time()
-                    raise exception.AbortExtraction(
+                    t = (dt.now() + dt.timedelta(0, float(reset))).time()
+                    raise self.exc.AbortExtraction(
                         f"Aborting - Rate limit will reset at "
                         f"{t.hour:02}:{t.minute:02}:{t.second:02}")
 
@@ -525,19 +544,23 @@ class TumblrAPI(oauth.OAuth1API):
                     self.extractor.wait(seconds=reset)
                     continue
 
-            raise exception.AbortExtraction(data)
+            raise self.exc.AbortExtraction(data)
 
     def _pagination(self, endpoint, params,
                     blog=None, key="posts", cache=False):
         if self.api_key:
             params["api_key"] = self.api_key
 
-        strategy = self.extractor.config("pagination")
-        if not strategy:
-            if params.get("before"):
-                strategy = "before"
-            elif "offset" not in params:
+        if strategy := self.extractor.config("pagination"):
+            if strategy not in {"api", "before"} and "offset" not in params:
+                self.log.warning('Unable to use "pagination": "%s". '
+                                 'Falling back to "api".', strategy)
                 strategy = "api"
+        elif params.get("before"):
+            strategy = "before"
+        elif "offset" not in params:
+            strategy = "api"
+        self.log.debug("Pagination strategy '%s'", strategy or "offset")
 
         while True:
             data = self._call(endpoint, params)

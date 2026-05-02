@@ -9,7 +9,7 @@
 """Extractors for https://www.pixnet.net/"""
 
 from .common import Extractor, Message
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?!www\.)([\w-]+)\.pixnet.net"
 
@@ -52,7 +52,7 @@ class PixnetExtractor(Extractor):
 
             pnext = text.extr(page, 'class="nextBtn"', '>')
             if pnext is None and 'name="albumpass">' in page:
-                raise exception.AbortExtraction(
+                raise self.exc.AbortExtraction(
                     f"Album {self.item_id} is password-protected.")
             if "href" not in pnext:
                 return
@@ -83,7 +83,7 @@ class PixnetImageExtractor(PixnetExtractor):
         data["blog"] = self.blog
         data["user"] = data.pop("author_name")
 
-        yield Message.Directory, data
+        yield Message.Directory, "", data
         yield Message.Url, data["url"], data
 
 
@@ -100,7 +100,7 @@ class PixnetSetExtractor(PixnetExtractor):
         page = self.request(url, encoding="utf-8").text
         data = self.metadata(page)
 
-        yield Message.Directory, data
+        yield Message.Directory, "", data
         for num, info in enumerate(self._pagination(page), 1):
             url, pos = text.extract(info, ' href="', '"')
             src, pos = text.extract(info, ' src="', '"', pos)

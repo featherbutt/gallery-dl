@@ -7,8 +7,7 @@
 """Extractors for https://discord.com/"""
 
 from .common import Extractor, Message
-from .. import text, exception
-
+from .. import text, dt
 
 BASE_PATTERN = r"(?:https?://)?discord\.com"
 
@@ -19,7 +18,7 @@ class DiscordExtractor(Extractor):
     root = "https://discord.com"
     directory_fmt = ("{category}", "{server_id}_{server}",
                      "{channel_id}_{channel}")
-    filename_fmt = "{message_id}_{num:>02}_{filename}.{extension}"
+    filename_fmt = "{message_id}_{num:>02}_{filename[:220]}.{extension}"
     archive_fmt = "{message_id}_{num}"
 
     server_metadata = {}
@@ -30,6 +29,7 @@ class DiscordExtractor(Extractor):
         self.enabled_embeds = self.config("embeds", ["image", "gifv", "video"])
         self.enabled_threads = self.config("threads", True)
         self.api = DiscordAPI(self)
+        self.max_id = None
 
     def extract_message_text(self, message):
         text_content = [message["content"]]
@@ -61,7 +61,7 @@ class DiscordExtractor(Extractor):
 
     def extract_message(self, message):
         # https://discord.com/developers/docs/resources/message#message-object-message-types
-        if message["type"] in (0, 19, 21):
+        if message["type"] in {0, 19, 21}:
             message_metadata = {}
             message_metadata.update(self.server_metadata)
             message_metadata.update(
@@ -72,9 +72,7 @@ class DiscordExtractor(Extractor):
                 "author_files": [],
                 "message": self.extract_message_text(message),
                 "message_id": message["id"],
-                "date": text.parse_datetime(
-                    message["timestamp"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                ),
+                "date": self.parse_datetime_iso(message["timestamp"]),
                 "files": []
             })
 
@@ -95,7 +93,7 @@ class DiscordExtractor(Extractor):
             message_snapshots = [message]
             message_snapshots.extend(
                 msg["message"] for msg in message.get("message_snapshots", [])
-                if msg["message"]["type"] in (0, 19, 21)
+                if msg["message"]["type"] in {0, 19, 21}
             )
 
             for snapshot in message_snapshots:
@@ -122,12 +120,20 @@ class DiscordExtractor(Extractor):
                     text.nameext_from_url(file["url"], file)
                     file["num"] = num
 
-                yield Message.Directory, message_metadata
+                yield Message.Directory, "", message_metadata
 
                 for file in message_metadata["files"]:
                     message_metadata_file = message_metadata.copy()
                     message_metadata_file.update(file)
                     yield Message.Url, file["url"], message_metadata_file
+
+    def extract_search(self, server_id, params):
+        for messages in self.api.get_search_messages(server_id, params):
+            for message in messages:
+                if message["channel_id"] not in self.server_channels_metadata:
+                    self.parse_channel(self.api.get_channel(
+                        message["channel_id"]))
+                yield from self.extract_message(message)
 
     def extract_channel_text(self, channel_id):
         for message in self.api.get_channel_messages(channel_id):
@@ -148,24 +154,24 @@ class DiscordExtractor(Extractor):
             )
 
             # https://discord.com/developers/docs/resources/channel#channel-object-channel-types
-            if channel_type in (0, 5):
+            if channel_type in {0, 5}:
                 yield from self.extract_channel_text(channel_id)
                 if self.enabled_threads:
                     yield from self.extract_channel_threads(channel_id)
-            elif channel_type in (1, 3, 10, 11, 12):
+            elif channel_type in {1, 3, 10, 11, 12}:
                 yield from self.extract_channel_text(channel_id)
-            elif channel_type in (15, 16):
+            elif channel_type in {15, 16}:
                 yield from self.extract_channel_threads(channel_id)
-            elif channel_type in (4,):
+            elif channel_type == 4:
                 for channel in self.server_channels_metadata.copy().values():
                     if channel["parent_id"] == channel_id:
                         yield from self.extract_channel(
                             channel["channel_id"], safe=True)
             elif not safe:
-                raise exception.AbortExtraction(
+                raise self.exc.AbortExtraction(
                     "This channel type is not supported."
                 )
-        except exception.HttpError as exc:
+        except self.exc.HttpError as exc:
             if not (exc.status == 403 and safe):
                 raise
 
@@ -187,7 +193,7 @@ class DiscordExtractor(Extractor):
                 "parent_type": parent_metadata["channel_type"]
             })
 
-        if channel_metadata["channel_type"] in (1, 3):
+        if channel_metadata["channel_type"] in {1, 3}:
             channel_metadata.update({
                 "channel": "DMs",
                 "recipients": (
@@ -205,28 +211,46 @@ class DiscordExtractor(Extractor):
 
     def parse_server(self, server):
         self.server_metadata = {
-            "server": server["name"],
+            "server"   : server["name"],
             "server_id": server["id"],
-            "server_files": [],
-            "owner_id": server["owner_id"]
+            "owner_id" : server["owner_id"],
+            "server_files": self.collect_server_assets(server),
         }
 
-        for icon_type, icon_path in (
-            ("icon", "icons"),
-            ("banner", "banners"),
-            ("splash", "splashes"),
-            ("discovery_splash", "discovery-splashes")
-        ):
-            if server.get(icon_type):
-                self.server_metadata["server_files"].append({
-                    "url": (f"https://cdn.discordapp.com/{icon_path}/"
-                            f"{self.server_metadata['server_id']}/"
-                            f"{server[icon_type]}.png?size=4096"),
-                    "filename": icon_type,
-                    "extension": "png",
-                })
-
         return self.server_metadata
+
+    def collect_server_assets(self, server, asset_type=None):
+        if asset_type and asset_type != "general":
+            return [
+                {
+                    **asset,
+                    "url": (f"https://cdn.discordapp.com/{asset_type}/"
+                            f"{asset['id']}.png?size=4096"),
+                    "label"    : asset_type,
+                    "filename" : f"{asset['name']} ({asset['id']})",
+                    "extension": "png",
+                }
+                for asset in assets
+            ] if (assets := server.get(asset_type)) else ()
+        else:
+            return [
+                {
+                    "url": (f"https://cdn.discordapp.com/{asset_path}/"
+                            f"{server['id']}/{asset_id}.png?size=4096"),
+                    "id"       : f"{server['id']}/{asset_id}",
+                    "label"    : "",
+                    "name"     : asset_type,
+                    "filename" : asset_type,
+                    "extension": "png",
+                }
+                for asset_type, asset_path in (
+                    ("icon"  , "icons"),
+                    ("banner", "banners"),
+                    ("splash", "splashes"),
+                    ("discovery_splash", "discovery-splashes")
+                )
+                if (asset_id := server.get(asset_type))
+            ]
 
     def build_server_and_channels(self, server_id):
         self.parse_server(self.api.get_server(server_id))
@@ -268,6 +292,65 @@ class DiscordMessageExtractor(DiscordExtractor):
             self.api.get_message(channel_id, message_id))
 
 
+class DiscordServerAssetsExtractor(DiscordExtractor):
+    subcategory = "server-assets"
+    filename_fmt = "{name} ({id}).{extension}"
+    directory_fmt = ["{category}", "{server_id}_{server}", "Assets", "{label}"]
+    archive_fmt = "asset_{server_id}_{id}"
+    pattern = (BASE_PATTERN +
+               r"/channels/(\d+)/(?:assets?|files)(?:/([\w-]+))?/?$")
+    example = "https://discord.com/channels/1234567890/assets"
+
+    def items(self):
+        server_id, asset_type = self.groups
+        server = self.api.get_server(server_id)
+        parsed = self.parse_server(server)
+
+        if asset_type is None:
+            asset_types = ("", "emojis", "stickers")
+        else:
+            asset_types = asset_type.split(",")
+
+        for asset_type in asset_types:
+            assets = self.collect_server_assets(server, asset_type)
+            parsed["count"] = len(assets)
+            parsed["label"] = asset_type
+            yield Message.Directory, "", parsed
+            for asset in assets:
+                asset.update(parsed)
+                yield Message.Url, asset["url"], asset
+
+
+class DiscordServerSearchExtractor(DiscordExtractor):
+    subcategory = "server-search"
+    pattern = BASE_PATTERN + r"/channels/(\d+)/search/?\?([^#]+)"
+    example = "https://discord.com/channels/1234567890/search?QUERY"
+
+    def items(self):
+        server_id, query = self.groups
+        server = self.api.get_server(server_id)
+        self.kwdict.update(self.parse_server(server))
+
+        params = {
+            **text.parse_query_list(query, {
+                "from", "in", "has", "mentions", "author_id", "channel_id"}),
+            "sort_by"   : "timestamp",
+            "sort_order": "desc",
+        }
+        if "from" in params:
+            params["author_id"] = params.pop("from")
+        if "in" in params:
+            params["channel_id"] = params.pop("in")
+        if self.max_id is not None:
+            params["max_id"] = self.max_id
+
+        return self.extract_search(server_id, params)
+
+    def skip_date(self, date):
+        # https://docs.discord.com/developers/reference#snowflakes
+        self.max_id = ((int(dt.to_ts(date)) - 1_420_070_400) * 1000) << 22
+
+
 class DiscordServerExtractor(DiscordExtractor):
     subcategory = "server"
     pattern = BASE_PATTERN + r"/channels/(\d+)/?$"
@@ -275,13 +358,14 @@ class DiscordServerExtractor(DiscordExtractor):
 
     def items(self):
         server_id = self.groups[0]
-
         self.build_server_and_channels(server_id)
 
+        base = f"{self.root}/channels/{server_id}/"
         for channel in self.server_channels_metadata.copy().values():
-            if channel["channel_type"] in (0, 5, 15, 16):
-                yield from self.extract_channel(
-                    channel["channel_id"], safe=True)
+            if channel["channel_type"] in {0, 5, 15, 16}:
+                channel["_extractor"] = DiscordChannelExtractor
+                url = base + channel["channel_id"]
+                yield Message.Queue, url, channel
 
 
 class DiscordDirectMessagesExtractor(DiscordExtractor):
@@ -324,11 +408,13 @@ class DiscordAPI():
 
     def get_server(self, server_id):
         """Get server information"""
-        return self._call("/guilds/" + server_id)
+        return self.extractor.cache(
+            self._call, "/guilds/" + server_id)
 
     def get_server_channels(self, server_id):
         """Get server channels"""
-        return self._call("/guilds/" + server_id + "/channels")
+        return self.extractor.cache(
+            self._call, f"/guilds/{server_id}/channels")
 
     def get_channel(self, channel_id):
         """Get channel information"""
@@ -339,7 +425,7 @@ class DiscordAPI():
         THREADS_BATCH = 25
 
         def _method(offset):
-            return self._call("/channels/" + channel_id + "/threads/search", {
+            return self._call(f"/channels/{channel_id}/threads/search", {
                 "sort_by": "last_message_time",
                 "sort_order": "desc",
                 "limit": THREADS_BATCH,
@@ -356,7 +442,7 @@ class DiscordAPI():
 
         def _method(_):
             nonlocal before
-            messages = self._call("/channels/" + channel_id + "/messages", {
+            messages = self._call(f"/channels/{channel_id}/messages", {
                 "limit": MESSAGES_BATCH,
                 "before": before
             })
@@ -366,9 +452,29 @@ class DiscordAPI():
 
         return self._pagination(_method, MESSAGES_BATCH)
 
+    def get_search_messages(self, server_id, params):
+        """Get search messages"""
+        MESSAGES_BATCH = 25
+
+        def _method(offset):
+            messages = self._call(url, params)["messages"]
+
+            max_id = 0
+            for msgs in messages:
+                for msg in msgs:
+                    mid = int(msg["id"])
+                    if max_id > mid or not max_id:
+                        max_id = mid
+            params["max_id"] = max_id
+
+            return messages
+
+        url = f"/guilds/{server_id}/messages/search"
+        return self._pagination(_method, MESSAGES_BATCH)
+
     def get_message(self, channel_id, message_id):
         """Get message information"""
-        return self._call("/channels/" + channel_id + "/messages", {
+        return self._call(f"/channels/{channel_id}/messages", {
             "limit": 1,
             "around": message_id
         })[0]
@@ -378,7 +484,7 @@ class DiscordAPI():
         try:
             response = self.extractor.request(
                 url, params=params, headers=self.headers)
-        except exception.HttpError as exc:
+        except self.extractor.exc.HttpError as exc:
             if exc.status == 401:
                 self._raise_invalid_token()
             raise
@@ -394,7 +500,8 @@ class DiscordAPI():
             offset += len(data)
 
     def _raise_invalid_token(self):
-        raise exception.AuthenticationError("""Invalid or missing token.
+        raise self.extractor.exc.AuthenticationError("""\
+Invalid or missing token.
 Please provide a valid token following these instructions:
 
 1) Open Discord in your browser (https://discord.com/app);

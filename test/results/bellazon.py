@@ -23,7 +23,9 @@ __tests__ = (
     "filename" : str,
     "extension": "jpg",
     "count"    : 5,
-    "num"      : range(1, 5),
+    "num"         : range(1, 5),
+    "num_internal": range(1, 5),
+    "num_external": 0,
     "post"     : {
         "author_id"  : "72476",
         "author_slug": "shepherd",
@@ -134,7 +136,7 @@ __tests__ = (
     "extension": "mp4",
     "filename" : r"re:^\d+$",
     "id"       : r"re:6361\d\d\d",
-    "num"      : range(2, 11),
+    "num"      : range(2, 12),
     "post"     : {
         "author_id"  : "101807",
         "author_slug": "rogerdanish",
@@ -202,6 +204,202 @@ __tests__ = (
     "#comment" : "'inline' image",
     "#class"   : bellazon.BellazonPostExtractor,
     "#results" : "https://www.bellazon.com/main/uploads/monthly_2018_04/30602369_1891291154222843_1650952189830496256_n.jpg.33e6ab78dd0e8723f790ad4f58f3761a.jpg",
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/70367-elyzaveta-kovalenko/page/5/#comment-5464973",
+    "#comment" : "(#8392)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : (
+        "https://www.bellazon.com/main/uploads/monthly_2022_05/917305269_LizaKovalenko-Instagram2021_04_19.mp4.467d190a54e1bcabc50767a69706501d.mp4",
+        "https://www.bellazon.com/main/uploads/monthly_2022_05/2027180206_LizaKovalenko-Instagram2021_04_23.mp4.2eae87d7e9d6f1a993611fa1f73e8e7b.mp4",
+    ),
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/70367-elyzaveta-kovalenko/page/7/#comment-5506079",
+    "#comment" : "links to other threads (#8392)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#count"   : 0,
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/4322-candids/page/1852/#comment-5902385",
+    "#comment" : "attachment 'id' with query parameters (#8544)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#range"   : "4",
+    "#results" : "https://www.bellazon.com/main/applications/core/interface/file/attachment.php?id=14418097&key=491d27ee2482b1808483f1d544873b06",
+
+    "count"       : 4,
+    "num"         : 4,
+    "filename"    : "download",
+    "extension"   : "jfif",
+    "id"          : "14418097",
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/4322-candids/page/1066/#comment-3956772",
+    "#comment" : "weird/wrong 'filename' & 'extension' (#8544)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#count"   : 16,
+
+    "extension"   : "jpg",
+    "filename"    : r"re:^[^.]+$",
+    "id"          : r"re:^\d+$",
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/79152-sydney-sweeney/page/42/#comment-6113627",
+    "#comment" : "'data-full-image' URLs (#8833)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : (
+        "https://www.wmagazine.com/culture/sydney-sweeney-cover-interview-the-housemaid-christy",
+        "https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrinstagram2.jpg.9bca664c750694127c5c77c0e99db770.jpg",
+        "https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrcms2.jpg.a4d33f2e157aec446f9e268cce576ddc.jpg",
+        "https://www.bellazon.com/main/uploads/monthly_2026_01/1-0126broadsheetcmslo13-14.jpg.21f087b58d0d3cc5c7d03ea2bb62a979.jpg",
+    ),
+
+    "post"        : {
+        "author_id"  : "145049",
+        "author_slug": "matt",
+        "author_url" : "https://www.bellazon.com/main/profile/145049-matt/",
+        "content"    : """<p style="text-align:center;">W Magazine's 2026 Best Performances issue</p><p style="text-align:center;">Sydney Sweeney Talks The Housemaid, Christy, and Bonding With Amanda Seyfried</p><p style="text-align:center;">Ph. Tyrone Lebon</p><p style="text-align:center;"><a rel="external nofollow" href="https://www.wmagazine.com/culture/sydney-sweeney-cover-interview-the-housemaid-christy">https://www.wmagazine.com/culture/sydney-sweeney-cover-interview-the-housemaid-christy</a></p><p style="text-align:center;"></p><p style="text-align:center;"><img class="ipsImage ipsImage_thumbnailed ipsRichText__align--block" data-fileid="15813191" src="https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrinstagram2.thumb.jpg.7bfbdc57ebcbfd61e4ba72c2b55dfbf3.jpg" alt="1222250126covershrinstagram2.jpg" title="" width="230" height="300" data-full-image="https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrinstagram2.jpg.9bca664c750694127c5c77c0e99db770.jpg" loading="lazy"><img class="ipsImage ipsImage_thumbnailed ipsRichText__align--block" data-fileid="15813196" src="https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrcms2.thumb.jpg.4ae359d3f0927aca1f7ab6a4d44b47cf.jpg" alt="1222250126covershrcms2.jpg" title="" width="231" height="300" data-full-image="https://www.bellazon.com/main/uploads/monthly_2026_01/1222250126covershrcms2.jpg.a4d33f2e157aec446f9e268cce576ddc.jpg" loading="lazy"><img class="ipsImage ipsImage_thumbnailed ipsRichText__align--block" data-fileid="15813194" src="https://www.bellazon.com/main/uploads/monthly_2026_01/1-0126broadsheetcmslo13-14.thumb.jpg.904162a4ebd4a340d5a595df82e7c982.jpg" alt="1-0126broadsheetcmslo13-14.jpg" title="" width="300" height="194" data-full-image="https://www.bellazon.com/main/uploads/monthly_2026_01/1-0126broadsheetcmslo13-14.jpg.21f087b58d0d3cc5c7d03ea2bb62a979.jpg" loading="lazy"></p>""",
+        "count"      : 4,
+        "date"       : "dt:2026-01-06 16:34:53",
+        "id"         : "6113627",
+    },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/123434-%D0%BD%D0%B0-%D1%84%D0%BE%D1%82%D0%BE-%D0%B2%D0%B8%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8F-%D0%BA%D0%BE%D0%BB%D0%B5%D1%81%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%D0%B0/#comment-6112956",
+    "#comment" : "URL-escaped 'slug'",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : "https://www.bellazon.com/main/uploads/monthly_2026_01/IMG_3177.png.b057c59b2168b2ff52d45cf6b1eba86e.png",
+
+    "extension"   : "png",
+    "filename"    : "IMG_3177",
+    "id"          : "15808003",
+    "post"        : {
+        "author_id"  : "328354",
+        "author_slug": "ghhhv",
+        "author_url" : "https://www.bellazon.com/main/profile/328354-ghhhv/",
+        "content"    : """<a href="https://www.bellazon.com/main/uploads/monthly_2026_01/IMG_3177.png.b057c59b2168b2ff52d45cf6b1eba86e.png" class="ipsAttachLink ipsAttachLink_image" ><img data-fileid="15808003" src="https://www.bellazon.com/main/uploads/monthly_2026_01/IMG_3177.thumb.png.a48d590d47aa78f5da7e7dddeb6c284d.png" height="300" width="172" class="ipsImage ipsImage_thumbnailed" alt="IMG_3177.png" loading='lazy'></a>""",
+        "count"      : 1,
+        "date"       : "dt:2026-01-04 22:14:17",
+        "id"         : "6112956",
+    },
+    "thread"      : {
+        "author"      : "Ghhhv",
+        "author_id"   : "328354",
+        "author_slug" : "ghhhv",
+        "author_url"  : "https://www.bellazon.com/main/profile/328354-ghhhv/",
+        "date"        : "dt:2026-01-04 22:14:17",
+        "date_updated": "dt:2026-01-04 22:14:17",
+        "id"          : "123434",
+        "section"     : "Actresses",
+        "slug"        : "на-фото-виктория-колесникова",
+        "title"       : "на фото Виктория Колесникова",
+        "url"         : "https://www.bellazon.com/main/topic/123434-%D0%BD%D0%B0-%D1%84%D0%BE%D1%82%D0%BE-%D0%B2%D0%B8%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8F-%D0%BA%D0%BE%D0%BB%D0%B5%D1%81%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%D0%B0/",
+        "path"        : [
+            "Females",
+            "Actresses",
+            "на фото Виктория Колесникова",
+        ],
+    },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/72551-ren%C3%A9e-murden/page/45/#findComment-5468001",
+    "#comment" : "quote / missing parts of 'content' (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : (
+        "https://www.bellazon.com/main/uploads/monthly_2022_05/QT_hotels.jpg.280653cd3cdf649a55eb5be700b4206d.jpg",
+        "https://www.bellazon.com/main/uploads/monthly_2022_05/Renee_Test.jpg.410ac3d96ec14f535e7935a488f1abb0.jpg",
+        "https://www.bellazon.com/main/uploads/monthly_2022_05/Renee.jpg.5f84145f3b0bb98a4a0e48198354ccb5.jpg",
+        "http://depositfiles.com/files/2rmz400vm",
+        "https://k2s.cc/file/87f706e69800a/RM_DanielShortt.7z",
+    ),
+
+    "post"        : {
+        "author_id"  : "194076",
+        "author_slug": "zorzabosti",
+        "author_url" : "https://www.bellazon.com/main/profile/194076-zorzabosti/",
+        "date"       : "dt:2022-05-08 17:06:36",
+        "id"         : "5468001",
+        "content"    : str,
+    },
+    "thread"      : {
+        "date": "dt:2019-04-15 17:00:08",
+        "id"  : "72551",
+    },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/46019-alexis-ren/page/19/#findComment-3649926",
+    "#comment" : "ignore forum signature (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#auth"    : True,
+    "#count"   : 0,
+    "#metadata": "post",
+
+    "post": {
+        "author_id"  : "18831",
+        "author_slug": "clauds",
+        "author_url" : "https://www.bellazon.com/main/profile/18831-clauds/",
+        "content"    : "<p><span style=\"font-family:tahoma, geneva, sans-serif;\">I don't know for VS Pink tbh, I think she's better fitted for SI tbh</span></p>",
+        "count"      : 0,
+        "date"       : "dt:2015-03-20 23:50:18",
+        "id"         : "3649926",
+    },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/46019-alexis-ren/page/8/#findComment-3383650",
+    "#comment" : "quote in quote (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : "https://www.bellazon.com/main/uploads/monthly_03_2014/post-57667-0-98883500-1395169341.jpg",
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/46019-alexis-ren/page/8/#findComment-3383650",
+    "#comment" : "quote in quote (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#options" : {"quoted": True},
+    "#archive" : False,
+    "#pattern" : r"^https?://(imgbox.com|bryant.photography|www.bellazon.com/main/(uploads|index.php\?app=core&module=attach))",
+    "#count"   : 20,
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/41694-taylor-hill/page/59/#findComment-3481833",
+    "#comment" : "'/public/style_emoticons/' emoticon",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#count"   : 0,
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/4322-candids/page/700/#findComment-2802542",
+    "#comment" : "'/main/style_emoticons/' emoticons (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#count"   : 0,
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/7459-candice-swanepoel/page/1122/#findComment-3442969",
+    "#comment" : "'/main/index.php' attachment (#9140)",
+    "#class"   : bellazon.BellazonPostExtractor,
+    "#results" : "https://www.bellazon.com/main/index.php?app=core&module=attach&section=attach&attach_rel_module=post&attach_id=2021999",
+
+    "extension"   : "jpg",
+    "filename"    : "image",
+    "id"          : "2021999",
+    "name"        : "image.jpg",
+    "post"        : {
+        "author_id"  : "51006",
+        "author_slug": "badboy_207",
+        "date"       : "dt:2014-06-27 21:23:51",
+        "id"         : "3442969",
+    },
 },
 
 {
@@ -288,6 +486,54 @@ __tests__ = (
             "Zhang Ziyi",
         ],
     },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/56-candids/",
+    "#comment" : "'Guest' author (#8397)",
+    "#class"   : bellazon.BellazonThreadExtractor,
+    "#options" : {"order-posts": "asc"},
+    "#range"   : "1",
+    "#results" : (
+        "https://www.bellazon.com/main/uploads/monthly_11_2004/post-0-0-1593851439-26962.jpg",
+    ),
+
+    "post"     : {
+        "author_id"  : "",
+        "author_slug": "",
+        "author_url" : "",
+        "content"    : """<a href="https://www.bellazon.com/main/uploads/monthly_11_2004/post-0-0-1593851439-26962.jpg" class="ipsAttachLink ipsAttachLink_image"><img data-fileid="292" src="https://www.bellazon.com/main/uploads/monthly_11_2004/post-0-0-1593851439-26962_thumb.jpg" class="ipsImage ipsImage_thumbnailed" alt="sss.jpg" loading="lazy"></a>""",
+        "count"      : 1,
+        "date"       : "dt:2004-11-21 03:09:51",
+        "id"         : "292",
+    },
+    "thread"   : {
+        "author"      : "Guest",
+        "author_id"   : "",
+        "author_slug" : "",
+        "author_url"  : "",
+        "date"        : "dt:2004-11-21 01:44:59",
+        "date_updated": "type:datetime",
+        "description" : "Welcome to the Alessandra Ambrosio Candids gallery.  Please only post candid, unposed, off-guard, or funny images in this thread.",
+        "id"          : "56",
+        "posts"       : range(13_000, 30_000),
+        "section"     : "Alessandra Ambrosio",
+        "slug"        : "candids",
+        "title"       : "Candids",
+        "url"         : "https://www.bellazon.com/main/topic/56-candids/",
+        "views"       : range(8_000_000, 10_000_000),
+        "path"        : [
+            "Females",
+            "Female Fashion Models",
+            "Alessandra Ambrosio",
+            "Candids",
+        ],
+    },
+},
+
+{
+    "#url"     : "https://www.bellazon.com/main/topic/123434-%D0%BD%D0%B0-%D1%84%D0%BE%D1%82%D0%BE-%D0%B2%D0%B8%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8F-%D0%BA%D0%BE%D0%BB%D0%B5%D1%81%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%D0%B0/",
+    "#class"   : bellazon.BellazonThreadExtractor,
 },
 
 {

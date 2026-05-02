@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2017-2025 Mike Fährmann
+# Copyright 2017-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://www.flickr.com/"""
 
 from .common import Extractor, Message
-from .. import text, oauth, util, exception
+from .. import text, oauth, util
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.|secure\.|m\.)?flickr\.com"
 
@@ -17,6 +17,7 @@ BASE_PATTERN = r"(?:https?://)?(?:www\.|secure\.|m\.)?flickr\.com"
 class FlickrExtractor(Extractor):
     """Base class for flickr extractors"""
     category = "flickr"
+    root = "https://www.flickr.com"
     filename_fmt = "{category}_{id}.{extension}"
     directory_fmt = ("{category}", "{user[username]}")
     archive_fmt = "{id}"
@@ -24,11 +25,15 @@ class FlickrExtractor(Extractor):
     request_interval_min = 0.5
 
     def _init(self):
-        self.api = FlickrAPI(self)
         self.user = None
         self.item_id = self.groups[0]
 
+        if self.config("urls") == "download":
+            self._file_url = self._file_url_dl
+
     def items(self):
+        self.api = FlickrAPI(self)
+
         data = self.metadata()
         extract = self.api._extract_format
         for photo in self.photos():
@@ -38,11 +43,11 @@ class FlickrExtractor(Extractor):
                 self.log.warning(
                     "Skipping photo %s (%s: %s)",
                     photo["id"], exc.__class__.__name__, exc)
-                self.log.debug("", exc_info=exc)
+                self.log.traceback(exc)
             else:
                 photo.update(data)
                 url = self._file_url(photo)
-                yield Message.Directory, photo
+                yield Message.Directory, "", photo
                 yield Message.Url, url, text.nameext_from_url(url, photo)
 
     def metadata(self):
@@ -56,13 +61,16 @@ class FlickrExtractor(Extractor):
         """Return an iterable with all relevant photo objects"""
 
     def _file_url(self, photo):
+        return photo["url"]
+
+    def _file_url_dl(self, photo):
         url = photo["url"]
 
         if "/video/" in url:
             return url
 
         path, _, ext = url.rpartition(".")
-        return path + "_d." + ext
+        return f"{path}_d.{ext}"
 
 
 class FlickrImageExtractor(FlickrExtractor):
@@ -75,6 +83,8 @@ class FlickrImageExtractor(FlickrExtractor):
     example = "https://www.flickr.com/photos/USER/12345"
 
     def items(self):
+        self.api = FlickrAPI(self)
+
         item_id, enc_id = self.groups
         if enc_id is not None:
             alphabet = ("123456789abcdefghijkmnopqrstu"
@@ -98,7 +108,7 @@ class FlickrImageExtractor(FlickrExtractor):
         photo["comments"] = text.parse_int(photo["comments"]["_content"])
         photo["description"] = photo["description"]["_content"]
         photo["tags"] = [t["raw"] for t in photo["tags"]["tag"]]
-        photo["date"] = text.parse_timestamp(photo["dateuploaded"])
+        photo["date"] = self.parse_timestamp(photo["dateuploaded"])
         photo["views"] = text.parse_int(photo["views"])
         photo["id"] = text.parse_int(photo["id"])
 
@@ -109,7 +119,7 @@ class FlickrImageExtractor(FlickrExtractor):
                     location[key] = value["_content"]
 
         url = self._file_url(photo)
-        yield Message.Directory, photo
+        yield Message.Directory, "", photo
         yield Message.Url, url, text.nameext_from_url(url, photo)
 
 
@@ -129,6 +139,8 @@ class FlickrAlbumExtractor(FlickrExtractor):
         return self._album_items()
 
     def _album_items(self):
+        self.api = FlickrAPI(self)
+
         data = FlickrExtractor.metadata(self)
         data["_extractor"] = FlickrAlbumExtractor
 
@@ -236,8 +248,8 @@ class FlickrAPI(oauth.OAuth1API):
     """
 
     API_URL = "https://api.flickr.com/services/rest/"
-    API_KEY = "90c368449018a0cb880ea4889cbb8681"
-    API_SECRET = "e4b83e319c11e9e1"
+    #  API_KEY = ""
+    API_SECRET = ""
     FORMATS = [
         ("o" , "Original"    , None),
         ("6k", "X-Large 6K"  , 6144),
@@ -281,6 +293,10 @@ class FlickrAPI(oauth.OAuth1API):
         "9": "Public Domain Dedication (CC0)",
         "10": "Public Domain Mark",
     }
+
+    @property
+    def API_KEY(self):
+        return self.extractor.cache(self._extract_apikey, _key=None, _exp=3600)
 
     def __init__(self, extractor):
         oauth.OAuth1API.__init__(self, extractor)
@@ -441,17 +457,17 @@ class FlickrAPI(oauth.OAuth1API):
         except ValueError:
             data = {"code": -1, "message": response.content}
         if "code" in data:
-            msg = data.get("message")
+            msg = data.get("message", "")
             self.log.debug("Server response: %s", data)
             if data["code"] == 1:
-                raise exception.NotFoundError(self.extractor.subcategory)
+                raise self.exc.NotFoundError(self.extractor.subcategory)
             elif data["code"] == 2:
-                raise exception.AuthorizationError(msg)
+                raise self.exc.AuthorizationError(msg)
             elif data["code"] == 98:
-                raise exception.AuthenticationError(msg)
+                raise self.exc.AuthenticationError(msg)
             elif data["code"] == 99:
-                raise exception.AuthorizationError(msg)
-            raise exception.AbortExtraction(f"API request failed: {msg}")
+                raise self.exc.AuthorizationError(msg)
+            raise self.exc.AbortExtraction("API request failed: " + msg)
         return data
 
     def _pagination(self, method, params, key="photos"):
@@ -486,10 +502,16 @@ class FlickrAPI(oauth.OAuth1API):
                 return
             params["page"] += 1
 
+    def _extract_apikey(self):
+        extr = self.extractor
+        extr.log.info("Retrieving public API key")
+        page = extr.request(extr.root + "/photos/").text
+        return text.extr(page, '.flickr.api.site_key = "', '"')
+
     def _extract_format(self, photo):
         photo["description"] = photo["description"]["_content"].strip()
         photo["views"] = text.parse_int(photo["views"])
-        photo["date"] = text.parse_timestamp(photo["dateupload"])
+        photo["date"] = self.extractor.parse_timestamp(photo["dateupload"])
         photo["tags"] = photo["tags"].split()
 
         self._extract_metadata(photo)

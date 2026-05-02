@@ -90,6 +90,37 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://exhentai.org/mpv/1200119/d55c44d3d0/",
+    "#class"   : exhentai.ExhentaiGalleryExtractor,
+},
+
+{
+    "#url"     : "https://exhentai.org/mpv/1200119/d55c44d3d0/#page3",
+    "#class"   : exhentai.ExhentaiGalleryExtractor,
+},
+
+{
+    "#url"     : "https://e-hentai.org/g/3887805/6481bf9855/",
+    "#comment" : "torrent download (gh#2996 gh#9470)",
+    "#class"   : exhentai.ExhentaiGalleryExtractor,
+    "#options" : {"source": "torrent"},
+    "#results" : "https://ehtracker.org/get/3887805/e65acdd1ee200b931bea724e079fbdb649443f38.torrent",
+
+    "added"    : "1776052922",
+    "count"    : 1,
+    "num"      : 1,
+    "date"     : "dt:2026-04-13 04:02:02",
+    "filename" : "(C87) [CANDY_CHAPUS (23)] Hansoku Amanojaku to ame to muchi (Touhou Project).zip",
+    "extension": "torrent",
+    "fsize"    : "41689954",
+    "gid"      : 3887805,
+    "hash"     : "e65acdd1ee200b931bea724e079fbdb649443f38",
+    "title"    : "(C87) [CANDY*CHAPUS (23)] Hansoku Amanojaku to ame to muchi (Touhou Project)",
+    "token"    : "6481bf9855",
+    "tsize"    : "3577",
+},
+
+{
     "#url"     : "https://e-hentai.org/?f_search=touhou",
     "#category": ("", "exhentai", "search"),
     "#class"   : exhentai.ExhentaiSearchExtractor,

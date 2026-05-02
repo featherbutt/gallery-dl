@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2023-2025 Mike Fährmann
+# Copyright 2023-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -13,6 +13,24 @@ import logging
 import operator
 import functools
 from . import util, exception
+
+
+def parse(spec):
+    if isinstance(spec, str):
+        type, _, args = spec.partition(" ")
+        before, after = ACTIONS[type](args)
+        return before if after is None else after
+
+    actions_before, actions_after = [], []
+    for s in spec:
+        type, _, args = s.partition(" ")
+        before, after = ACTIONS[type](args)
+        if before is not None:
+            actions_before.append(before)
+        if after is not None:
+            actions_after.append(after)
+    actions_before.extend(actions_after)
+    return _chain_actions(actions_before)
 
 
 def parse_logging(actionspec):
@@ -85,27 +103,7 @@ def parse_signals(actionspec):
             log = logging.getLogger("gallery-dl")
             log.warning("signal '%s' is not defined", signal_name)
             continue
-
-        if isinstance(spec, str):
-            type, _, args = spec.partition(" ")
-            before, after = ACTIONS[type](args)
-            action = before if after is None else after
-        else:
-            actions_before = []
-            actions_after = []
-            for s in spec:
-                type, _, args = s.partition(" ")
-                before, after = ACTIONS[type](args)
-                if before is not None:
-                    actions_before.append(before)
-                if after is not None:
-                    actions_after.append(after)
-
-            actions = actions_before
-            actions.extend(actions_after)
-            action = _chain_actions(actions)
-
-        signal.signal(signal_num, signals_handler(action))
+        signal.signal(signal_num, signals_handler(parse(spec)))
 
 
 class LoggerAdapter():
@@ -147,6 +145,11 @@ class LoggerAdapter():
             for cond, action in after:
                 if cond(msg):
                     action(args)
+
+    def traceback(self, exc):
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger._log(
+                logging.DEBUG, "", None, exc_info=exc, extra=self.extra)
 
 
 def _level_to_int(level):
@@ -223,14 +226,45 @@ def action_wait(opts):
 
 def action_flag(opts):
     flag, value = util.re(
-        r"(?i)(file|post|child|download)(?:\s*[= ]\s*(.+))?"
+        r"(?i)(file|post|child|download|clear)(?:\s*[= ]\s*(.+))?"
     ).match(opts).groups()
     flag = flag.upper()
-    value = "stop" if value is None else value.lower()
+
+    if flag == "CLEAR":
+        return (lambda _: util.FLAGS.clear()), None
+
+    if value is None:
+        value = "stop"
+    elif value == "skip":
+        value = False
+    elif value == "clear":
+        value = None
+    elif value == "toggle":
+        def _flag_toggle(args):
+            util.FLAGS.__dict__[flag] = \
+                "stop" if util.FLAGS.__dict__[flag] is None else None
+        del value
+        return _flag_toggle, None
+    else:
+        value = value.lower()
 
     def _flag(args):
         util.FLAGS.__dict__[flag] = value
     return _flag, None
+
+
+def action_keyword(opts):
+    name, _, value = opts.partition(" ")
+
+    try:
+        value = value.strip()
+        value = util.json_loads(value)
+    except Exception:
+        pass
+
+    def _keyword(args):
+        args["job"].kwdict[name] = value
+    return _keyword, None
 
 
 def action_raise(opts):
@@ -252,15 +286,21 @@ def action_raise(opts):
 
 
 def action_abort(opts):
-    return None, util.raises(exception.StopExtraction)
+    def _abort(_):
+        raise exception.StopExtraction(opts or None)
+    return None, _abort
 
 
 def action_terminate(opts):
-    return None, util.raises(exception.TerminateExtraction)
+    def _terminate(_):
+        raise exception.TerminateExtraction(opts)
+    return None, _terminate
 
 
 def action_restart(opts):
-    return None, util.raises(exception.RestartExtraction)
+    def _restart(_):
+        raise exception.RestartExtraction(opts)
+    return None, _restart
 
 
 def action_exit(opts):
@@ -269,7 +309,7 @@ def action_exit(opts):
     except ValueError:
         pass
 
-    def _exit(args):
+    def _exit(_):
         raise SystemExit(opts)
     return None, _exit
 
@@ -279,6 +319,7 @@ ACTIONS = {
     "exec"     : action_exec,
     "exit"     : action_exit,
     "flag"     : action_flag,
+    "keyword"  : action_keyword,
     "level"    : action_level,
     "print"    : action_print,
     "raise"    : action_raise,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2025 Mike Fährmann
+# Copyright 2015-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -10,8 +10,6 @@
 import os
 import sys
 import unittest
-
-import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from gallery_dl import text, util  # noqa E402
@@ -203,6 +201,10 @@ class TestText(unittest.TestCase):
         self.assertEqual(f("http://example.org/v2/filename.ext"), result)
         self.assertEqual(
             f("http://example.org/v2/filename.ext?param=value#frag"), result)
+        self.assertEqual(
+            f("http://example.org/v2/foo%202?bar&<>.ext?param=value#frag"),
+            {"filename": "foo 2", "extension": ""},
+        )
 
         # long "extension"
         fn = "httpswww.example.orgpath-path-path-path-path-path-path-path"
@@ -211,6 +213,69 @@ class TestText(unittest.TestCase):
         # invalid arguments
         for value in INVALID:
             self.assertEqual(f(value), empty)
+
+    def test_nameext_from_name(self, f=text.nameext_from_name):
+        self.assertEqual(
+            f(""),
+            {"filename": "", "extension": ""},
+        )
+        self.assertEqual(
+            f("filename.ext"),
+            {"filename": "filename", "extension": "ext"},
+        )
+        self.assertEqual(
+            f("foo%202?bar&<>.ext"),
+            {"filename": "foo%202?bar&<>", "extension": "ext"},
+        )
+
+        # long "extension"
+        fn = "httpswww.example.orgpath-path-path-path-path-path-path-path"
+        self.assertEqual(f(fn), {"filename": fn, "extension": ""})
+
+    def test_filename_from_contentdisposition(
+            self, f=text.filename_from_contentdisposition):
+        self.assertEqual(f(""), "")
+        self.assertEqual(f("inline"), "")
+
+        self.assertEqual(f('attachment; filename=example.pdf'),
+                         "example.pdf")
+        self.assertEqual(f('attachment; filename="example.pdf"'),
+                         "example.pdf")
+        self.assertEqual(f('attachment; filename=example.pdf; '),
+                         "example.pdf")
+        self.assertEqual(f('attachment; filename="example.pdf"; '),
+                         "example.pdf")
+        self.assertEqual(f('attachment; filename="foo%20bar.pdf"; '),
+                         "foo%20bar.pdf")
+
+        self.assertEqual(f('''attachment; '''
+                           '''filename="example.pdf"; '''
+                           '''filename*=UTF-8''%E2%82%ACrates.pdf'''),
+                         "€rates.pdf")
+        self.assertEqual(f('''attachment; '''
+                           '''filename="example.pdf"; '''
+                           '''filename*="UTF-8''%E2%82%ACrates.pdf"'''),
+                         "€rates.pdf")
+
+        self.assertEqual(f('attachment; '
+                           'filename=report.csv; '
+                           'creation-date="Wed, 12 Feb 2025 10:00:00 GMT"'),
+                         "report.csv")
+        self.assertEqual(f('attachment; '
+                           'filename="report.csv"; '
+                           'creation-date="Wed, 12 Feb 2025 10:00:00 GMT"'),
+                         "report.csv")
+
+        self.assertEqual(f('attachment; '
+                           'filename=report2.csv; '
+                           '''filename*="UTF-8''re%20port.ext"'''
+                           'creation-date="Wed, 12 Feb 2025 10:00:00 GMT"'),
+                         "re port.ext")
+        self.assertEqual(f('attachment; '
+                           'filename="report2.csv"; '
+                           'creation-date="Wed, 12 Feb 2025 10:00:00 GMT"; '
+                           '''filename*=UTF-8''re%20port.ext'''),
+                         "re port.ext")
 
     def test_extract(self, f=text.extract):
         txt = "<a><b>"
@@ -371,6 +436,34 @@ class TestText(unittest.TestCase):
         self.assertEqual(e("[", "]"), "END")
         self.assertEqual(e("[", "]"), "END")
 
+    def test_extract_urls(self, f=text.extract_urls):
+        txt = ""
+        self.assertEqual(f(txt), [])
+
+        txt = "<p>foo </p> &amp; bar <p> </p>"
+        self.assertEqual(f(txt), [])
+
+        txt = """<p>
+  <a href="http://www.example.com">Lorem ipsum dolor sit amet</a>.
+  Duis aute irure <a href="http://blog.example.org/lorem?foo=bar">
+  http://blog.example.org</a>.
+</p>"""
+        self.assertEqual(f(txt), ["http://www.example.com",
+                                  "http://blog.example.org/lorem?foo=bar",
+                                  "http://blog.example.org"])
+
+    def test_parse_hex_escapes(self, f=text.parse_hex_escapes):
+        self.assertEqual(f(""), "")
+        self.assertEqual(f("foobar"), "foobar")
+        self.assertEqual(f("foo bar"), "foo bar")
+        self.assertEqual(f("foo\\x20bar"), "foo bar")
+        self.assertEqual(f("foo\\x20\\x2f\\x20bar"), "foo / bar")
+        self.assertEqual(f("foo\\x1zar"), "foo\\x1zar")
+        self.assertEqual(
+            f("\\x20foo\\x20\\x2F bar\xff"),
+            " foo / barÿ",
+        )
+
     def test_parse_unicode_escapes(self, f=text.parse_unicode_escapes):
         self.assertEqual(f(""), "")
         self.assertEqual(f("foobar"), "foobar")
@@ -459,10 +552,14 @@ class TestText(unittest.TestCase):
         # missing value
         self.assertEqual(f("bar"), {})
         self.assertEqual(f("bar="), {"bar": ""})
+        self.assertEqual(f("bar", empty=True), {"bar": ""})
         self.assertEqual(f("foo=1&bar"), {"foo": "1"})
         self.assertEqual(f("foo=1&bar="), {"foo": "1", "bar": ""})
+        self.assertEqual(f("foo=1&bar", True), {"foo": "1", "bar": ""})
         self.assertEqual(f("foo=1&bar&baz=3"), {"foo": "1", "baz": "3"})
         self.assertEqual(f("foo=1&bar=&baz=3"),
+                         {"foo": "1", "bar": "", "baz": "3"})
+        self.assertEqual(f("foo=1&bar&baz=3", True),
                          {"foo": "1", "bar": "", "baz": "3"})
 
         # keys with identical names
@@ -514,51 +611,6 @@ class TestText(unittest.TestCase):
 
         self.assertEqual(f({"ä&": "あと", "#": "?"}),
                          "%C3%A4%26=%E3%81%82%E3%81%A8&%23=%3F")
-
-    def test_parse_timestamp(self, f=text.parse_timestamp):
-        null = util.datetime_utcfromtimestamp(0)
-        value = util.datetime_utcfromtimestamp(1555816235)
-
-        self.assertEqual(f(0)           , null)
-        self.assertEqual(f("0")         , null)
-        self.assertEqual(f(1555816235)  , value)
-        self.assertEqual(f("1555816235"), value)
-
-        for value in INVALID_ALT:
-            self.assertEqual(f(value), None)
-            self.assertEqual(f(value, "foo"), "foo")
-
-    def test_parse_datetime(self, f=text.parse_datetime):
-        null = util.datetime_utcfromtimestamp(0)
-
-        self.assertEqual(f("1970-01-01T00:00:00+00:00"), null)
-        self.assertEqual(f("1970-01-01T00:00:00+0000") , null)
-        self.assertEqual(f("1970.01.01", "%Y.%m.%d")   , null)
-
-        self.assertEqual(
-            f("2019-05-07T21:25:02+09:00"),
-            datetime.datetime(2019, 5, 7, 12, 25, 2),
-        )
-        self.assertEqual(
-            f("2019-05-07T21:25:02+0900"),
-            datetime.datetime(2019, 5, 7, 12, 25, 2),
-        )
-        self.assertEqual(
-            f("2019-05-07T21:25:02.753+0900", "%Y-%m-%dT%H:%M:%S.%f%z"),
-            datetime.datetime(2019, 5, 7, 12, 25, 2),
-        )
-        self.assertEqual(
-            f("2019-05-07T21:25:02", "%Y-%m-%dT%H:%M:%S", utcoffset=9),
-            datetime.datetime(2019, 5, 7, 12, 25, 2),
-        )
-        self.assertEqual(
-            f("2019-05-07 21:25:02"),
-            "2019-05-07 21:25:02",
-        )
-
-        for value in INVALID:
-            self.assertEqual(f(value), None)
-        self.assertEqual(f("1970.01.01"), "1970.01.01")
 
 
 if __name__ == "__main__":

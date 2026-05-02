@@ -26,9 +26,12 @@ from . import aes, text, util
 
 SUPPORTED_BROWSERS_CHROMIUM = {
     "brave", "chrome", "chromium", "edge", "opera", "thorium", "vivaldi"}
-SUPPORTED_BROWSERS_FIREFOX = {"firefox", "librewolf", "zen"}
+SUPPORTED_BROWSERS_FIREFOX = {"firefox", "librewolf", "zen", "floorp"}
+SUPPORTED_BROWSERS_WEBKIT = {"safari", "orion"}
 SUPPORTED_BROWSERS = \
-    SUPPORTED_BROWSERS_CHROMIUM | SUPPORTED_BROWSERS_FIREFOX | {"safari"}
+    SUPPORTED_BROWSERS_CHROMIUM \
+    | SUPPORTED_BROWSERS_FIREFOX \
+    | SUPPORTED_BROWSERS_WEBKIT
 
 logger = logging.getLogger("cookies")
 
@@ -38,8 +41,8 @@ def load_cookies(browser_specification):
         _parse_browser_specification(*browser_specification)
     if browser_name in SUPPORTED_BROWSERS_FIREFOX:
         return load_cookies_firefox(browser_name, profile, container, domain)
-    elif browser_name == "safari":
-        return load_cookies_safari(profile, domain)
+    elif browser_name in SUPPORTED_BROWSERS_WEBKIT:
+        return load_cookies_webkit(browser_name, profile, domain)
     elif browser_name in SUPPORTED_BROWSERS_CHROMIUM:
         return load_cookies_chromium(browser_name, profile, keyring, domain)
     else:
@@ -48,8 +51,8 @@ def load_cookies(browser_specification):
 
 def load_cookies_firefox(browser_name, profile=None,
                          container=None, domain=None):
-    path, container_id = _firefox_cookies_database(browser_name,
-                                                   profile, container)
+    path, container_id = _firefox_cookies_database(
+        browser_name, profile, container)
 
     sql = ("SELECT name, value, host, path, isSecure, expiry "
            "FROM moz_cookies")
@@ -92,7 +95,7 @@ def load_cookies_firefox(browser_name, profile=None,
     return cookies
 
 
-def load_cookies_safari(profile=None, domain=None):
+def load_cookies_webkit(browser_name, profile=None, domain=None):
     """Ref.: https://github.com/libyal/dtformats/blob
              /main/documentation/Safari%20Cookies.asciidoc
     - This data appears to be out of date
@@ -100,15 +103,24 @@ def load_cookies_safari(profile=None, domain=None):
     - There are a few bytes here and there
       which are skipped during parsing
     """
-    with _safari_cookies_database() as fp:
-        data = fp.read()
-    page_sizes, body_start = _safari_parse_cookies_header(data)
+    if browser_name == "safari":
+        with _safari_cookies_database() as fp:
+            data = fp.read()
+    elif browser_name == "orion":
+        with _orion_cookies_database() as fp:
+            data = fp.read()
+    else:
+        raise ValueError(f"unknown webkit browser '{browser_name}'")
+
+    page_sizes, body_start = _webkit_parse_cookies_header(data)
     p = DataParser(data[body_start:])
 
     cookies = []
     for page_size in page_sizes:
-        _safari_parse_cookies_page(p.read_bytes(page_size), cookies)
-    _log_info("Extracted %s cookies from Safari", len(cookies))
+        _webkit_parse_cookies_page(p.read_bytes(page_size), cookies)
+    _log_info("Extracted %s cookies from %s",
+              len(cookies), browser_name.capitalize())
+
     return cookies
 
 
@@ -207,13 +219,16 @@ def _firefox_cookies_database(browser_name, profile=None, container=None):
     elif _is_path(profile):
         search_root = profile
     else:
-        search_root = os.path.join(
-            _firefox_browser_directory(browser_name), profile)
+        search_root = _firefox_browser_directory(browser_name)
+        if isinstance(search_root, str):
+            search_root = os.path.join(search_root, profile)
+        else:
+            search_root = [os.path.join(dir, profile) for dir in search_root]
 
     path = _find_most_recently_used_file(search_root, "cookies.sqlite")
     if path is None:
         raise FileNotFoundError(f"Unable to find {browser_name.capitalize()} "
-                                f"cookies database in {search_root}")
+                                f"cookies database")
 
     _log_debug("Extracting cookies from %s", path)
 
@@ -229,7 +244,7 @@ def _firefox_cookies_database(browser_name, profile=None, container=None):
             os.path.dirname(path), "containers.json")
 
         try:
-            with open(containers_path) as fp:
+            with open(containers_path, encoding="utf-8") as fp:
                 identities = util.json_loads(fp.read())["identities"]
         except OSError:
             _log_error("Unable to read Firefox container database at '%s'",
@@ -260,6 +275,7 @@ def _firefox_browser_directory(browser_name):
             "firefox"  : join(appdata, R"Mozilla\Firefox\Profiles"),
             "librewolf": join(appdata, R"librewolf\Profiles"),
             "zen"      : join(appdata, R"zen\Profiles"),
+            "floorp"   : join(appdata, R"Floorp\Profiles")
         }[browser_name]
     elif sys.platform == "darwin":
         appdata = os.path.expanduser("~/Library/Application Support")
@@ -267,18 +283,30 @@ def _firefox_browser_directory(browser_name):
             "firefox"  : join(appdata, R"Firefox/Profiles"),
             "librewolf": join(appdata, R"librewolf/Profiles"),
             "zen"      : join(appdata, R"zen/Profiles"),
+            "floorp"   : join(appdata, R"Floorp/Profiles")
         }[browser_name]
     else:
         home = os.path.expanduser("~")
-        return {
-            "firefox"  : join(home, R".mozilla/firefox"),
-            "librewolf": join(home, R".librewolf"),
-            "zen"      : join(home, R".zen"),
-        }[browser_name]
+        if browser_name == "firefox":
+            config = (os.environ.get("XDG_CONFIG_HOME") or
+                      os.path.expanduser("~/.config"))
+            return (
+                # versions >= 147
+                join(config, "mozilla/firefox"),
+                # versions <= 146
+                home + "/.mozilla/firefox",
+                # Flatpak
+                home + "/.var/app/org.mozilla.firefox/config/mozilla/firefox",
+                home + "/.var/app/org.mozilla.firefox/.mozilla/firefox",
+                # Snap
+                home + "/snap/firefox/common/.mozilla/firefox",
+            )
+        return f"{home}/.{browser_name}"
 
 
 # --------------------------------------------------------------------
-# safari
+# safari/orion/webkit
+
 
 def _safari_cookies_database():
     try:
@@ -291,7 +319,13 @@ def _safari_cookies_database():
         return open(path, "rb")
 
 
-def _safari_parse_cookies_header(data):
+def _orion_cookies_database():
+    path = os.path.expanduser(
+        "~/Library/HTTPStorages/com.kagi.kagimacOS.binarycookies")
+    return open(path, "rb")
+
+
+def _webkit_parse_cookies_header(data):
     p = DataParser(data)
     p.expect_bytes(b"cook", "database signature")
     number_of_pages = p.read_uint(big_endian=True)
@@ -300,7 +334,7 @@ def _safari_parse_cookies_header(data):
     return page_sizes, p.cursor
 
 
-def _safari_parse_cookies_page(data, cookies, domain=None):
+def _webkit_parse_cookies_page(data, cookies, domain=None):
     p = DataParser(data)
     p.expect_bytes(b"\x00\x00\x01\x00", "page signature")
     number_of_cookies = p.read_uint()
@@ -313,13 +347,13 @@ def _safari_parse_cookies_page(data, cookies, domain=None):
 
     for i, record_offset in enumerate(record_offsets):
         p.skip_to(record_offset, "space between records")
-        record_length = _safari_parse_cookies_record(
+        record_length = _webkit_parse_cookies_record(
             data[record_offset:], cookies, domain)
         p.read_bytes(record_length)
     p.skip_to_end("space in between pages")
 
 
-def _safari_parse_cookies_record(data, cookies, host=None):
+def _webkit_parse_cookies_record(data, cookies, host=None):
     p = DataParser(data)
     record_size = p.read_uint()
     p.skip(4, "unknown record field 1")
@@ -355,7 +389,7 @@ def _safari_parse_cookies_record(data, cookies, host=None):
         p.skip_to(value_offset)
         value = p.read_cstring()
     except UnicodeDecodeError:
-        _log_warning("Failed to parse Safari cookie")
+        _log_warning("Failed to parse WebKit cookie")
         return record_size
 
     p.skip_to(record_size, "space at the end of the record")
@@ -1076,19 +1110,24 @@ def _decrypt_windows_dpapi(ciphertext):
     return result
 
 
-def _find_most_recently_used_file(root, filename):
+def _find_most_recently_used_file(roots, filename):
+    if isinstance(roots, str):
+        roots = (roots,)
+
     # if the provided root points to an exact profile path
     # check if it contains the wanted filename
-    first_choice = os.path.join(root, filename)
-    if os.path.exists(first_choice):
-        return first_choice
+    for root in roots:
+        first_choice = os.path.join(root, filename)
+        if os.path.exists(first_choice):
+            return first_choice
 
     # if there are multiple browser profiles, take the most recently used one
     paths = []
-    for curr_root, dirs, files in os.walk(root):
-        for file in files:
-            if file == filename:
-                paths.append(os.path.join(curr_root, file))
+    for root in roots:
+        for curr_root, dirs, files in os.walk(root):
+            for file in files:
+                if file == filename:
+                    paths.append(os.path.join(curr_root, file))
     if not paths:
         return None
     return max(paths, key=lambda path: os.lstat(path).st_mtime)

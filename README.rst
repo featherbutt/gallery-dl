@@ -5,13 +5,16 @@ gallery-dl
 *gallery-dl* is a command-line program
 to download image galleries and collections
 from several image hosting sites
-(see `Supported Sites <docs/supportedsites.md>`__).
+(see `Supported Sites <https://codeberg.org/mikf/gallery-dl/src/branch/master/docs/supportedsites.md>`__).
 It is a cross-platform tool
-with many `configuration options <https://gdl-org.github.io/docs/configuration.html>`__
-and powerful `filenaming capabilities <https://gdl-org.github.io/docs/formatting.html>`__.
+with many
+`command-line <https://gdl-org.github.io/docs/options.html>`__ and
+`configuration <https://gdl-org.github.io/docs/configuration.html>`__
+options, as well as powerful
+`file-naming capabilities <https://gdl-org.github.io/docs/formatting.html>`__.
 
 
-|pypi| |build|
+|pypi| |discord| |build|
 
 .. contents::
 
@@ -51,18 +54,18 @@ easily installed or upgraded using pip_:
 
 .. code:: bash
 
-    python3 -m pip install -U gallery-dl
+    python -m pip install -U gallery-dl
 
-Installing the latest dev version directly from GitHub can be done with
-pip_ as well:
+Installing the latest dev version directly  from ``master``
+can be done with pip_ as well:
 
 .. code:: bash
 
-    python3 -m pip install -U --force-reinstall --no-deps https://github.com/mikf/gallery-dl/archive/master.tar.gz
+    python -m pip install -U --force-reinstall --no-deps https://codeberg.org/mikf/gallery-dl/archive/master.tar.gz
 
 Omit :code:`--no-deps` if Requests_ hasn't been installed yet.
 
-Note: Windows users should use :code:`py -3` instead of :code:`python3`.
+Note: Windows users should use :code:`py` instead of :code:`python`.
 
 It is advised to use the latest version of pip_,
 including the essential packages :code:`setuptools` and :code:`wheel`.
@@ -70,7 +73,7 @@ To ensure these packages are up-to-date, run
 
 .. code:: bash
 
-    python3 -m pip install --upgrade pip setuptools wheel
+    python -m pip install --upgrade pip setuptools wheel
 
 
 Standalone Executable
@@ -79,15 +82,15 @@ Standalone Executable
 Prebuilt executable files with a Python interpreter and
 required Python packages included are available for
 
-- `Windows <https://github.com/mikf/gallery-dl/releases/download/v1.30.8/gallery-dl.exe>`__
+- `Windows <https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.0/gallery-dl.exe>`__
   (Requires `Microsoft Visual C++ Redistributable Package (x86) <https://aka.ms/vs/17/release/vc_redist.x86.exe>`__)
-- `Linux   <https://github.com/mikf/gallery-dl/releases/download/v1.30.8/gallery-dl.bin>`__
+- `Linux   <https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.0/gallery-dl.bin>`__
 
 
 Nightly Builds
 --------------
 
-| Executables build from the latest commit can be found at
+| Executables built from the latest commit can be found at
 | https://github.com/gdl-org/builds/releases
 
 
@@ -144,7 +147,7 @@ Using the Dockerfile in the repository:
 
 .. code:: bash
 
-    git clone https://github.com/mikf/gallery-dl.git
+    git clone https://codeberg.org/mikf/gallery-dl.git
     cd gallery-dl/
     docker build -t gallery-dl:latest .
 
@@ -161,6 +164,13 @@ Pulling image from `GitHub Container Registry <https://github.com/mikf/gallery-d
 
     docker pull ghcr.io/mikf/gallery-dl
     docker tag ghcr.io/mikf/gallery-dl gallery-dl
+
+Pulling *Nightly Build* images built from the latest commit by using the ``dev`` tag:
+
+.. code:: bash
+
+    docker pull mikf123/gallery-dl:dev
+    docker pull ghcr.io/mikf/gallery-dl:dev
 
 To run the container you will probably want to attach some directories on the host so that the config file and downloads can persist across runs.
 
@@ -228,7 +238,7 @@ from:
 
     gallery-dl [OPTIONS]... URLS...
 
-Use :code:`gallery-dl --help` or see `<docs/options.md>`__
+Use :code:`gallery-dl --help` or see `docs/options.md <https://codeberg.org/mikf/gallery-dl/src/branch/master/docs/options.md>`__
 for a full list of all command-line options.
 
 
@@ -285,10 +295,10 @@ A list of all available configuration options and their descriptions
 can be found at `<https://gdl-org.github.io/docs/configuration.html>`__.
 
 | For a default configuration file with available options set to their
-  default values, see `<docs/gallery-dl.conf>`__.
+  default values, see `docs/gallery-dl.conf <https://codeberg.org/mikf/gallery-dl/src/branch/master/docs/gallery-dl.conf>`__.
 
 | For a commented example with more involved settings and option usage,
-  see `<docs/gallery-dl-example.conf>`__.
+  see `docs/gallery-dl-example.conf <https://codeberg.org/mikf/gallery-dl/src/branch/master/docs/gallery-dl-example.conf>`__.
 
 
 Locations
@@ -353,7 +363,7 @@ You can set the necessary information in your
 
     {
         "extractor": {
-            "twitter": {
+            "subscribestar": {
                 "username": "<username>",
                 "password": "<password>"
             }
@@ -483,11 +493,14 @@ To authenticate with a ``mastodon`` instance, run *gallery-dl* with
 .. _Chocolatey: https://chocolatey.org/install
 .. _Scoop:      https://scoop.sh/
 
-.. |pypi| image:: https://img.shields.io/pypi/v/gallery-dl.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/gallery-dl?logo=pypi&label=PyPI
     :target: https://pypi.org/project/gallery-dl/
 
-.. |build| image:: https://github.com/mikf/gallery-dl/workflows/tests/badge.svg
+.. |build| image:: https://github.com/mikf/gallery-dl/actions/workflows/tests.yml/badge.svg
     :target: https://github.com/mikf/gallery-dl/actions
 
 .. |gitter| image:: https://badges.gitter.im/gallery-dl/main.svg
     :target: https://gitter.im/gallery-dl/main
+
+.. |discord| image:: https://img.shields.io/discord/1067148002722062416?logo=discord&label=Discord&color=blue
+    :target: https://discord.gg/rSzQwRvGnE

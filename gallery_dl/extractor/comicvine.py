@@ -53,13 +53,13 @@ class ComicvineTagExtractor(BooruExtractor):
                 return
             params["start"] += self.per_page
 
-    def skip(self, num):
+    def skip_files(self, num):
         self.page_start = num
         return num
 
     _file_url = operator.itemgetter("original")
 
     def _prepare(self, post):
-        post["date"] = text.parse_datetime(
+        post["date"] = self.parse_datetime(
             post["dateCreated"], "%a, %b %d %Y")
         post["tags"] = [tag["name"] for tag in post["tags"] if tag["name"]]

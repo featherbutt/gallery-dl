@@ -75,12 +75,22 @@ __tests__ = (
 
 {
     "#url"     : "https://mikf123.tumblr.com/",
-    "#comment" : "date-min/-max/-format (#337)",
+    "#comment" : "date-min/-max (#337)",
     "#class"   : tumblr.TumblrUserExtractor,
     "#options" : {
-        "date-min"   : "201804",
-        "date-max"   : "201805",
-        "date-format": "%Y%m",
+        "date-min": "2018-04-01",
+        "date-max": "2018-05-01",
+    },
+    "#count"   : 4,
+},
+
+{
+    "#url"     : "https://mikf123.tumblr.com/",
+    "#comment" : "date-before/-after",
+    "#class"   : tumblr.TumblrUserExtractor,
+    "#options" : {
+        "date-before": "2018-05-01",
+        "date-after" : "2018-04-01",
     },
     "#count"   : 4,
 },
@@ -250,6 +260,79 @@ __tests__ = (
 {
     "#url"     : "https://tumblr.com/smarties-art/686047436641353728",
     "#class"   : tumblr.TumblrPostExtractor,
+},
+
+{
+    "#url"     : "https://www.tumblr.com/ominous-signs/809452804394663936/one-way-to-hell",
+    "#comment" : "'answer'/'asks' post (#4509)",
+    "#class"   : tumblr.TumblrPostExtractor,
+    "#auth"    : True,
+    "#results" : "https://64.media.tumblr.com/a68cf0e9287c4557f4c0950edafb836b/5cf90cb0eb792b63-a4/s99999x99999/139223e8f778e3005e5748099f684c7816b10b14.jpg",
+
+    "type"     : "answer",
+},
+
+{
+    "#url"     : "https://www.tumblr.com/inkrton/133012034697/favorite-himouto",
+    "#comment" : "'answer' post with duplicate results (gh#9418)",
+    "#class"   : tumblr.TumblrPostExtractor,
+    "#auth"    : True,
+    "#results" : "https://64.media.tumblr.com/d3a6fc21e7b671ee81c9290922eac59d/tumblr_inline_nxnwmvDDDX1r7av0p_1280.jpg",
+    "#count"   : 1,
+
+    "num"  : 1,
+    "count": 1,
+},
+
+{
+    "#url"     : "https://www.tumblr.com/oidial/812307562622042112/i-understand-the-concern-but-you-cant-get-between",
+    "#comment" : "'reblogs: same-blog' option (#9360)",
+    "#class"   : tumblr.TumblrPostExtractor,
+    "#auth"    : True,
+    "#options" : {"reblogs": "same-blog"},
+    "#results" : (
+        "https://64.media.tumblr.com/4b451c7f092a6f10fe7e61d406b58725/b443af06fefd3bed-f1/s99999x99999/b7cf9ede4d0d32cf5a8dbddbb9fa33421520f91e.png",
+        "https://64.media.tumblr.com/541867089dd3a5db4e2958618064b7cc/b7bda2f076509c8b-85/s99999x99999/32b899d9004f173efa63cc55fe47f096ee46b038.png",
+        "https://64.media.tumblr.com/2674c9b73e96d9177cbb1c002bf83345/b7bda2f076509c8b-f7/s99999x99999/ca52c46ce449699023e87111a38798be39504c60.png",
+        "https://64.media.tumblr.com/7246fec36bb3ef3be51e1d8c608a9565/b7bda2f076509c8b-0b/s99999x99999/e5f198b5e98421772f617f436feaa00bb7e062c3.png",
+    ),
+
+    "blog_name"       : "oidial",
+    "date"            : "dt:2026-03-28 05:47:39",
+    "id"              : 812307562622042112,
+    "reblogged"       : True,
+    "reblogged_from_id"   : "812300793494503424",
+    "reblogged_from_name" : "oidial",
+    "reblogged_from_title": "koidial but blue",
+    "reblogged_from_url"  : "https://www.tumblr.com/blog/view/oidial/812300793494503424",
+    "reblogged_from_uuid" : "t:7e50zZpVin78ZAzj-oLhlg",
+    "blog"            : {
+        "name": "oidial",
+        "uuid": "t:7e50zZpVin78ZAzj-oLhlg",
+    },
+},
+
+{
+    "#url"     : "https://akenotumiki.tumblr.com/post/92208031886/7-19",
+    "#comment" : "failed to extract both inline images (gh#6505)",
+    "#class"   : tumblr.TumblrPostExtractor,
+    "#auth"    : True,
+    "#results" : (
+        "https://64.media.tumblr.com/971a911b1dcb4df5c51d7b1cdb5d2ca8/tumblr_inline_n8xz0p3cJc1sgvvyd.png",
+        "https://64.media.tumblr.com/da1f879ec973b2cf2705103d84aea300/tumblr_inline_n8xz62QB901sgvvyd.png",
+    ),
+
+    "blog_name" : "akenotumiki",
+    "count"     : 2,
+    "date"      : "dt:2014-07-19 04:10:00",
+    "id"        : 92208031886,
+    "post_url"  : "https://akenotumiki.tumblr.com/post/92208031886/%E6%9C%AC%E6%97%A5%E3%81%AE%E3%82%89%E3%81%8F%E3%81%8C%E3%81%8D719",
+    "reblog_key": "OsL6VhQH",
+    "slug"      : "本日のらくがき719",
+    "summary"   : "本日のらくがき(7/19)",
+    "tags"      : ["ハナヤマ　らくがき"],
+    "title"     : "本日のらくがき(7/19)",
+    "type"      : "text",
 },
 
 {

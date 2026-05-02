@@ -110,11 +110,33 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://hentaienvy.com/gallery/1119432/",
+    "#comment" : "empty 'var g_th = $.parseJSON('');' (#8951)",
+    "#category": ("IMHentai", "hentaienvy", "gallery"),
+    "#class"   : imhentai.ImhentaiGalleryExtractor,
+    "#pattern" : r"https://m8.hentaienvy.com/026/3zf1yedx5m/\d+\.jpg",
+    "#count"   : 188,
+    "#log"     : "1119432: Missing image data",
+
+    "artist"    : [],
+    "character" : [],
+    "gallery_id": 1119432,
+    "group"     : [],
+    "lang"      : "ja",
+    "language"  : ["japanese"],
+    "parody"    : ["super mario brothers"],
+    "tags"      : list,
+    "title"     : "hentai girls",
+    "title_alt" : "",
+    "type"      : "western",
+},
+
+{
     "#url"     : "https://hentaienvy.com/artist/asutora/",
     "#category": ("IMHentai", "hentaienvy", "tag"),
     "#class"   : imhentai.ImhentaiTagExtractor,
     "#pattern" : imhentai.ImhentaiGalleryExtractor.pattern,
-    "#count"   : range(45, 50),
+    "#count"   : range(45, 60),
 },
 
 {
@@ -122,7 +144,16 @@ __tests__ = (
     "#category": ("IMHentai", "hentaienvy", "search"),
     "#class"   : imhentai.ImhentaiSearchExtractor,
     "#pattern" : imhentai.ImhentaiGalleryExtractor.pattern,
-    "#count"   : range(45, 50),
+    "#count"   : range(45, 60),
+},
+
+{
+    "#url"     : "https://hentaienvy.com/advanced-search/?key=%2Btag%3A%22Monster+Girl%22+%2Bcharacter%3A%22Gardevoir%22&lt=1&m=1&d=1&w=1&i=1&a=1&g=1&en=1",
+    "#comment" : "'/advanced-search/' URL (#8507)",
+    "#category": ("IMHentai", "hentaienvy", "search"),
+    "#class"   : imhentai.ImhentaiSearchExtractor,
+    "#pattern" : imhentai.ImhentaiGalleryExtractor.pattern,
+    "#count"   : range(185, 200),
 },
 
 )

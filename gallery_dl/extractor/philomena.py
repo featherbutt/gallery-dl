@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2021-2025 Mike Fährmann
+# Copyright 2021-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for Philomena sites"""
 
 from .booru import BooruExtractor
-from .. import text, exception
+from .. import text
 
 
 class PhilomenaExtractor(BooruExtractor):
@@ -24,6 +24,7 @@ class PhilomenaExtractor(BooruExtractor):
     def _init(self):
         self.api = PhilomenaAPI(self)
         self.svg = self.config("svg", True)
+        self.comments = self.config("comments", False)
 
     def _file_url(self, post):
         try:
@@ -36,8 +37,11 @@ class PhilomenaExtractor(BooruExtractor):
         return url
 
     def _prepare(self, post):
-        post["date"] = text.parse_datetime(
-            post["created_at"][:19], "%Y-%m-%dT%H:%M:%S")
+        post["date"] = self.parse_datetime_iso(post["created_at"][:19])
+
+        if self.comments:
+            post["comments"] = (list(self.api.comments(post["id"]))
+                                if post.get("comment_count") else ())
 
 
 BASE_PATTERN = PhilomenaExtractor.update({
@@ -114,10 +118,10 @@ class PhilomenaGalleryExtractor(PhilomenaExtractor):
         try:
             return {"gallery": self.api.gallery(self.groups[-1])}
         except IndexError:
-            raise exception.NotFoundError("gallery")
+            raise self.exc.NotFoundError("gallery")
 
     def posts(self):
-        gallery_id = f"gallery_id:{self.groups[-1]}"
+        gallery_id = "gallery_id:" + self.groups[-1]
         params = {"sd": "desc", "sf": gallery_id, "q": gallery_id}
         return self.api.search(params)
 
@@ -132,6 +136,10 @@ class PhilomenaAPI():
         self.extractor = extractor
         self.root = extractor.root + "/api"
 
+    def comments(self, image_id):
+        endpoint = "/v1/json/search/comments?q=image_id:" + str(image_id)
+        return self._pagination(endpoint, {}, "comments")
+
     def gallery(self, gallery_id):
         endpoint = "/v1/json/search/galleries"
         params = {"q": "id:" + gallery_id}
@@ -143,7 +151,7 @@ class PhilomenaAPI():
 
     def search(self, params):
         endpoint = "/v1/json/search/images"
-        return self._pagination(endpoint, params)
+        return self._pagination(endpoint, params, "images")
 
     def _call(self, endpoint, params=None):
         url = self.root + endpoint
@@ -160,9 +168,9 @@ class PhilomenaAPI():
 
             # error
             self.extractor.log.debug(response.content)
-            raise exception.HttpError("", response)
+            raise self.extractor.exc.HttpError("", response)
 
-    def _pagination(self, endpoint, params):
+    def _pagination(self, endpoint, params, key):
         extr = self.extractor
 
         if api_key := extr.config("api-key"):
@@ -178,8 +186,8 @@ class PhilomenaAPI():
 
         while True:
             data = self._call(endpoint, params)
-            yield from data["images"]
+            yield from data[key]
 
-            if len(data["images"]) < extr.per_page:
+            if len(data[key]) < extr.per_page:
                 return
             params["page"] += 1

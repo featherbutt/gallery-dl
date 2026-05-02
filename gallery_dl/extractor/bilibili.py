@@ -7,7 +7,7 @@
 """Extractors for https://www.bilibili.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
+from .. import text, util
 
 
 class BilibiliExtractor(Extractor):
@@ -36,8 +36,8 @@ class BilibiliArticleExtractor(BilibiliExtractor):
                r"(?:t\.bilibili\.com|(?:www\.)?bilibili.com/opus)/(\d+)")
     example = "https://www.bilibili.com/opus/12345"
     directory_fmt = ("{category}", "{username}")
-    filename_fmt = "{id}_{num}.{extension}"
-    archive_fmt = "{id}_{num}"
+    filename_fmt = "{id}_{num}{suffix}.{extension}"
+    archive_fmt = "{id}_{num}{suffix}"
 
     def items(self):
         article_id = self.groups[0]
@@ -53,7 +53,9 @@ class BilibiliArticleExtractor(BilibiliExtractor):
             modules.update(module)
         article["detail"]["modules"] = modules
 
-        article["username"] = modules["module_author"]["name"]
+        user = modules["module_author"]
+        article["username"] = user.get("name")
+        article["user_id"] = user.get("mid")
 
         pics = []
 
@@ -74,18 +76,26 @@ class BilibiliArticleExtractor(BilibiliExtractor):
                     pass
 
         article["count"] = len(pics)
-        yield Message.Directory, article
+        yield Message.Directory, "", article
+
+        livephoto = self.config("livephoto", True)
+        article["suffix"] = ""
         for article["num"], pic in enumerate(pics, 1):
             url = pic["url"]
             article.update(pic)
             yield Message.Url, url, text.nameext_from_url(url, article)
+
+            if livephoto and (url := pic.get("live_url")):
+                article["suffix"] = "l"
+                yield Message.Url, url, text.nameext_from_url(url, article)
+                article["suffix"] = ""
 
 
 class BilibiliUserArticlesExtractor(BilibiliExtractor):
     """Extractor for a bilibili user's articles"""
     subcategory = "user-articles"
     pattern = (r"(?:https?://)?space\.bilibili\.com/(\d+)"
-               r"/(?:article|upload/opus)")
+               r"/(?:article|upload/opus|dynamic)")
     example = "https://space.bilibili.com/12345/article"
 
     def articles(self):
@@ -110,6 +120,7 @@ class BilibiliUserArticlesFavoriteExtractor(BilibiliExtractor):
 class BilibiliAPI():
     def __init__(self, extractor):
         self.extractor = extractor
+        self.exc = extractor.exc
 
     def _call(self, endpoint, params):
         url = "https://api.bilibili.com/x/polymer/web-dynamic/v1" + endpoint
@@ -117,7 +128,7 @@ class BilibiliAPI():
 
         if data["code"]:
             self.extractor.log.debug("Server response: %s", data)
-            raise exception.AbortExtraction("API request failed")
+            raise self.exc.AbortExtraction("API request failed")
 
         return data
 
@@ -145,8 +156,8 @@ class BilibiliAPI():
                     page, "window.__INITIAL_STATE__=", "};") + "}")
             except Exception:
                 if "window._riskdata_" not in page:
-                    raise exception.AbortExtraction(
-                        f"{article_id}: Unable to extract INITIAL_STATE data")
+                    raise self.exc.AbortExtraction(
+                        article_id + ": Unable to extract INITIAL_STATE data")
             self.extractor.wait(seconds=300)
 
     def user_favlist(self):
@@ -168,9 +179,9 @@ class BilibiliAPI():
 
         if data["code"] != 0:
             self.extractor.log.debug("Server response: %s", data)
-            raise exception.AbortExtraction(
+            raise self.exc.AbortExtraction(
                 "API request failed. Are you logges in?")
         try:
             return data["data"]["profile"]["mid"]
         except Exception:
-            raise exception.AbortExtraction("API request failed")
+            raise self.exc.AbortExtraction("API request failed")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2014-2025 Mike Fährmann
+# Copyright 2014-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -42,7 +42,9 @@ class HttpDownloader(DownloaderBase):
         self.rate = self.config("rate")
         interval_429 = self.config("sleep-429")
 
-        if not self.config("consume-content", False):
+        if self.config("consume-content", False):
+            self.release_conn = self._release_conn_impl
+        else:
             # this resets the underlying TCP connection, and therefore
             # if the program makes another request to the same domain,
             # a new connection (either TLS or plain TCP) must be made
@@ -87,7 +89,12 @@ class HttpDownloader(DownloaderBase):
         if interval_429 is None:
             self.interval_429 = extractor._interval_429
         else:
-            self.interval_429 = util.build_duration_func(interval_429)
+            try:
+                self.interval_429 = util.build_duration_func_ex(interval_429)
+            except Exception as exc:
+                self.log.error("Invalid 'sleep-429' value '%s' (%s: %s)",
+                               interval_429, exc.__class__.__name__, exc)
+                self.interval_429 = extractor._interval_429
 
     def download(self, url, pathfmt):
         try:
@@ -95,7 +102,7 @@ class HttpDownloader(DownloaderBase):
         except Exception as exc:
             if self.downloading:
                 output.stderr_write("\n")
-            self.log.debug("", exc_info=exc)
+            self.log.traceback(exc)
             raise
         finally:
             # remove file from incomplete downloads
@@ -118,6 +125,9 @@ class HttpDownloader(DownloaderBase):
             pathfmt.part_enable(self.partdir)
 
         while True:
+            if FLAGS.DOWNLOAD is not None:
+                return FLAGS.process("DOWNLOAD")
+
             if tries:
                 if response:
                     self.release_conn(response)
@@ -128,7 +138,7 @@ class HttpDownloader(DownloaderBase):
                     return False
 
                 if code == 429 and self.interval_429:
-                    s = self.interval_429()
+                    s = self.interval_429(tries)
                     time.sleep(s if s > tries else tries)
                 else:
                     time.sleep(tries)
@@ -184,7 +194,8 @@ class HttpDownloader(DownloaderBase):
             elif code == 206:  # Partial Content
                 offset = file_size
                 size = response.headers["Content-Range"].rpartition("/")[2]
-            elif code == 416 and file_size:  # Requested Range Not Satisfiable
+            elif code == 416 and file_size:  # Range Not Satisfiable
+                self._release_conn_impl(response)
                 break
             else:
                 msg = f"'{code} {response.reason}' for '{url}'"
@@ -230,6 +241,10 @@ class HttpDownloader(DownloaderBase):
             # check file size
             size = text.parse_int(size, None)
             if size is not None:
+                if not size:
+                    self.release_conn(response)
+                    self.log.warning("Empty file")
+                    return False
                 if self.minsize and size < self.minsize:
                     self.release_conn(response)
                     self.log.warning(
@@ -342,9 +357,15 @@ class HttpDownloader(DownloaderBase):
                     raise
 
                 # check file size
-                if size and fp.tell() < size:
-                    msg = f"file size mismatch ({fp.tell()} < {size})"
-                    output.stderr_write("\n")
+                if size and (fsize := fp.tell()) < size:
+                    if (segmented := kwdict.get("_http_segmented")) and \
+                            segmented is True or segmented == fsize:
+                        tries -= 1
+                        msg = "Resuming segmented download"
+                        output.stdout_write("\r")
+                    else:
+                        msg = f"file size mismatch ({fsize} < {size})"
+                        output.stderr_write("\n")
                     continue
 
             break
@@ -360,7 +381,7 @@ class HttpDownloader(DownloaderBase):
 
         return True
 
-    def release_conn(self, response):
+    def _release_conn_impl(self, response):
         """Release connection back to pool by consuming response body"""
         try:
             for _ in response.iter_content(self.chunk_size):
@@ -375,10 +396,9 @@ class HttpDownloader(DownloaderBase):
     def receive(self, fp, content, bytes_total, bytes_start):
         write = fp.write
         for data in content:
-            write(data)
-
             if FLAGS.DOWNLOAD is not None:
-                FLAGS.process("DOWNLOAD")
+                return FLAGS.process("DOWNLOAD")
+            write(data)
 
     def _receive_rate(self, fp, content, bytes_total, bytes_start):
         rate = self.rate() if self.rate else None
@@ -389,13 +409,12 @@ class HttpDownloader(DownloaderBase):
         time_start = time.monotonic()
 
         for data in content:
+            if FLAGS.DOWNLOAD is not None:
+                return FLAGS.process("DOWNLOAD")
             time_elapsed = time.monotonic() - time_start
             bytes_downloaded += len(data)
 
             write(data)
-
-            if FLAGS.DOWNLOAD is not None:
-                FLAGS.process("DOWNLOAD")
 
             if progress is not None:
                 if time_elapsed > progress:
@@ -413,7 +432,7 @@ class HttpDownloader(DownloaderBase):
     def _find_extension(self, response):
         """Get filename extension from MIME type"""
         mtype = response.headers.get("Content-Type", "image/jpeg")
-        mtype = mtype.partition(";")[0]
+        mtype = mtype.partition(";")[0].lower()
 
         if "/" not in mtype:
             mtype = "image/" + mtype
@@ -474,6 +493,12 @@ MIME_TYPES = {
     "audio/webm" : "webm",
     "audio/ogg"  : "ogg",
     "audio/mpeg" : "mp3",
+    "audio/aac"  : "aac",
+    "audio/x-aac": "aac",
+
+    "application/vnd.apple.mpegurl": "m3u8",
+    "application/x-mpegurl"        : "m3u8",
+    "application/dash+xml"         : "mpd",
 
     "application/zip"  : "zip",
     "application/x-zip": "zip",
@@ -526,6 +551,9 @@ SIGNATURE_CHECKS = {
                        s[8:12] == b"WAVE"),
     "mp3" : lambda s: (s[0:3] == b"ID3" or
                        s[0:2] in (b"\xFF\xFB", b"\xFF\xF3", b"\xFF\xF2")),
+    "aac" : lambda s: s[0:2] in (b"\xFF\xF9", b"\xFF\xF1"),
+    "m3u8": lambda s: s[0:7] == b"#EXTM3U",
+    "mpd" : lambda s: b"<MPD" in s,
     "zip" : lambda s: s[0:4] in (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"),
     "rar" : lambda s: s[0:6] == b"Rar!\x1A\x07",
     "7z"  : lambda s: s[0:6] == b"\x37\x7A\xBC\xAF\x27\x1C",

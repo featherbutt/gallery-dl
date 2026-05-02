@@ -27,20 +27,26 @@ class TelegraphGalleryExtractor(GalleryExtractor):
                 'property="og:title" content="', '"')),
             "description": text.unescape(extr(
                 'property="og:description" content="', '"')),
-            "date": text.parse_datetime(extr(
-                'property="article:published_time" content="', '"'),
-                "%Y-%m-%dT%H:%M:%S%z"),
+            "date": self.parse_datetime_iso(extr(
+                'property="article:published_time" content="', '"')),
             "author": text.unescape(extr(
                 'property="article:author" content="', '"')),
             "post_url": text.unescape(extr(
                 'rel="canonical" href="', '"')),
         }
+
+        pos = page.find("<article") + 8
+        data["html"] = self.html = \
+            page[page.find(">", pos)+1:page.find("</article>", pos)]
+        data["links"] = text.extract_urls(self.html)
         data["slug"] = data["post_url"][19:]
+
         return data
 
     def images(self, page):
-        figures = (tuple(text.extract_iter(page, "<figure>", "</figure>")) or
-                   tuple(text.extract_iter(page, "<img", ">")))
+        figures = (
+            tuple(text.extract_iter(self.html, "<figure>", "</figure>")) or
+            tuple(text.extract_iter(self.html, "<img", ">")))
         num_zeroes = len(str(len(figures)))
         num = 0
 

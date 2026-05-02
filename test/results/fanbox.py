@@ -191,6 +191,42 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://etlabsotwe.fanbox.cc/posts/11070192",
+    "#comment" : "(potentially?) missing 'publishedDatetime' (#8711)",
+    "#class"   : fanbox.FanboxPostExtractor,
+    "#results" : "https://pixiv.pximg.net/fanbox/public/images/post/11070192/cover/MGoWoTnJphuJSkD3owo3r7wG.jpeg",
+
+    "archives"       : (),
+    "creatorId"      : "etlabsotwe",
+    "date"           : "dt:2025-12-15 11:31:50",
+    "excerpt"        : "",
+    "extension"      : "jpeg",
+    "feeRequired"    : 200,
+    "fileUrl"        : "https://pixiv.pximg.net/fanbox/public/images/post/11070192/cover/MGoWoTnJphuJSkD3owo3r7wG.jpeg",
+    "filename"       : "MGoWoTnJphuJSkD3owo3r7wG",
+    "hasAdultContent": True,
+    "id"             : "11070192",
+    "imageForShare"  : "https://pixiv.pximg.net/c/1200x630_90_a2_g5/fanbox/public/images/post/11070192/cover/MGoWoTnJphuJSkD3owo3r7wG.jpeg",
+    "isCommentingRestricted": False,
+    "isCoverImage"   : True,
+    "isLiked"        : False,
+    "isPinned"       : False,
+    "isRestricted"   : True,
+    "likeCount"      : int,
+    "num"            : 0,
+    "publishedDatetime": "2025-12-15T20:31:50+09:00",
+    "tags"           : [],
+    "text"           : None,
+    "title"          : "Sketches 2025-12-15",
+    "type"           : "article",
+    "updatedDatetime": "iso:dt",
+    "user"           : {
+        "name"   : "ET",
+        "userId" : "74814193",
+    },
+},
+
+{
     "#url"     : "https://fanbox.cc/",
     "#category": ("", "fanbox", "home"),
     "#class"   : fanbox.FanboxHomeExtractor,
@@ -212,6 +248,37 @@ __tests__ = (
     "#category": ("", "fanbox", "redirect"),
     "#class"   : fanbox.FanboxRedirectExtractor,
     "#pattern" : fanbox.FanboxCreatorExtractor.pattern,
+},
+
+{
+    "#url"     : "https://gute-nacht-07.fanbox.cc/tags/%E3%81%BE%E3%81%A8%E3%82%81zip",
+    "#class"   : fanbox.FanboxTagExtractor,
+    "#range"   : "1-3",
+    "#results" : (
+        "https://pixiv.pximg.net/fanbox/public/images/post/6541606/cover/M7Xf4Q6ODSwVpeZH2XwWdUku.jpeg",
+        "https://pixiv.pximg.net/fanbox/public/images/post/6511517/cover/sFl5eRaGAZRXmknUH6kl59eM.jpeg",
+        "https://pixiv.pximg.net/fanbox/public/images/post/6449474/cover/3hnZUWv3aLVbPgatmJttmyPa.jpeg",
+    ),
+
+    "archives"       : (),
+    "commentCount"   : int,
+    "coverImageUrl"  : str,
+    "creatorId"      : "gute-nacht-07",
+    "date"           : "type:datetime",
+    "excerpt"        : "",
+    "extension"      : "jpeg",
+    "feeRequired"    : 500,
+    "hasAdultContent": True,
+    "isCoverImage"   : True,
+    "num"            : 0,
+    "search_tags"    : "まとめzip",
+    "tags"           : ["まとめzip"],
+    "type"           : "file",
+},
+
+{
+    "#url"     : "https://www.fanbox.cc/@ddks2923/tags/%E3%82%BD%E3%83%BC%E3%83%89%E3%82%A2%E3%83%BC%E3%83%88%E3%83%BB%E3%82%AA%E3%83%B3%E3%83%A9%E3%82%A4%E3%83%B3",
+    "#class"   : fanbox.FanboxTagExtractor,
 },
 
 )

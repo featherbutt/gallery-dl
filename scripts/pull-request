@@ -1,16 +1,15 @@
 #!/bin/bash
 set -e
 
-RE="https://github.com/([^/?#]+)/([^/?#]+)(/tree/(.+))?"
+RE="https://(codeberg.org|github.com)/([^/?#]+)/([^/?#]+)(/(src/branch|tree)/(.+))?"
 if [[ "$1" =~ $RE ]]; then
-    USER="${BASH_REMATCH[1]}"
-    REPO="${BASH_REMATCH[2]}"
-    BRANCH="${BASH_REMATCH[4]:-master}"
-
+    SITE="${BASH_REMATCH[1]}"
+    USER="${BASH_REMATCH[2]}"
+    REPO="${BASH_REMATCH[3]}"
+    BRANCH="${BASH_REMATCH[6]:-master}"
 else
-    echo "invalid github repository identifier: '$1'"
+    echo "invalid git repository identifier: '$1'"
     exit 1
-
 fi
 
 
@@ -20,10 +19,10 @@ call() { echo "$@"; "$@"; echo; }
 case "${2,,}" in
 
 ""|"f"|"fetch")
-    call git remote add "$USER" git@github.com:"$USER"/"$REPO".git || true
-    call git fetch "$USER" "$BRANCH"
-    call git branch "$USER-$BRANCH" "$USER/$BRANCH" || true
-    call git switch "$USER-$BRANCH"
+    call git remote add "$USER" git@"$SITE":"$USER"/"$REPO".git || true
+    call git fetch -u "$USER" "$BRANCH"
+    call git branch "$USER/$BRANCH" "$USER/$BRANCH" || true
+    call git switch "$USER/$BRANCH"
     ;;
 
 "m"|"merge")
@@ -34,8 +33,8 @@ case "${2,,}" in
     fi
 
     call git switch master
-    call git merge --no-ff --edit -m "merge #${PULL-_}: ${TITLE-_}" "$USER-$BRANCH"
-    call git branch -d "$USER-$BRANCH"
+    call git merge --no-ff --edit -m "merge #${PULL-_}: ${TITLE-_}" "$USER/$BRANCH"
+    call git branch -d "$USER/$BRANCH"
     ;;
 
 "p"|"push")
@@ -48,7 +47,7 @@ case "${2,,}" in
 
 "d"|"delete")
     call git switch master
-    call git branch -D "$USER-$BRANCH"
+    call git branch -D "$USER/$BRANCH"
     call git remote remove "$USER"
     ;;
 

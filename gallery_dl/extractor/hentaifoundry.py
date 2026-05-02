@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2025 Mike Fährmann
+# Copyright 2015-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -43,10 +43,10 @@ class HentaifoundryExtractor(Extractor):
         for post_url in util.advance(self.posts(), self.start_post):
             image = self._parse_post(post_url)
             image.update(data)
-            yield Message.Directory, image
+            yield Message.Directory, "", image
             yield Message.Url, image["src"], image
 
-    def skip(self, num):
+    def skip_files(self, num):
         pages, posts = divmod(num, self.per_page)
         self.start_page += pages
         self.start_post += posts
@@ -86,7 +86,8 @@ class HentaifoundryExtractor(Extractor):
                 .replace("\r\n", "\n")),
             "ratings"    : [text.unescape(r) for r in text.extract_iter(extr(
                 "class='ratings_box'", "</div>"), "title='", "'")],
-            "date"       : text.parse_datetime(extr("datetime='", "'")),
+            "categories" : self._extract_categories(extr),
+            "date"       : self.parse_datetime_iso(extr("datetime='", "'")),
             "views"      : text.parse_int(extr(">Views</span>", "<")),
             "score"      : text.parse_int(extr(">Vote Score</span>", "<")),
             "media"      : text.unescape(extr(">Media</span>", "<").strip()),
@@ -126,14 +127,14 @@ class HentaifoundryExtractor(Extractor):
             "title"   : text.unescape(extr(
                 "<div class='titlebar'>", "</a>").rpartition(">")[2]),
             "author"  : text.unescape(extr('alt="', '"')),
-            "date"    : text.parse_datetime(extr(
+            "date"    : self.parse_datetime(extr(
                 ">Updated<", "</span>").rpartition(">")[2], "%B %d, %Y"),
             "status"  : extr("class='indent'>", "<"),
         }
 
         for c in ("Chapters", "Words", "Comments", "Views", "Rating"):
             data[c.lower()] = text.parse_int(extr(
-                ">" + c + ":</span>", "<").replace(",", ""))
+                f">{c}:</span>", "<").replace(",", ""))
 
         data["description"] = text.unescape(extr(
             "class='storyDescript'>", '<div class="storyRead">')).replace(
@@ -141,10 +142,16 @@ class HentaifoundryExtractor(Extractor):
         path = extr('class="pdfLink" href="', '"')
         data["src"] = self.root + path
         data["index"] = text.parse_int(path.rsplit("/", 2)[1])
+        data["categories"] = self._extract_categories(extr)
         data["ratings"] = [text.unescape(r) for r in text.extract_iter(extr(
             "class='ratings_box'", "</div>"), "title='", "'")]
 
         return text.nameext_from_url(data["src"], data)
+
+    def _extract_categories(self, extr):
+        return [text.unescape(text.extr(c, ">", "<"))
+                for c in extr('class="categoryBreadcrumbs">', "</span>")
+                .split("&raquo;")]
 
     def _request_check(self, url, **kwargs):
         self.request = self._request_original
@@ -214,14 +221,10 @@ class HentaifoundryUserExtractor(Dispatch, HentaifoundryExtractor):
         root = self.root
         user = "/user/" + self.user
         return self._dispatch_extractors((
-            (HentaifoundryPicturesExtractor ,
-                root + "/pictures" + user),
-            (HentaifoundryScrapsExtractor,
-                root + "/pictures" + user + "/scraps"),
-            (HentaifoundryStoriesExtractor,
-                root + "/stories" + user),
-            (HentaifoundryFavoriteExtractor,
-                root + user + "/faves/pictures"),
+            (HentaifoundryPicturesExtractor, f"{root}/pictures{user}"),
+            (HentaifoundryScrapsExtractor  , f"{root}/pictures{user}/scraps"),
+            (HentaifoundryStoriesExtractor , f"{root}/stories{user}"),
+            (HentaifoundryFavoriteExtractor, f"{root}{user}/faves/pictures"),
         ), ("pictures",))
 
 
@@ -309,11 +312,10 @@ class HentaifoundryPopularExtractor(HentaifoundryExtractor):
 class HentaifoundryImageExtractor(HentaifoundryExtractor):
     """Extractor for a single image from hentaifoundry.com"""
     subcategory = "image"
+    skip_files = None
     pattern = (r"(https?://)?(?:www\.|pictures\.)?hentai-foundry\.com"
                r"/(?:pictures/user|[^/?#])/([^/?#]+)/(\d+)")
     example = "https://www.hentai-foundry.com/pictures/user/USER/12345/TITLE"
-
-    skip = Extractor.skip
 
     def __init__(self, match):
         HentaifoundryExtractor.__init__(self, match)
@@ -324,7 +326,7 @@ class HentaifoundryImageExtractor(HentaifoundryExtractor):
                     f"/{self.index}/?enterAgree=1")
         image = self._parse_post(post_url)
         image["user"] = self.user
-        yield Message.Directory, image
+        yield Message.Directory, "", image
         yield Message.Url, image["src"], image
 
 
@@ -339,7 +341,7 @@ class HentaifoundryStoriesExtractor(HentaifoundryExtractor):
         self._init_site_filters()
         for story_html in util.advance(self.stories(), self.start_post):
             story = self._parse_story(story_html)
-            yield Message.Directory, story
+            yield Message.Directory, "", story
             yield Message.Url, story["src"], story
 
     def stories(self):
@@ -351,10 +353,9 @@ class HentaifoundryStoryExtractor(HentaifoundryExtractor):
     """Extractor for a hentaifoundry story"""
     subcategory = "story"
     archive_fmt = "s_{index}"
+    skip_files = None
     pattern = BASE_PATTERN + r"/stories/user/([^/?#]+)/(\d+)"
     example = "https://www.hentai-foundry.com/stories/user/USER/12345/TITLE"
-
-    skip = Extractor.skip
 
     def __init__(self, match):
         HentaifoundryExtractor.__init__(self, match)
@@ -364,5 +365,5 @@ class HentaifoundryStoryExtractor(HentaifoundryExtractor):
         story_url = (f"{self.root}/stories/user/{self.user}"
                      f"/{self.index}/x?enterAgree=1")
         story = self._parse_story(self.request(story_url).text)
-        yield Message.Directory, story
+        yield Message.Directory, "", story
         yield Message.Url, story["src"], story

@@ -78,7 +78,7 @@ __tests__ = (
     "id"           : 2,
     "source"       : None,
     "uploader"     : "Giantess-7of9",
-    "views"        : range(40, 200),
+    "views"        : range(400, 2000),
     "favorite"     : list,
     "tags"         : [
         "breasts",
@@ -124,8 +124,8 @@ __tests__ = (
 
     "id"         : int,
     "filename"   : r"re:\d+",
-    "extension"  : {"jpg", "png"},
-    "file_url"   : r"re:https://stizebooru.com/Picture/\d+",
+    "extension"  : {"jpg", "jpeg", "png"},
+    "file_url"   : r"re:https://sizebooru.com/Picture/\d+",
     "search_tags": "parody",
 },
 

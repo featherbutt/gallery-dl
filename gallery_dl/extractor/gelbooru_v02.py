@@ -9,7 +9,7 @@
 """Extractors for Gelbooru Beta 0.2 sites"""
 
 from . import booru
-from .. import text, util, exception
+from .. import text, util
 import collections
 
 
@@ -28,6 +28,12 @@ class GelbooruV02Extractor(booru.BooruExtractor):
         if self.category == "rule34":
             self._file_url = self._file_url_rule34
 
+    def import_blacklist(self):
+        url = self.root + "/index.php?page=account&s=options"
+        page = self.request(url).text
+        tags = text.unescape(text.extr(page, "<textarea", "</textarea>"))
+        return (tags[tags.find(">")+1:]).split()
+
     def _api_request(self, params):
         params["api_key"] = self.api_key
         params["user_id"] = self.user_id
@@ -38,9 +44,9 @@ class GelbooruV02Extractor(booru.BooruExtractor):
         if root.tag == "error":
             msg = root.text
             if msg.lower().startswith("missing authentication"):
-                raise exception.AuthRequired(
+                raise self.exc.AuthRequired(
                     "'api-key' & 'user-id'", "the API", msg)
-            raise exception.AbortExtraction(f"'{msg}'")
+            raise self.exc.AbortExtraction(f"'{msg}'")
 
         return root
 
@@ -49,7 +55,7 @@ class GelbooruV02Extractor(booru.BooruExtractor):
         params["limit"] = self.per_page
 
         post = total = None
-        count = 0
+        count = self.page_start * self.per_page
 
         while True:
             try:
@@ -96,7 +102,7 @@ class GelbooruV02Extractor(booru.BooruExtractor):
         params["pid"] = self.page_start * self.per_page
 
         data = {}
-        find_ids = util.re(r"\sid=\"p(\d+)").findall
+        find_ids = text.re(r"\sid=\"p(\d+)").findall
 
         while True:
             page = self.request(url, params=params).text
@@ -122,7 +128,7 @@ class GelbooruV02Extractor(booru.BooruExtractor):
 
     def _prepare(self, post):
         post["tags"] = post["tags"].strip()
-        post["date"] = text.parse_datetime(
+        post["date"] = self.parse_datetime(
             post["created_at"], "%a %b %d %H:%M:%S %z %Y")
 
     def _html(self, post):
@@ -136,7 +142,7 @@ class GelbooruV02Extractor(booru.BooruExtractor):
             return
 
         tags = collections.defaultdict(list)
-        pattern = util.re(r"(?s)tag-type-([^\"' ]+).*?[?;]tags=([^\"'&]+)")
+        pattern = text.re(r"(?s)tag-type-([^\"' ]+).*?[?;]tags=([^\"'&]+)")
         for tag_type, tag_name in pattern.findall(tag_container):
             tags[tag_type].append(text.unescape(text.unquote(tag_name)))
         for key, value in tags.items():
@@ -219,7 +225,7 @@ class GelbooruV02PoolExtractor(GelbooruV02Extractor):
         else:
             self.post_ids = ()
 
-    def skip(self, num):
+    def skip_files(self, num):
         self.page_start += num
         return num
 
@@ -229,7 +235,7 @@ class GelbooruV02PoolExtractor(GelbooruV02Extractor):
 
         name, pos = text.extract(page, "<h4>Pool: ", "</h4>")
         if not name:
-            raise exception.NotFoundError("pool")
+            raise self.exc.NotFoundError("pool")
         self.post_ids = text.extract_iter(
             page, 'class="thumb" id="p', '"', pos)
 

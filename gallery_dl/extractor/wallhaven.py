@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018-2025 Mike Fährmann
+# Copyright 2018-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://wallhaven.cc/"""
 
 from .common import Extractor, Message, Dispatch
-from .. import text, exception
+from .. import text
 
 
 class WallhavenExtractor(Extractor):
@@ -29,7 +29,7 @@ class WallhavenExtractor(Extractor):
             self._transform(wp)
             wp.update(metadata)
             url = wp["url"]
-            yield Message.Directory, wp
+            yield Message.Directory, "", wp
             yield Message.Url, url, text.nameext_from_url(url, wp)
 
     def wallpapers(self):
@@ -43,8 +43,7 @@ class WallhavenExtractor(Extractor):
         wp["url"] = wp.pop("path")
         if "tags" in wp:
             wp["tags"] = [t["name"] for t in wp["tags"]]
-        wp["date"] = text.parse_datetime(
-            wp.pop("created_at"), "%Y-%m-%d %H:%M:%S")
+        wp["date"] = self.parse_datetime_iso(wp.pop("created_at"))
         wp["width"] = wp.pop("dimension_x")
         wp["height"] = wp.pop("dimension_y")
         wp["wh_category"] = wp["category"]
@@ -114,7 +113,7 @@ class WallhavenCollectionsExtractor(WallhavenExtractor):
         base = f"{self.root}/user/{self.username}/favorites/"
         for collection in self.api.collections(self.username):
             collection["_extractor"] = WallhavenCollectionExtractor
-            url = f"{base}{collection['id']}"
+            url = base + str(collection["id"])
             yield Message.Queue, url, collection
 
 
@@ -200,7 +199,7 @@ class WallhavenAPI():
                 continue
 
             self.extractor.log.debug("Server response: %s", response.text)
-            raise exception.AbortExtraction(
+            raise self.extractor.exc.AbortExtraction(
                 f"API request failed "
                 f"({response.status_code} {response.reason})")
 

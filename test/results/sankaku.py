@@ -49,12 +49,28 @@ __tests__ = (
 
 {
     "#url"     : "https://sankaku.app/ja?tags=order%3Apopularity",
+    "#comment" : "ISO 639-1",
     "#category": ("booru", "sankaku", "tag"),
     "#class"   : sankaku.SankakuTagExtractor,
 },
 
 {
     "#url"     : "https://sankaku.app/no/?tags=order%3Apopularity",
+    "#comment" : "ISO 639-1 with trailing '/'",
+    "#category": ("booru", "sankaku", "tag"),
+    "#class"   : sankaku.SankakuTagExtractor,
+},
+
+{
+    "#url"     : "https://sankaku.app/zh-CN/?tags=order%3Apopularity",
+    "#comment" : "locale code (ISO 639-1 + ISO 3166-1) (#8667)",
+    "#category": ("booru", "sankaku", "tag"),
+    "#class"   : sankaku.SankakuTagExtractor,
+},
+
+{
+    "#url"     : "https://sankaku.app/zh_CN/?tags=order%3Apopularity",
+    "#comment" : "locale code (ISO 639-1 + ISO 3166-1) (#8667)",
     "#category": ("booru", "sankaku", "tag"),
     "#class"   : sankaku.SankakuTagExtractor,
 },
@@ -105,6 +121,20 @@ __tests__ = (
     "#class"   : sankaku.SankakuTagExtractor,
     "#range"   : "1",
     "#count"   : 1,
+},
+
+{
+    "#url"     : "https://chan.sankakucomplex.com/en/posts?tags=parent%3APVaDn2DGLRb+rozen_maiden",
+    "#comment" : "include parent post (#9102)",
+    "#category": ("booru", "sankaku", "tag"),
+    "#class"   : sankaku.SankakuTagExtractor,
+    "#pattern" : (
+        r"https://v.sankakucomplex.com/data/1f/23/1f231705b744608313ffa390dd85b6c5.png",
+        r"https://s.sankakucomplex.com/o/e5/a9/e5a9b9d8f5d29e54156f272e945da325.png",
+        r"https://s.sankakucomplex.com/o/4f/ca/4fca3115a991d1972c188a03238030f3.png",
+    ),
+
+    "search_tags": "parent:PVaDn2DGLRb rozen_maiden",
 },
 
 {

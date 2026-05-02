@@ -60,14 +60,14 @@ build-windows() {
     cd "${ROOTDIR}"
     echo Building Windows executable
 
-    build-vm 'win10' 'gallery-dl.exe' 'gallery-dl.exe' 'windows' 19000000
+    build-vm 'win10' 'gallery-dl.exe' 'gallery-dl.exe' 'windows' 21000000
 }
 
 build-windows_x86() {
     cd "${ROOTDIR}"
     echo Building Windows X86 executable
 
-    build-vm 'windows7_x86_sp1' 'gallery-dl_x86.exe' 'gallery-dl.exe' 'windows_x86' 12000000
+    build-vm 'windows7_x86_sp1' 'gallery-dl_x86.exe' 'gallery-dl.exe' 'windows_x86' 13000000
 }
 
 build-vm() {
@@ -85,7 +85,7 @@ build-vm() {
     # copy source files
     mkdir -p /tmp/gallery-dl/dist
     cp -a -t /tmp/gallery-dl -- \
-        ./gallery_dl ./scripts ./data ./setup.py ./README.rst
+        ./gallery_dl ./scripts ./requirements ./data ./setup.py ./README.rst
 
     # update __variant__
     sed -i \
@@ -137,7 +137,6 @@ changelog() {
     # - replace "#NN" with link to actual issue
     # - insert new version and date
     sed -i \
-        -e "s*\([( ]\)#\([0-9]\+\)*\1[#\2](https://github.com/mikf/gallery-dl/issues/\2)*g" \
         -e "s*^## \w\+\$*## ${NEWVERSION} - $(date +%Y-%m-%d)*" \
         "${CHANGELOG}"
 
@@ -150,26 +149,41 @@ changelog() {
     > "${CHANGELOG}"
 }
 
-supportedsites() {
+prepare() {
     cd "${ROOTDIR}"
-    echo Checking if "${SUPPORTEDSITES}" is up to date
 
+    echo Checking if "${SUPPORTEDSITES}" is up to date
     ./scripts/supportedsites.py
-    if ! git diff --quiet "${SUPPORTEDSITES}"; then
+    if ! git diff --quiet -- "${SUPPORTEDSITES}"; then
         echo "updated ${SUPPORTEDSITES} contains changes"
         exit 4
     fi
+
+    echo Checking changed files
+    DIFF="$(git diff --name-only)"
+    if [[ "$DIFF" != "${CHANGELOG}" ]]; then
+        if [[ "$DIFF" != *"${CHANGELOG}"* ]]; then
+            echo "Missing ${NEWVERSION} '${CHANGELOG}' entries"
+            exit 4
+        else
+            printf "Uncommited changes to files other than '${CHANGELOG}':\n%s\n" "$DIFF"
+            read -p "Press Enter to continue"
+        fi
+    fi
+
+    echo Syncing local branch with origin
+    git pull --autostash
 }
 
 upload-git() {
     cd "${ROOTDIR}"
-    echo Pushing changes to github
+    echo Pushing changes to repository
 
     mv -- "${CHANGELOG}.orig" "${CHANGELOG}" || true
     git add "gallery_dl/version.py" "${README}" "${CHANGELOG}"
     git commit -S -m "release version ${NEWVERSION}"
     git tag -s -m "version ${NEWVERSION}" "v${NEWVERSION}"
-    git push --atomic origin master "v${NEWVERSION}"
+    git push --atomic origin "$(git rev-parse --abbrev-ref HEAD)" "v${NEWVERSION}"
 }
 
 upload-pypi() {
@@ -202,7 +216,7 @@ fi
 
 
 prompt
-supportedsites
+prepare
 cleanup
 update
 changelog

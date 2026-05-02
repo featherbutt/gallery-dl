@@ -44,6 +44,7 @@ FILES = [
 PACKAGES = [
     "gallery_dl",
     "gallery_dl.extractor",
+    "gallery_dl.extractor.utils",
     "gallery_dl.downloader",
     "gallery_dl.postprocessor",
 ]
@@ -51,7 +52,7 @@ PACKAGES = [
 DESCRIPTION = ("Command-line program to download image galleries and "
                "collections from several image hosting sites")
 LONG_DESCRIPTION = read("README.rst").replace(
-    "<docs/", "<https://github.com/mikf/gallery-dl/blob/master/docs/")
+    "<docs/", "<https://codeberg.org/mikf/gallery-dl/src/branch/master/docs/")
 
 
 def build_py2exe():
@@ -94,8 +95,8 @@ def build_setuptools():
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/x-rst",
-        url="https://github.com/mikf/gallery-dl",
-        download_url="https://github.com/mikf/gallery-dl/releases/latest",
+        url="https://codeberg.org/mikf/gallery-dl",
+        download_url="https://codeberg.org/mikf/gallery-dl/releases/latest",
         author="Mike Fährmann",
         author_email="mike_faehrmann@web.de",
         maintainer="Mike Fährmann",
@@ -143,6 +144,7 @@ def build_setuptools():
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: 3.12",
             "Programming Language :: Python :: 3.13",
+            "Programming Language :: Python :: 3.14",
             "Programming Language :: Python :: Implementation :: CPython",
             "Programming Language :: Python :: Implementation :: PyPy",
             "Topic :: Internet :: WWW/HTTP",

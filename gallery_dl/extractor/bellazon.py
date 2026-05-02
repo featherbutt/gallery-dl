@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2025 Mike Fährmann
+# Copyright 2025-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://www.bellazon.com/"""
 
 from .common import Extractor, Message
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?bellazon\.com/main"
 
@@ -24,65 +24,81 @@ class BellazonExtractor(Extractor):
     archive_fmt = "{post[id]}/{id}_{filename}"
 
     def items(self):
-        native = (f"{self.root}/", f"{self.root[6:]}/")
+        native = (self.root + "/", self.root[6:] + "/")
+        quotes = self.config("quoted", False)
         extract_urls = text.re(
             r'(?s)<('
-            r'(?:video .*?<source src|a [^>]*?href)="([^"]+).*?</a>'
+            r'(?:video .*?<source [^>]*?src|a [^>]*?href)="([^"]+).*?</a>'
             r'|img [^>]*?src="([^"]+)"[^>]*>'
             r')'
         ).findall
 
-        if self.config("quoted", False):
-            strip_quoted = None
-        else:
-            strip_quoted = text.re(r"(?s)<blockquote .*?</blockquote>").sub
-
         for post in self.posts():
-            if strip_quoted is None:
+            if quotes:
                 urls = extract_urls(post["content"])
             else:
-                urls = extract_urls(strip_quoted("", post["content"]))
+                urls = extract_urls(self._remove_quotes(post["content"]))
 
             data = {"post": post}
             post["count"] = data["count"] = len(urls)
 
-            yield Message.Directory, data
-            data["num"] = 0
+            yield Message.Directory, "", data
+            data["num"] = data["num_internal"] = data["num_external"] = 0
             for info, url, url_img in urls:
-                url = text.unescape(url or url_img)
+                if url_img:
+                    url = text.unescape(
+                        text.extr(info, 'data-full-image="', '"') or url_img)
+                else:
+                    url = text.unescape(url)
 
                 if url.startswith(native):
-                    if "/uploads/emoticons/" in url or "/profile/" in url:
+                    if (
+                        "/main/style_emoticons/" in url or
+                        "/uploads/emoticons/" in url or
+                        "/public/style_" in url or
+                        "/profile/" in url or
+                        "/topic/" in url
+                    ):
                         continue
                     data["num"] += 1
+                    data["num_internal"] += 1
                     if not (alt := text.extr(info, ' alt="', '"')) or (
                             alt.startswith("post-") and "_thumb." in alt):
-                        name = url
+                        dc = text.nameext_from_url(url, data.copy())
                     else:
-                        name = text.unescape(alt)
+                        dc = data.copy()
+                        dc["name"] = name = text.unescape(alt)
+                        dc["filename"] = name.partition(".")[0]
 
-                    dc = text.nameext_from_url(name, data.copy())
                     dc["id"] = text.extr(info, 'data-fileid="', '"')
                     if ext := text.extr(info, 'data-fileext="', '"'):
                         dc["extension"] = ext
-                    elif "/core/interface/file/attachment.php" in url:
+                    elif ("/core/interface/file/attachment.php" in url or
+                          "/main/index.php?" in url):
                         if not dc["id"]:
-                            dc["id"] = url.rpartition("?id=")[2]
+                            params = text.parse_query(url[url.find("?")+1:])
+                            dc["id"] = (params.get("id") or
+                                        params.get("attach_id"))
                         if name := text.extr(info, ">", "<").strip():
-                            text.nameext_from_url(name, dc)
+                            dc["name"] = name = text.unescape(name)
+                            text.nameext_from_name(name, dc)
+                    else:
+                        dc["extension"] = text.ext_from_url(url)
 
                     if url[0] == "/":
-                        url = f"https:{url}"
+                        url = "https:" + url
                     yield Message.Url, url, dc
 
                 else:
+                    data["num"] += 1
+                    data["num_external"] += 1
                     yield Message.Queue, url, data
 
     def _pagination(self, base, pnum=None):
-        base = f"{self.root}{base}"
+        base = self.root + base
 
         if pnum is None:
-            url = f"{base}/"
+            url = base + "/"
             pnum = 1
         else:
             url = f"{base}/page/{pnum}/"
@@ -100,9 +116,9 @@ class BellazonExtractor(Extractor):
             url = f"{base}/page/{pnum}/"
 
     def _pagination_reverse(self, base, pnum=None):
-        base = f"{self.root}{base}"
+        base = self.root + base
 
-        url = f"{base}/page/9999/"  # force redirect to highest page number
+        url = f"{base}/page/{'9999' if pnum is None else pnum}/"
         with self.request(url) as response:
             parts = response.url.rsplit("/", 3)
             pnum = text.parse_int(parts[2]) if parts[1] == "page" else 1
@@ -115,7 +131,7 @@ class BellazonExtractor(Extractor):
             if pnum > 1:
                 url = f"{base}/page/{pnum}/"
             elif pnum == 1:
-                url = f"{base}/"
+                url = base + "/"
             else:
                 return
 
@@ -126,7 +142,7 @@ class BellazonExtractor(Extractor):
         author = schema["author"]
         stats = schema["interactionStatistic"]
         url_t = schema["url"]
-        url_a = author["url"]
+        url_a = author.get("url") or ""
 
         path = text.split_html(text.extr(
             page, '<nav class="ipsBreadcrumb', "</nav>"))[2:-1]
@@ -137,18 +153,23 @@ class BellazonExtractor(Extractor):
             "title": schema["headline"],
             "views": stats[0]["userInteractionCount"],
             "posts": stats[1]["userInteractionCount"],
-            "date" : text.parse_datetime(schema["datePublished"]),
-            "date_updated": text.parse_datetime(schema["dateModified"]),
+            "date" : self.parse_datetime_iso(schema["datePublished"]),
+            "date_updated": self.parse_datetime_iso(schema["dateModified"]),
             "description" : text.unescape(schema["text"]).strip(),
             "section"     : path[-2],
             "author"      : author["name"],
             "author_url"  : url_a,
         }
 
-        thread["id"], _, thread["slug"] = \
+        thread["id"], _, slug = \
             url_t.rsplit("/", 2)[1].partition("-")
-        thread["author_id"], _, thread["author_slug"] = \
-            url_a.rsplit("/", 2)[1].partition("-")
+        thread["slug"] = text.unquote(slug)
+
+        if url_a:
+            thread["author_id"], _, thread["author_slug"] = \
+                url_a.rsplit("/", 2)[1].partition("-")
+        else:
+            thread["author_id"] = thread["author_slug"] = ""
 
         return thread
 
@@ -158,32 +179,46 @@ class BellazonExtractor(Extractor):
         post = {
             "id": extr('id="elComment_', '"'),
             "author_url": extr(" href='", "'"),
-            "date": text.parse_datetime(extr("datetime='", "'")),
-            "content": extr("<!-- Post content -->", "\n\t\t</div>"),
+            "date": self.parse_datetime_iso(extr("datetime='", "'")),
+            "content": extr("<!-- Post content -->", '<menu data-ips-hook='),
         }
 
-        if (pos := post["content"].find(">")) >= 0:
-            post["content"] = post["content"][pos+1:].strip()
+        beg = post["content"].find(">")
+        sig = post["content"].rfind('<div data-role="memberSignature"')
+        end = post["content"].rfind("\n\t\t</div>", 0, sig+1 or None)
+        post["content"] = post["content"][beg+1:end+1].strip()
 
-        post["author_id"], _, post["author_slug"] = \
-            post["author_url"].rsplit("/", 2)[1].partition("-")
+        if url_a := post["author_url"]:
+            post["author_id"], _, post["author_slug"] = \
+                url_a.rsplit("/", 2)[1].partition("-")
+        else:
+            post["author_id"] = post["author_slug"] = ""
 
         return post
+
+    def _remove_quotes(self, content):
+        while "<blockquote" in content:
+            beg = content.index("<blockquote")
+            end = content.index("</blockquote", beg)
+            for _ in range(content.count("<blockquote", beg+11, end)):
+                end = content.index("</blockquote", end+13)
+            content = content[:beg] + content[end+13:]
+        return content
 
 
 class BellazonPostExtractor(BellazonExtractor):
     subcategory = "post"
-    pattern = (rf"{BASE_PATTERN}(/topic/\d+-[\w-]+(?:/page/\d+)?)"
-               rf"/?#(?:findC|c)omment-(\d+)")
+    pattern = (BASE_PATTERN + r"(/topic/\d+-[^/?#]+(?:/page/\d+)?)"
+               r"/?#(?:findC|c)omment-(\d+)")
     example = "https://www.bellazon.com/main/topic/123-SLUG/#findComment-12345"
 
     def posts(self):
         path, post_id = self.groups
-        page = self.request(f"{self.root}{path}").text
+        page = self.request(self.root + path).text
 
-        pos = page.find(f'id="elComment_{post_id}')
+        pos = page.find('id="elComment_' + post_id)
         if pos < 0:
-            raise exception.NotFoundError("post")
+            raise self.exc.NotFoundError("post")
         html = text.extract(page, "<article ", "</article>", pos-100)[0]
 
         self.kwdict["thread"] = self._parse_thread(page)
@@ -192,7 +227,7 @@ class BellazonPostExtractor(BellazonExtractor):
 
 class BellazonThreadExtractor(BellazonExtractor):
     subcategory = "thread"
-    pattern = rf"{BASE_PATTERN}(/topic/\d+-[\w-]+)(?:/page/(\d+))?"
+    pattern = BASE_PATTERN + r"(/topic/\d+-[^/?#]+)(?:/page/(\d+))?"
     example = "https://www.bellazon.com/main/topic/123-SLUG/"
 
     def posts(self):
@@ -217,7 +252,7 @@ class BellazonThreadExtractor(BellazonExtractor):
 
 class BellazonForumExtractor(BellazonExtractor):
     subcategory = "forum"
-    pattern = rf"{BASE_PATTERN}(/forum/\d+-[\w-]+)(?:/page/(\d+))?"
+    pattern = BASE_PATTERN + r"(/forum/\d+-[^/?#]+)(?:/page/(\d+))?"
     example = "https://www.bellazon.com/main/forum/123-SLUG/"
 
     def items(self):

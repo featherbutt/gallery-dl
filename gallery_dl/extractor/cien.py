@@ -34,7 +34,7 @@ class CienExtractor(Extractor):
             page = self.request(url, params=params).text
 
             for card in text.extract_iter(
-                    page, ' class="c-cardCase-item', '</div>'):
+                    page, ' class="c-cardCase-item', '</figure>'):
                 article_url = text.extr(card, ' href="', '"')
                 yield Message.Queue, article_url, data
 
@@ -54,14 +54,14 @@ class CienArticleExtractor(CienExtractor):
     def items(self):
         author_id, post_id = self.groups
         url = f"{self.root}/creator/{author_id}/article/{post_id}"
-        page = self.request(url, notfound="article").text
+        page = self.request(url, notfound=True).text
 
         files = self._extract_files(page)
         post = self._extract_jsonld(page)[0]
         post["post_url"] = url
         post["post_id"] = text.parse_int(post_id)
         post["count"] = len(files)
-        post["date"] = text.parse_datetime(post["datePublished"])
+        post["date"] = self.parse_datetime_iso(post["datePublished"])
 
         try:
             post["author"]["id"] = text.parse_int(author_id)
@@ -70,7 +70,7 @@ class CienArticleExtractor(CienExtractor):
         except Exception:
             pass
 
-        yield Message.Directory, post
+        yield Message.Directory, "", post
         for post["num"], file in enumerate(files, 1):
             post.update(file)
             if "extension" not in file:
@@ -88,6 +88,7 @@ class CienArticleExtractor(CienExtractor):
             self._extract_files_gallery(page, files)
         else:
             generators = {
+                "cover"   : self._extract_files_cover,
                 "image"   : self._extract_files_image,
                 "video"   : self._extract_files_video,
                 "download": self._extract_files_download,
@@ -100,6 +101,13 @@ class CienArticleExtractor(CienExtractor):
                 generators[ft.rstrip("s")](page, files)
 
         return files
+
+    def _extract_files_cover(self, page, files):
+        files.append({
+            "url" : text.extr(
+                page, 'property="og:image"\n          content="', '"'),
+            "type": "cover",
+        })
 
     def _extract_files_image(self, page, files):
         for image in text.extract_iter(

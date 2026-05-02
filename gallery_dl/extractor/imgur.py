@@ -9,7 +9,7 @@
 """Extractors for https://imgur.com/"""
 
 from .common import Extractor, Message
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.|[im]\.)?imgur\.(?:com|io)"
 
@@ -38,7 +38,7 @@ class ImgurExtractor(Extractor):
 
         image["url"] = url = \
             f"https://i.imgur.com/{image['id']}.{image['ext']}"
-        image["date"] = text.parse_datetime(image["created_at"])
+        image["date"] = self.parse_datetime_iso(image["created_at"])
         image["_http_validate"] = self._validate
         text.nameext_from_url(url, image)
 
@@ -83,7 +83,7 @@ class ImgurImageExtractor(ImgurExtractor):
         image.update(image["media"][0])
         del image["media"]
         url = self._prepare(image)
-        yield Message.Directory, image
+        yield Message.Directory, "", image
         yield Message.Url, url, image
 
 
@@ -106,7 +106,7 @@ class ImgurAlbumExtractor(ImgurExtractor):
 
         del album["media"]
         count = len(images)
-        album["date"] = text.parse_datetime(album["created_at"])
+        album["date"] = self.parse_datetime_iso(album["created_at"])
 
         try:
             del album["ad_url"]
@@ -119,7 +119,7 @@ class ImgurAlbumExtractor(ImgurExtractor):
             image["num"] = num
             image["count"] = count
             image["album"] = album
-            yield Message.Directory, image
+            yield Message.Directory, "", image
             yield Message.Url, url, image
 
 
@@ -269,11 +269,11 @@ class ImgurAPI():
         return self._pagination(endpoint, params)
 
     def gallery_subreddit(self, subreddit):
-        endpoint = f"/3/gallery/r/{subreddit}"
+        endpoint = "/3/gallery/r/" + subreddit
         return self._pagination(endpoint)
 
     def gallery_tag(self, tag):
-        endpoint = f"/3/gallery/t/{tag}"
+        endpoint = "/3/gallery/t/" + tag
         return self._pagination(endpoint, key="items")
 
     def image(self, image_hash):
@@ -290,13 +290,13 @@ class ImgurAPI():
         endpoint = "/post/v1/posts/" + gallery_hash
         return self._call(endpoint)
 
-    def _call(self, endpoint, params=None, headers=None):
+    def _call(self, endpoint, params=None):
         while True:
             try:
                 return self.extractor.request_json(
                     "https://api.imgur.com" + endpoint,
-                    params=params, headers=(headers or self.headers))
-            except exception.HttpError as exc:
+                    params=params, headers=self.headers)
+            except self.extractor.exc.HttpError as exc:
                 if exc.status not in (403, 429) or \
                         b"capacity" not in exc.response.content:
                     raise
@@ -322,10 +322,9 @@ class ImgurAPI():
             params["page"] = 0
         if "sort" not in params:
             params["sort"] = "newest"
-        headers = {"Origin": "https://imgur.com"}
 
         while True:
-            data = self._call(endpoint, params, headers)
+            data = self._call(endpoint, params)
             if "data" in data:
                 data = data["data"]
             if not data:

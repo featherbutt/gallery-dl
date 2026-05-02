@@ -6,7 +6,6 @@
 
 from gallery_dl.extractor import facebook
 from gallery_dl import exception
-import datetime
 
 
 __tests__ = (
@@ -39,6 +38,14 @@ __tests__ = (
         "https://www.facebook.com/facebook/photos_albums",
     ],
 },
+
+{
+    "#url"     : "https://www.facebook.com/permalink.php?story_fbid=pfbid034C2PVBhr311C2jo91sBMNwfvcBeLmspzTXLikp37aEqKsdh47mW7ZX8hcS3Ba8Uul&id=61573780995993&rdid=eV7e4pTWFxWb6Evx",
+    "#comment" : "post URL (#8679)",
+    "#class"   : facebook.FacebookUserExtractor,
+    "#fail"    : True,
+},
+
 
 {
     "#url"     : "https://www.facebook.com/facebook/photos",
@@ -121,6 +128,25 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.facebook.com/sua.banhmi.370/avatar",
+    "#comment" : "no 'profilePhoto' and profile photo page (#9347)",
+    "#class"   : facebook.FacebookAvatarExtractor,
+    "#pattern" : "https://scontent-.+.xx.fbcdn.net/.+",
+
+    "count"     : 1,
+    "extension" : "jpg",
+    "filename"  : "475800555_971547608250639_1909157744784342701_n",
+    "id"        : "983431630395570",
+    "set_id"    : "",
+    "title"     : "Profile pictures",
+    "type"      : "avatar",
+    "url"       : str,
+    "user_id"   : "100061862277212",
+    "user_pfbid": "pfbid0287MaQCX1Vp5ob73Dm6fAQWbKSu2aaCWf4ceydTGKJQEdMHXoVB1x5d6WZy5kth74l",
+    "username"  : "sua.banhmi.370",
+},
+
+{
     "#url"     : "https://www.facebook.com/media/set/?set=a.10152716010956729&type=3",
     "#class"   : facebook.FacebookSetExtractor,
     "#count"   : 6,
@@ -160,6 +186,27 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.facebook.com/permalink.php?story_fbid=pfbid02P6zhg3UN71iAM1kiprstNfZuArXc83n5n1X842kPbsyQU6BdAUacgNsHw3LkmKasl&id=61558212601742",
+    "#comment" : "'/permalink.php' post URL (#9352)",
+    "#class"   : facebook.FacebookSetExtractor,
+    "#range"   : "1-3",
+    "#pattern" : r"https://scontent-.*.xx.fbcdn.net/v/.+",
+
+    "caption"       : "",
+    "date"          : "dt:2026-03-20 07:01:13",
+    "extension"     : "jpg",
+    "filename"      : str,
+    "first_photo_id": "122225439782273753",
+    "followups_ids" : [],
+    "id"            : r"re:12\d+",
+    "set_id"        : "pcb.pfbid02P6zhg3UN71iAM1kiprstNfZuArXc83n5n1X842kPbsyQU6BdAUacgNsHw3LkmKasl",
+    "title"         : "Photos from 金城漫與畫's post",
+    "user_id"       : "61558212601742",
+    "user_pfbid"    : "",
+    "username"      : "金城漫與畫",
+},
+
+{
     "#url"     : "https://www.facebook.com/photo.php?fbid=10165113568399554&set=t.100064860875397&type=3",
     "#class"   : facebook.FacebookPhotoExtractor,
 },
@@ -191,7 +238,7 @@ __tests__ = (
     "#count"   : 1,
 
     "caption"  : "They were on a break... #FriendsReunion #MoreTogether",
-    "date"     : datetime.datetime(2021, 5, 27, 21, 55, 19),
+    "date"     : "dt:2021-05-27 21:55:19",
     "filename" : "191053255_10160743390471729_9001965649022744000_n",
     "extension": "jpg",
     "id"       : "10160743390456729",
@@ -212,7 +259,7 @@ __tests__ = (
     "#count"   : 1,
 
     "caption"  : "",
-    "date"     : datetime.datetime(2014, 5, 3, 0, 44, 47),
+    "date"     : "dt:2014-05-03 00:44:47",
     "filename" : str,
     "extension": "png",
     "id"       : "10152716011076729",
@@ -272,7 +319,7 @@ __tests__ = (
     "#class"   : facebook.FacebookVideoExtractor,
     "#count"   : 1,
 
-    "date"     : datetime.datetime(2024, 4, 19, 17, 25, 48),
+    "date"     : "dt:2024-04-19 17:25:48",
     "filename" : str,
     "id"       : "1165557851291824",
     "url"      : str,

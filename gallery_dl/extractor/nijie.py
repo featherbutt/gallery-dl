@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2025 Mike Fährmann
+# Copyright 2015-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for nijie instances"""
 
 from .common import BaseExtractor, Message, Dispatch, AsynchronousMixin
-from .. import text, exception
-from ..cache import cache
+from .. import text, dt
 
 
 class NijieExtractor(AsynchronousMixin, BaseExtractor):
@@ -59,7 +58,7 @@ class NijieExtractor(AsynchronousMixin, BaseExtractor):
             urls = self._extract_images(image_id, page)
             data["count"] = len(urls)
 
-            yield Message.Directory, data
+            yield Message.Directory, "", data
             for num, url in enumerate(urls):
                 image = text.nameext_from_url(url, {
                     "num": num,
@@ -82,8 +81,9 @@ class NijieExtractor(AsynchronousMixin, BaseExtractor):
             "title"      : keywords[0].strip(),
             "description": text.unescape(extr(
                 '"description": "', '"').replace("&amp;", "&")),
-            "date"       : text.parse_datetime(extr(
-                '"datePublished": "', '"'), "%a %b %d %H:%M:%S %Y", 9),
+            "date"       : dt.parse(extr(
+                '"datePublished": "', '"'), "%a %b %d %H:%M:%S %Y"
+            ) - dt.timedelta(hours=9),
             "artist_id"  : text.parse_int(extr('/members.php?id=', '"')),
             "artist_name": keywords[1],
             "tags"       : keywords[2:-1],
@@ -101,9 +101,9 @@ class NijieExtractor(AsynchronousMixin, BaseExtractor):
             "artist_id"  : text.parse_int(extr('members.php?id=', '"')),
             "artist_name": keywords[1],
             "tags"       : keywords[2:-1],
-            "date"       : text.parse_datetime(extr(
-                "itemprop='datePublished' content=", "<").rpartition(">")[2],
-                "%Y-%m-%d %H:%M:%S", 9),
+            "date"       : dt.parse_iso(extr(
+                "itemprop='datePublished' content=", "<").rpartition(">")[2]
+            ) - dt.timedelta(hours=9),
         }
 
     def _extract_images(self, image_id, page):
@@ -131,20 +131,21 @@ class NijieExtractor(AsynchronousMixin, BaseExtractor):
 
         username, password = self._get_auth_info()
         if username:
-            return self.cookies_update(self._login_impl(username, password))
+            return self.cookies_update(self.cache(
+                self._login_impl, username, password,
+                _exp=90*86400, _mem=False))
 
-        raise exception.AuthenticationError("Username and password required")
+        raise self.exc.AuthenticationError("Username and password required")
 
-    @cache(maxage=90*86400, keyarg=1)
     def _login_impl(self, username, password):
         self.log.info("Logging in as %s", username)
 
-        url = f"{self.root}/login_int.php"
+        url = self.root + "/login_int.php"
         data = {"email": username, "password": password, "save": "on"}
 
         response = self.request(url, method="POST", data=data)
         if "/login.php" in response.text:
-            raise exception.AuthenticationError()
+            raise self.exc.AuthenticationError()
         return self.cookies
 
     def _pagination(self, path):

@@ -9,16 +9,18 @@
 """Extractors for Nitter instances"""
 
 from .common import BaseExtractor, Message
-from .. import text
+from .. import text, util
 import binascii
 
 
 class NitterExtractor(BaseExtractor):
     """Base class for nitter extractors"""
     basecategory = "nitter"
-    directory_fmt = ("{category}", "{user[name]}")
+    directory_fmt = ("nitter", "{user[name]}")
     filename_fmt = "{tweet_id}_{num}.{extension}"
     archive_fmt = "{tweet_id}_{num}"
+    useragent = util.USERAGENT_GALLERYDL
+    request_interval = (0.5, 1.5)
 
     def __init__(self, match):
         self.cookies_domain = self.root.partition("://")[2]
@@ -97,7 +99,7 @@ class NitterExtractor(BaseExtractor):
                 files = ()
             tweet["count"] = len(files)
 
-            yield Message.Directory, tweet
+            yield Message.Directory, "", tweet
             for tweet["num"], file in enumerate(files, 1):
                 url = file["url"]
                 file.update(tweet)
@@ -114,7 +116,7 @@ class NitterExtractor(BaseExtractor):
         return {
             "author"  : author,
             "user"    : self.user_obj or author,
-            "date"    : text.parse_datetime(
+            "date"    : self.parse_datetime(
                 extr('title="', '"'), "%b %d, %Y · %I:%M %p %Z"),
             "tweet_id": link.rpartition("/")[2].partition("#")[0],
             "content": extr('class="tweet-content', "</div").partition(">")[2],
@@ -142,7 +144,7 @@ class NitterExtractor(BaseExtractor):
         return {
             "author"  : author,
             "user"    : self.user_obj or author,
-            "date"    : text.parse_datetime(
+            "date"    : self.parse_datetime(
                 extr('title="', '"'), "%b %d, %Y · %I:%M %p %Z"),
             "tweet_id": link.rpartition("/")[2].partition("#")[0],
             "content" : extr('class="quote-text', "</div").partition(">")[2],
@@ -173,7 +175,7 @@ class NitterExtractor(BaseExtractor):
             "nick"            : extr('title="', '"'),
             "name"            : extr('title="@', '"'),
             "description"     : extr('<p dir="auto">', '<'),
-            "date"            : text.parse_datetime(
+            "date"            : self.parse_datetime(
                 extr('class="profile-joindate"><span title="', '"'),
                 "%I:%M %p - %d %b %Y"),
             "statuses_count"  : text.parse_int(extr(
@@ -195,23 +197,35 @@ class NitterExtractor(BaseExtractor):
         return (html, None)
 
     def _pagination(self, path):
+        more = None
+        tries = 0
+        retries = self.config("fallback-retries", 2) + 1
         quoted = self.config("quoted", False)
 
         if self.user_id:
-            self.user = self.request(
-                f"{self.root}/i/user/{self.user_id}",
-                allow_redirects=False,
-            ).headers["location"].rpartition("/")[2]
+            self.user = self.request_location(
+                f"{self.root}/i/user/{self.user_id}", method="GET",
+            ).rpartition("/")[2]
         base_url = url = f"{self.root}/{self.user}{path}"
 
         while True:
             tweets_html = self.request(url).text.split(
                 '<div class="timeline-item')
 
+            tlen = len(tweets_html)
+            if more is None and tlen == 1 or more is not None and \
+                    tlen <= 2 and ">No more items</h2>" in tweets_html[-1]:
+                tries += 1
+                self.log.warning("Empty Tweet results (%s/%s)", tries, retries)
+                if tries >= retries:
+                    break
+                continue
+
             if self.user_obj is None:
                 self.user_obj = self._user_from_html(tweets_html[0])
 
-            for html, quote in map(self._extract_quote, tweets_html[1:]):
+            del tweets_html[0]
+            for html, quote in map(self._extract_quote, tweets_html):
                 tweet = self._tweet_from_html(html)
                 if not tweet["date"]:
                     continue
@@ -222,11 +236,32 @@ class NitterExtractor(BaseExtractor):
             more = text.extr(
                 tweets_html[-1], '<div class="show-more"><a href="?', '"')
             if not more:
-                return
-            url = base_url + "?" + text.unescape(more)
+                break
+            url = f"{base_url}?{text.unescape(more)}"
+            tries = 0
 
 
 BASE_PATTERN = NitterExtractor.update({
+    "nitter.net": {
+        "root": "https://nitter.net",
+        "pattern": r"(?:www\.)?nitter\.net",
+    },
+    "nitter.space": {
+        "root": "https://nitter.space",
+        "pattern": r"(?:www\.)?nitter\.space",
+    },
+    "nitter.tiekoetter": {
+        "root": "https://nitter.tiekoetter",
+        "pattern": r"(?:www\.)?nitter\.tiekoetter\.com",
+    },
+    "xcancel": {
+        "root": "https://xcancel.com",
+        "pattern": r"(?:www\.)?xcancel\.com",
+    },
+    "lightbrd": {
+        "root": "https://lightbrd.com",
+        "pattern": r"(?:www\.)?lightbrd\.com",
+    },
 })
 
 USER_PATTERN = BASE_PATTERN + r"/(i(?:/user/|d:)(\d+)|[^/?#]+)"
@@ -271,7 +306,7 @@ class NitterSearchExtractor(NitterExtractor):
 class NitterTweetExtractor(NitterExtractor):
     """Extractor for nitter tweets"""
     subcategory = "tweet"
-    directory_fmt = ("{category}", "{user[name]}")
+    directory_fmt = ("nitter", "{user[name]}")
     filename_fmt = "{tweet_id}_{num}.{extension}"
     archive_fmt = "{tweet_id}_{num}"
     pattern = BASE_PATTERN + r"/(i/web|[^/?#]+)/status/(\d+())"

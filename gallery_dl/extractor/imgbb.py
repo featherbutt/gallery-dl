@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2019-2025 Mike Fährmann
+# Copyright 2019-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://imgbb.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
-from ..cache import cache
+from .. import text, util
 
 
 class ImgbbExtractor(Extractor):
@@ -30,7 +29,7 @@ class ImgbbExtractor(Extractor):
         for image in self.posts():
             url = image["url"]
             text.nameext_from_url(url, image)
-            yield Message.Directory, image
+            yield Message.Directory, "", image
             yield Message.Url, url, image
 
     def login(self):
@@ -39,9 +38,10 @@ class ImgbbExtractor(Extractor):
 
         username, password = self._get_auth_info()
         if username:
-            return self.cookies_update(self._login_impl(username, password))
+            return self.cookies_update(self.cache(
+                self._login_impl, username, password,
+                _exp=365*86400, _mem=False))
 
-    @cache(maxage=365*86400, keyarg=1)
     def _login_impl(self, username, password):
         self.log.info("Logging in as %s", username)
 
@@ -60,7 +60,7 @@ class ImgbbExtractor(Extractor):
         response = self.request(url, method="POST", headers=headers, data=data)
 
         if not response.history:
-            raise exception.AuthenticationError()
+            raise self.exc.AuthenticationError()
         return self.cookies
 
     def _pagination(self, page, url, params):
@@ -99,10 +99,6 @@ class ImgbbExtractor(Extractor):
                 headers = {
                     "Accept": "application/json, text/javascript, */*; q=0.01",
                     "X-Requested-With": "XMLHttpRequest",
-                    "Origin": self.root,
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-origin",
                 }
 
             data = self.request_json(
@@ -136,8 +132,8 @@ class ImgbbAlbumExtractor(ImgbbExtractor):
                 'data-text="image-count">', "<")),
         }
 
-        url = f"{self.root}/json"
-        params["pathname"] = f"/album/{album['id']}"
+        url = self.root + "/json"
+        params["pathname"] = "/album/" + album["id"]
         return self._pagination(page, url, params)
 
 
@@ -159,8 +155,7 @@ class ImgbbImageExtractor(ImgbbExtractor):
             "width" : text.parse_int(extr('"og:image:width" content="', '"')),
             "height": text.parse_int(extr('"og:image:height" content="', '"')),
             "album" : extr("Added to <a", "</a>"),
-            "date"  : text.parse_datetime(extr(
-                '<span title="', '"'), "%Y-%m-%d %H:%M:%S"),
+            "date"  : self.parse_datetime_iso(extr('<span title="', '"')),
             "user"  : util.json_loads(extr(
                 "CHV.obj.resource=", "};") + "}").get("user"),
         }
@@ -191,13 +186,13 @@ class ImgbbUserExtractor(ImgbbExtractor):
 
         if response.status_code < 300:
             params["pathname"] = "/"
-            return self._pagination(response.text, f"{url}json", params)
+            return self._pagination(response.text, url + "json", params)
 
         if response.status_code == 301:
-            raise exception.NotFoundError("user")
-        redirect = f"HTTP redirect to {response.headers.get('Location')}"
+            raise self.exc.NotFoundError("user")
+        redirect = "HTTP redirect to " + response.headers.get("Location", "")
         if response.status_code == 302:
-            raise exception.AuthRequired(
+            raise self.exc.AuthRequired(
                 ("username & password", "authenticated cookies"),
                 "profile", redirect)
-        raise exception.AbortExtraction(redirect)
+        raise self.exc.AbortExtraction(redirect)

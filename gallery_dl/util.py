@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2017-2025 Mike Fährmann
+# Copyright 2017-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -11,12 +11,12 @@
 import os
 import sys
 import json
+import math
 import time
 import random
 import getpass
 import hashlib
 import binascii
-import datetime
 import functools
 import itertools
 import subprocess
@@ -24,7 +24,7 @@ import collections
 import urllib.parse
 from http.cookiejar import Cookie
 from email.utils import mktime_tz, parsedate_tz
-from . import text, version, exception
+from . import text, dt, version, exception
 
 
 def bencode(num, alphabet="0123456789"):
@@ -44,6 +44,14 @@ def bdecode(data, alphabet="0123456789"):
     for c in data:
         num = num * base + alphabet.find(c)
     return num
+
+
+def b36encode(num):
+    return bencode(num, "0123456789abcdefghijklmnopqrstuvwxyz")
+
+
+def b36decode(data):
+    return int(data, 36) if data else 0
 
 
 def decrypt_xor(encrypted, key, base64=True, fromhex=False):
@@ -155,15 +163,24 @@ def generate_token(size=16):
     return random.getrandbits(size * 8).to_bytes(size, "big").hex()
 
 
-def format_value(value, suffixes="kMGTPEZY"):
+def format_bytes_decimal(value):
     value = str(value)
     value_len = len(value)
     index = value_len - 4
     if index >= 0:
         offset = (value_len - 1) % 3 + 1
         return (f"{value[:offset]}.{value[offset:offset+2]}"
-                f"{suffixes[index // 3]}")
+                f"{SUFFIXES[index // 3]}")
     return value
+
+
+def format_bytes_binary(value):
+    try:
+        index = int(math.log2(value) / 10)
+        return (str(value) if index < 1 else
+                f"{value/1024**index:.2f}{SUFFIXES[index-1]}i")
+    except Exception:
+        return "0"
 
 
 def combine_dict(a, b):
@@ -226,63 +243,6 @@ def to_string(value):
         except Exception:
             return ", ".join(map(str, value))
     return str(value)
-
-
-def to_datetime(value):
-    """Convert 'value' to a datetime object"""
-    if not value:
-        return EPOCH
-
-    if isinstance(value, datetime.datetime):
-        return value
-
-    if isinstance(value, str):
-        try:
-            if value[-1] == "Z":
-                # compat for Python < 3.11
-                value = value[:-1]
-            dt = datetime.datetime.fromisoformat(value)
-            if dt.tzinfo is None:
-                if dt.microsecond:
-                    dt = dt.replace(microsecond=0)
-            else:
-                # convert to naive UTC
-                dt = dt.astimezone(datetime.timezone.utc).replace(
-                    microsecond=0, tzinfo=None)
-            return dt
-        except Exception:
-            pass
-
-    return text.parse_timestamp(value, EPOCH)
-
-
-def datetime_to_timestamp(dt):
-    """Convert naive UTC datetime to Unix timestamp"""
-    return (dt - EPOCH) / SECOND
-
-
-def datetime_to_timestamp_string(dt):
-    """Convert naive UTC datetime to Unix timestamp string"""
-    try:
-        return str((dt - EPOCH) // SECOND)
-    except Exception:
-        return ""
-
-
-if sys.hexversion < 0x30c0000:
-    # Python <= 3.11
-    datetime_utcfromtimestamp = datetime.datetime.utcfromtimestamp
-    datetime_utcnow = datetime.datetime.utcnow
-    datetime_from_timestamp = datetime_utcfromtimestamp
-else:
-    # Python >= 3.12
-    def datetime_from_timestamp(ts=None):
-        """Convert Unix timestamp to naive UTC datetime"""
-        Y, m, d, H, M, S, _, _, _ = time.gmtime(ts)
-        return datetime.datetime(Y, m, d, H, M, S)
-
-    datetime_utcfromtimestamp = datetime_from_timestamp
-    datetime_utcnow = datetime_from_timestamp
 
 
 def json_default(obj):
@@ -375,11 +335,11 @@ def extract_headers(response):
     data = dict(headers)
 
     if hcd := headers.get("content-disposition"):
-        if name := text.extr(hcd, 'filename="', '"'):
-            text.nameext_from_url(name, data)
+        if name := text.filename_from_contentdisposition(hcd):
+            text.nameext_from_name(name, data)
 
     if hlm := headers.get("last-modified"):
-        data["date"] = datetime.datetime(*parsedate_tz(hlm)[:6])
+        data["date"] = dt.datetime(*parsedate_tz(hlm)[:6])
 
     return data
 
@@ -430,7 +390,9 @@ def expand_path(path):
     if not path:
         return path
     if not isinstance(path, str):
-        path = os.path.join(*path)
+        import logging
+        logging.getLogger("gallery-dl").error(
+            "Non-string paths are no longer supported.")
     return os.path.expandvars(os.path.expanduser(path))
 
 
@@ -579,16 +541,15 @@ CODES = {
 }
 
 
-class HTTPBasicAuth():
-    __slots__ = ("authorization",)
+def HTTPBasicAuth(username, password, type=b"Basic"):
+    authorization = type + b" " + binascii.b2a_base64(
+        f"{username}:{password}".encode("latin1"), newline=False)
+    del username, password
 
-    def __init__(self, username, password):
-        self.authorization = b"Basic " + binascii.b2a_base64(
-            f"{username}:{password}".encode("latin1"), newline=False)
-
-    def __call__(self, request):
-        request.headers["Authorization"] = self.authorization
+    def _apply(request):
+        request.headers["Authorization"] = authorization
         return request
+    return _apply
 
 
 class ModuleProxy():
@@ -734,8 +695,19 @@ class Flags():
     def __init__(self):
         self.FILE = self.POST = self.CHILD = self.DOWNLOAD = None
 
+    clear = __init__
+
     def process(self, flag):
         value = self.__dict__[flag]
+        if value is False:  # flag was set to "skip"
+            if flag == "DOWNLOAD":
+                self.DOWNLOAD = None
+                raise exception.StopDownload()
+            return "skip"
+        if value == "pause":
+            while self.__dict__[flag] is not None:
+                time.sleep(1)
+            return "pause"
         self.__dict__[flag] = None
 
         if value == "abort":
@@ -751,22 +723,22 @@ class Flags():
 # 735506 == 739342 - 137 * 28
 # v135.0 release of Chrome  on 2025-04-01 has ordinal 739342
 # 735562 == 739342 - 135 * 28
-#  _ord_today = datetime.date.today().toordinal()
+#  _ord_today = dt.date.today().toordinal()
 #  _ff_ver = (_ord_today - 735506) // 28
 #  _ch_ver = (_ord_today - 735562) // 28
 
-_ff_ver = (datetime.date.today().toordinal() - 735506) // 28
-#  _ch_ver = _ff_ver - 2
+_ord_today = dt.date.today().toordinal()
+_ff_ver = (_ord_today - 735_513) // 28  # 147 on 2026-01-13
+_ch_ver = (_ord_today - 735_599) // 28  # 143 on 2025-12-18
 
 re = text.re
 re_compile = text.re_compile
 
 NONE = CustomNone()
 FLAGS = Flags()
-EPOCH = datetime.datetime(1970, 1, 1)
-SECOND = datetime.timedelta(0, 1)
 WINDOWS = (os.name == "nt")
 SENTINEL = object()
+SUFFIXES = "KMGTPEZY"
 EXECUTABLE = getattr(sys, "frozen", False)
 SPECIAL_EXTRACTORS = {"oauth", "recursive", "generic"}
 
@@ -775,19 +747,19 @@ EXTS_IMAGE = {"jpg", "jpeg", "png", "gif", "bmp", "svg", "psd", "ico",
 EXTS_VIDEO = {"mp4", "m4v", "mov", "webm", "mkv", "ogv", "flv", "avi", "wmv"}
 EXTS_ARCHIVE = {"zip", "rar", "7z", "tar", "gz", "bz2", "lzma", "xz"}
 
-USERAGENT = "gallery-dl/" + version.__version__
+USERAGENT_GALLERYDL = "gallery-dl/" + version.__version__
 USERAGENT_FIREFOX = (f"Mozilla/5.0 (Windows NT 10.0; Win64; x64; "
                      f"rv:{_ff_ver}.0) Gecko/20100101 Firefox/{_ff_ver}.0")
 USERAGENT_CHROME = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    f"Chrome/{_ff_ver - 2}.0.0.0 Safari/537.36")
+                    f"Chrome/{_ch_ver}.0.0.0 Safari/537.36")
 
 GLOBALS = {
     "contains" : contains,
     "parse_int": text.parse_int,
     "urlsplit" : urllib.parse.urlsplit,
-    "datetime" : datetime.datetime,
-    "timedelta": datetime.timedelta,
+    "datetime" : dt.datetime,
+    "timedelta": dt.timedelta,
     "abort"    : raises(exception.StopExtraction),
     "error"    : raises(exception.AbortExtraction),
     "terminate": raises(exception.TerminateExtraction),
@@ -821,10 +793,9 @@ if EXECUTABLE and hasattr(sys, "_MEIPASS"):
 
     del orig
 
-    class Popen(subprocess.Popen):
-        def __init__(self, args, **kwargs):
-            kwargs["env"] = _popen_env
-            subprocess.Popen.__init__(self, args, **kwargs)
+    def Popen(args, **kwargs):
+        kwargs["env"] = _popen_env
+        return subprocess.Popen(args, **kwargs)
 else:
     Popen = subprocess.Popen
 
@@ -902,9 +873,7 @@ def import_file(path):
 
 def build_selection_func(value, min=0.0, conv=float):
     if not value:
-        if min:
-            return lambda: min
-        return None
+        return (lambda: min) if min else None
 
     if isinstance(value, str):
         lower, _, upper = value.partition("-")
@@ -912,7 +881,8 @@ def build_selection_func(value, min=0.0, conv=float):
         try:
             lower, upper = value
         except TypeError:
-            lower, upper = value, None
+            lower = value
+            upper = None
     lower = conv(lower)
 
     if upper:
@@ -929,6 +899,38 @@ def build_selection_func(value, min=0.0, conv=float):
 
 
 build_duration_func = build_selection_func
+
+
+def build_duration_func_ex(value):
+    if not value:
+        return None
+    if not isinstance(value, str) or "=" not in value:
+        value = build_duration_func(value)
+        return lambda _: value()
+
+    args, _, value = value.partition("=")
+    type, _, args = args.partition(":")
+    value = build_duration_func(value)
+
+    if "exponential".startswith(type):
+        if not args:
+            return lambda n: value() * (2 ** (n-1))
+        base, _, start = args.partition(":")
+        start, _, max = start.partition(":")
+        start = float(start) if start else 0
+        base = float(base) if base else 2
+        max = int(max) if max else 3600
+        return lambda n: min(start + value() * (base ** (n-1)), max)
+
+    if "linear".startswith(type):
+        if not args:
+            return lambda n: value() * n
+        start, _, max = args.partition(":")
+        start = float(start) if start else 0
+        max = int(max) if max else 3600
+        return lambda n: min(start + value() * n, max)
+
+    raise ValueError("Invalid duration type " + repr(type))
 
 
 def build_extractor_filter(categories, negate=True, special=None):
@@ -1017,113 +1019,246 @@ def build_proxy_map(proxies, log=None):
     return proxies
 
 
-def build_predicate(predicates):
+def predicate_build(predicates):
     if not predicates:
         return true
-    elif len(predicates) == 1:
+
+    if len(predicates) == 1:
         return predicates[0]
-    return functools.partial(chain_predicates, predicates)
+
+    def chain(url, kwdict):
+        for pred in predicates:
+            if not pred(url, kwdict):
+                return False
+        return True
+    return chain
 
 
-def chain_predicates(predicates, url, kwdict):
-    for pred in predicates:
-        if not pred(url, kwdict):
-            return False
-    return True
-
-
-class RangePredicate():
-    """Predicate; True if the current index is in the given range(s)"""
-
-    def __init__(self, rangespec):
-        self.ranges = ranges = self._parse(rangespec)
-        self.index = 0
-
-        if ranges:
-            # technically wrong, but good enough for now
-            # and evaluating min/max for a large range is slow
-            self.lower = min(r.start for r in ranges)
-            self.upper = max(r.stop for r in ranges) - 1
-        else:
-            self.lower = 0
-            self.upper = 0
-
-    def __call__(self, _url, _kwdict):
-        self.index = index = self.index + 1
-
-        if index > self.upper:
-            raise exception.StopExtraction()
-
-        for range in self.ranges:
-            if index in range:
-                return True
-        return False
-
-    def _parse(self, rangespec):
-        """Parse an integer range string and return the resulting ranges
-
-        Examples:
-            _parse("-2,4,6-8,10-")      -> [(1,3), (4,5), (6,9), (10,INTMAX)]
-            _parse(" - 3 , 4-  4, 2-6") -> [(1,4), (4,5), (2,7)]
-            _parse("1:2,4:8:2")         -> [(1,1), (4,7,2)]
-        """
-        ranges = []
-
-        if isinstance(rangespec, str):
-            rangespec = rangespec.split(",")
-
-        for group in rangespec:
-            if not group:
-                continue
-
-            elif ":" in group:
-                start, _, stop = group.partition(":")
-                stop, _, step = stop.partition(":")
-                ranges.append(range(
-                    int(start) if start.strip() else 1,
-                    int(stop) if stop.strip() else sys.maxsize,
-                    int(step) if step.strip() else 1,
-                ))
-
-            elif "-" in group:
-                start, _, stop = group.partition("-")
-                ranges.append(range(
-                    int(start) if start.strip() else 1,
-                    int(stop) + 1 if stop.strip() else sys.maxsize,
-                ))
-
-            else:
-                start = int(group)
-                ranges.append(range(start, start+1))
-
-        return ranges
-
-
-class UniquePredicate():
+def predicate_unique():
     """Predicate; True if given URL has not been encountered before"""
-    def __init__(self):
-        self.urls = set()
-
-    def __call__(self, url, _):
+    def _pred(url, _):
         if url.startswith("text:"):
             return True
-        if url not in self.urls:
-            self.urls.add(url)
+        if url not in urls:
+            urls.add(url)
             return True
         return False
+    urls = set()
+    return _pred
 
 
-class FilterPredicate():
+def predicate_filter(expr, target="image"):
     """Predicate; True if evaluating the given expression returns True"""
-
-    def __init__(self, expr, target="image"):
-        name = f"<{target} filter>"
-        self.expr = compile_filter(expr, name)
-
-    def __call__(self, _, kwdict):
+    def _pred(_, kwdict):
         try:
-            return self.expr(kwdict)
+            return expr(kwdict)
         except exception.GalleryDLException:
             raise
         except Exception as exc:
             raise exception.FilterError(exc)
+    expr = compile_filter(expr, f"<{target} filter>")
+    return _pred
+
+
+def predicate_tags(blacklist, negate=False):
+    def _pred(_, kwdict):
+        if not (tags := kwdict.get("tags") or kwdict.get("tag_string")):
+            return True
+
+        if isinstance(tags, str):
+            taglist = tags.split(", ")
+            if len(taglist) < len(tags) / 16:
+                taglist = tags.split(" ")
+            tags = taglist
+        elif isinstance(tags[0], dict):
+            # pixiv "tags": "original"
+            tags = [
+                tag
+                for tagdict in tags
+                for tag in tagdict.values()
+                if isinstance(tag, str)
+            ]
+
+        for tag in tags:
+            if tag in simple:
+                return negate
+        if complex is not None:
+            for check in complex:
+                if check(tags):
+                    return negate
+        return not negate
+    simple, complex = predicate_tags_parse(blacklist)
+    return _pred
+
+
+def predicate_tags_parse(blacklist):
+    if isinstance(blacklist, str):
+        try:
+            with open(expand_path(blacklist)) as fp:
+                blacklist = fp.readlines()
+        except OSError:
+            blacklist = blacklist.split(",")
+
+    simple = set()
+    complex = []
+
+    for line in blacklist:
+        line = line.strip()
+        if not line or line.startswith("# "):
+            # empty or comment
+            continue
+        line = line.lower()
+
+        if " " in line:
+            Or = []
+            And = []
+            for tag in line.split():
+                if tag[0] == "~":
+                    Or.append(tag[1:])
+                elif tag[0] == "-":
+                    And.append(predicate_tags_not(tag[1:]))
+                else:
+                    And.append(predicate_tags_in(tag))
+            if Or:
+                And.append("")
+                for tag in Or:
+                    And[-1] = predicate_tags_in(tag)
+                    complex.append(predicate_tags_chain(And.copy()))
+            else:
+                complex.append(predicate_tags_chain(And))
+
+        elif line[0] in "-~":
+            if line[0] == "~":
+                simple.add(line[1:])
+            else:
+                complex.append(predicate_tags_not(line[1:]))
+        else:
+            simple.add(line)
+
+    return simple, complex or None
+
+
+def predicate_tags_in(tag):
+    return lambda tags: tag in tags
+
+
+def predicate_tags_not(tag):
+    return lambda tags: tag not in tags
+
+
+def predicate_tags_chain(checks):
+    def chain(tags):
+        for check in checks:
+            if not check(tags):
+                return False
+        return True
+    return chain
+
+
+def predicate_date(before, after=None, skip=None):
+    if after is None:
+        if skip is not None and skip(before):
+            return true
+
+        def _pred(_, kwdict):
+            if (date := kwdict.get("date")) and date >= before:
+                return False
+            return True
+
+    elif before is None or after > before or skip is not None and skip(before):
+        def _pred(_, kwdict):
+            if (date := kwdict.get("date")) and date <= after:
+                raise exception.StopExtraction()
+            return True
+
+    else:
+        def _pred(_, kwdict):
+            if not (date := kwdict.get("date")):
+                return True
+            if date <= after:
+                raise exception.StopExtraction()
+            return date < before
+    return _pred
+
+
+def predicate_range(ranges, skip=None, flag=None):
+    """Predicate; True if the current index is in the given range(s)"""
+    if ranges := predicate_range_parse(ranges):
+        # technically wrong for 'step > 2', but good enough for now
+        # and evaluating min/max for a large range is slow
+        upper = max(r.stop for r in ranges) - 1
+        lower = min(r.start for r in ranges)
+        index = 0 if skip is None or lower <= 1 else skip(lower - 1)
+        del lower
+    else:
+        index = upper = 0
+
+    if flag is None:
+        def _pred(_url, _kwdict):
+            nonlocal index
+
+            if index >= upper:
+                raise exception.StopExtraction()
+            index += 1
+
+            for range in ranges:
+                if index in range:
+                    return True
+            return False
+    else:
+        def _pred(_url, _kwdict):
+            nonlocal index
+
+            index += 1
+            if index >= upper:
+                if index > upper:
+                    raise exception.StopExtraction()
+                FLAGS.__dict__[flag.upper()] = "stop"
+
+            for range in ranges:
+                if index in range:
+                    return True
+            return False
+    return _pred
+
+
+def predicate_range_parse(rangespec):
+    """Parse an integer range string and return the resulting ranges
+
+    Examples:
+        _parse("-2,4,6-8,10-")      -> [(1,3), (4,5), (6,9), (10,INTMAX)]
+        _parse(" - 3 , 4-  4, 2-6") -> [(1,4), (4,5), (2,7)]
+        _parse("1:2,4:8:2")         -> [(1,1), (4,7,2)]
+    """
+    ranges = []
+
+    if isinstance(rangespec, str):
+        rangespec = rangespec.split(",")
+    elif isinstance(rangespec, int):
+        rangespec = (str(rangespec),)
+
+    for group in rangespec:
+        if not group:
+            continue
+
+        elif ":" in group:
+            start, _, stop = group.partition(":")
+            stop, _, step = stop.partition(":")
+            ranges.append(range(
+                int(start) if start.strip() else 1,
+                int(stop) if stop.strip() else sys.maxsize,
+                int(step) if step.strip() else 1,
+            ))
+
+        elif "-" in group:
+            start, _, stop = group.partition("-")
+            ranges.append(range(
+                int(start) if start.strip() else 1,
+                int(stop) + 1 if stop.strip() else sys.maxsize,
+            ))
+
+        else:
+            start = int(group)
+            ranges.append(range(start, start+1))
+
+    return ranges

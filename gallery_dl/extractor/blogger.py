@@ -13,7 +13,7 @@ from .. import text, util
 
 
 def original(url):
-    return (util.re(r"(/|=)(?:[sw]\d+|w\d+-h\d+)(?=/|$)")
+    return (text.re(r"(/|=)(?:[sw]\d+|w\d+-h\d+)(?=/|$)")
             .sub(r"\1s0", url)
             .replace("http:", "https:", 1))
 
@@ -32,18 +32,18 @@ class BloggerExtractor(BaseExtractor):
         self.videos = self.config("videos", True)
 
         if self.videos:
-            self.findall_video = util.re(
-                r"""src=["'](https?://www\.blogger\.com"""
-                r"""/video\.g\?token=[^"']+)""").findall
+            self.findall_video = text.re(
+                r"""src=["']https?://www\.blogger\.com"""
+                r"""/video\.g\?token=([^"']+)""").findall
 
     def items(self):
         blog = self.api.blog_by_url("http://" + self.blog)
         blog["pages"] = blog["pages"]["totalItems"]
         blog["posts"] = blog["posts"]["totalItems"]
-        blog["date"] = text.parse_datetime(blog["published"])
+        blog["date"] = self.parse_datetime_iso(blog["published"])
         del blog["selfLink"]
 
-        findall_image = util.re(
+        findall_image = text.re(
             r'src="(https?://(?:'
             r'blogger\.googleusercontent\.com/img|'
             r'lh\d+(?:-\w+)?\.googleusercontent\.com|'
@@ -65,14 +65,14 @@ class BloggerExtractor(BaseExtractor):
             post["author"] = post["author"]["displayName"]
             post["replies"] = post["replies"]["totalItems"]
             post["content"] = text.remove_html(content)
-            post["date"] = text.parse_datetime(post["published"])
+            post["date"] = self.parse_datetime_iso(post["published"])
             del post["selfLink"]
             del post["blog"]
 
             data = {"blog": blog, "post": post}
             if metadata:
                 data.update(metadata)
-            yield Message.Directory, data
+            yield Message.Directory, "", data
 
             for data["num"], url in enumerate(files, 1):
                 data["url"] = url
@@ -96,14 +96,37 @@ class BloggerExtractor(BaseExtractor):
         data = self.request_json(url, params=params)
         html = data["entry"]["content"]["$t"]
 
-        for url in self.findall_video(html):
-            page = self.request(url).text
-            video_config = util.json_loads(text.extr(
-                page, 'var VIDEO_CONFIG =', '\n'))
-            files.append(max(
-                video_config["streams"],
-                key=lambda x: x["format_id"],
-            )["play_url"])
+        url = ("https://www.blogger.com"
+               "/_/BloggerVideoPlayerUi/data/batchexecute")
+        params = {
+            "rpcids"     : "WcwnYd",
+            "source-path": "/video.g",
+            "f.sid"      : util.random.randint(
+                1_000_000_000_000_000_000, 9_999_999_999_999_999_999),
+            "bl"         : "boq_bloggeruiserver_20260428.03_p0",
+            "hl"         : "en-US",
+            #  "_reqid"     : "29228",
+            "rt"         : "c",
+        }
+        beg = "\n[["
+        end = "]]\n"
+
+        for token in self.findall_video(html):
+            try:
+                page = self.request(
+                    url, method="POST", params=params, data={
+                        "f.req": f'[[["WcwnYd","[\\"{token}\\",'
+                                 f'\\"\\",0]",null,"generic"]]]',
+                    }).text
+                data = util.json_loads(f"[[{text.extr(page, beg, end)}]]")
+                files.append(max(
+                    util.json_loads(data[0][2])[2],
+                    key=lambda f: f[1],
+                )[0])
+            except Exception as exc:
+                self.log.traceback(exc)
+                self.log.warning("%s: Failed to extract video '%s'",
+                                 post['id'], token)
 
 
 BASE_PATTERN = BloggerExtractor.update({

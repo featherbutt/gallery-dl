@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2025 Mike Fährmann
+# Copyright 2015-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -8,10 +8,7 @@
 
 """Collection of functions that work on strings/text"""
 
-import sys
 import html
-import time
-import datetime
 import urllib.parse
 import re as re_module
 
@@ -113,11 +110,57 @@ def nameext_from_url(url, data=None):
     filename = unquote(filename_from_url(url))
     name, _, ext = filename.rpartition(".")
     if name and len(ext) <= 16:
-        data["filename"], data["extension"] = name, ext.lower()
+        data["filename"] = name
+        data["extension"] = ext.lower()
     else:
-        data["filename"], data["extension"] = filename, ""
+        data["filename"] = filename
+        data["extension"] = ""
 
     return data
+
+
+def nameext_from_name(filename, data=None):
+    """Extract the last part of a file name and fill 'data' accordingly"""
+    if data is None:
+        data = {}
+
+    name, _, ext = filename.rpartition(".")
+    if name and len(ext) <= 16:
+        data["filename"] = name
+        data["extension"] = ext.lower()
+    else:
+        data["filename"] = filename
+        data["extension"] = ""
+
+    return data
+
+
+def filename_from_contentdisposition(cd):
+    if (pos := cd.find("filename*=")) >= 0:
+        pos += 10
+        if cd[pos] == '"':
+            pos += 1
+            value = cd[pos:cd.find('"', pos)]
+        else:
+            end = cd.find(";", pos)
+            value = cd[pos:None if end < 0 else end]
+        try:
+            charset, _, value = value.split("'", 2)
+            return unquote(value, charset, "replace")
+        except Exception:
+            pass
+
+    if (pos := cd.find("filename=")) >= 0:
+        pos += 9
+        if cd[pos] == '"':
+            pos += 1
+            value = cd[pos:cd.find('"', pos)]
+        else:
+            end = cd.find(";", pos)
+            value = cd[pos:None if end < 0 else end]
+        return value
+
+    return ""
 
 
 def extract(txt, begin, end, pos=None):
@@ -216,6 +259,14 @@ def extract_from(txt, pos=None, default=""):
     return extr
 
 
+extract_urls = re(r"https?://[^\s\"'<>\\]+").findall
+
+
+def parse_hex_escapes(txt):
+    """Convert hex escapes in 'txt' into actual characters"""
+    return re(r"\\x([0-9a-fA-F]{2})").sub(_hex_to_char, txt)
+
+
 def parse_unicode_escapes(txt):
     """Convert JSON Unicode escapes in 'txt' into actual characters"""
     if "\\u" in txt:
@@ -267,7 +318,7 @@ def parse_float(value, default=0.0):
         return default
 
 
-def parse_query(qs):
+def parse_query(qs, empty=False):
     """Parse a query string into name-value pairs
 
     Ignore values whose name has been seen before
@@ -279,7 +330,7 @@ def parse_query(qs):
     try:
         for name_value in qs.split("&"):
             name, eq, value = name_value.partition("=")
-            if eq:
+            if eq or empty:
                 name = unquote(name.replace("+", " "))
                 if name not in result:
                     result[name] = unquote(value.replace("+", " "))
@@ -320,46 +371,6 @@ def build_query(params):
         f"{quote(name)}={quote(value)}"
         for name, value in params.items()
     ])
-
-
-if sys.hexversion < 0x30c0000:
-    # Python <= 3.11
-    def parse_timestamp(ts, default=None):
-        """Create a datetime object from a Unix timestamp"""
-        try:
-            return datetime.datetime.utcfromtimestamp(int(ts))
-        except Exception:
-            return default
-else:
-    # Python >= 3.12
-    def parse_timestamp(ts, default=None):
-        """Create a datetime object from a Unix timestamp"""
-        try:
-            Y, m, d, H, M, S, _, _, _ = time.gmtime(int(ts))
-            return datetime.datetime(Y, m, d, H, M, S)
-        except Exception:
-            return default
-
-
-def parse_datetime(date_string, format="%Y-%m-%dT%H:%M:%S%z", utcoffset=0):
-    """Create a datetime object by parsing 'date_string'"""
-    try:
-        d = datetime.datetime.strptime(date_string, format)
-        o = d.utcoffset()
-        if o is not None:
-            # convert to naive UTC
-            d = d.replace(tzinfo=None, microsecond=0) - o
-        else:
-            if d.microsecond:
-                d = d.replace(microsecond=0)
-            if utcoffset:
-                # apply manual UTC offset
-                d += datetime.timedelta(0, utcoffset * -3600)
-        return d
-    except (TypeError, IndexError, KeyError):
-        return None
-    except (ValueError, OverflowError):
-        return date_string
 
 
 urljoin = urllib.parse.urljoin

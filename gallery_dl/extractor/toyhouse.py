@@ -34,7 +34,7 @@ class ToyhouseExtractor(Extractor):
                 post.update(metadata)
             text.nameext_from_url(post["url"], post)
             post["id"], _, post["hash"] = post["filename"].partition("_")
-            yield Message.Directory, post
+            yield Message.Directory, "", post
             yield Message.Url, post["url"], post
 
     def posts(self):
@@ -43,7 +43,7 @@ class ToyhouseExtractor(Extractor):
     def metadata(self):
         return None
 
-    def skip(self, num):
+    def skip_files(self, num):
         self.offset += num
         return num
 
@@ -51,7 +51,7 @@ class ToyhouseExtractor(Extractor):
         extr = text.extract_from(post)
         return {
             "url": extr(needle, '"'),
-            "date": text.parse_datetime(extr(
+            "date": self.parse_datetime(extr(
                 '</h2>\n            <div class="mb-1">', '<'),
                 "%d %b %Y, %I:%M:%S %p"),
             "artists": [

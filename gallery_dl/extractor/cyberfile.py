@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2025 Mike Fährmann
+# Copyright 2025-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://cyberfile.me/"""
 
 from .common import Extractor, Message
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?cyberfile\.me"
 
@@ -20,16 +20,13 @@ class CyberfileExtractor(Extractor):
     root = "https://cyberfile.me"
 
     def request_api(self, endpoint, data):
-        url = f"{self.root}{endpoint}"
-        headers = {
-            "X-Requested-With": "XMLHttpRequest",
-            "Origin": self.root,
-        }
+        url = self.root + endpoint
+        headers = {"X-Requested-With": "XMLHttpRequest"}
         resp = self.request_json(
             url, method="POST", headers=headers, data=data)
 
         if "albumPasswordModel" in resp.get("javascript", ""):
-            url_pw = f"{self.root}/ajax/folder_password_process"
+            url_pw = self.root + "/ajax/folder_password_process"
             data_pw = {
                 "folderPassword": self._get_auth_info(password=True)[1],
                 "folderId": text.extr(
@@ -39,7 +36,7 @@ class CyberfileExtractor(Extractor):
             resp = self.request_json(
                 url_pw, method="POST", headers=headers, data=data_pw)
             if not resp.get("success"):
-                raise exception.AuthorizationError(f"'{resp.get('msg')}'")
+                raise self.exc.AuthorizationError(f"'{resp.get('msg')}'")
             resp = self.request_json(
                 url, method="POST", headers=headers, data=data)
 
@@ -48,7 +45,7 @@ class CyberfileExtractor(Extractor):
 
 class CyberfileFolderExtractor(CyberfileExtractor):
     subcategory = "folder"
-    pattern = rf"{BASE_PATTERN}/folder/([0-9a-f]+)"
+    pattern = BASE_PATTERN + r"/folder/([0-9a-f]+)"
     example = "https://cyberfile.me/folder/0123456789abcdef/NAME"
 
     def items(self):
@@ -56,7 +53,9 @@ class CyberfileFolderExtractor(CyberfileExtractor):
         url = f"{self.root}/folder/{folder_hash}"
         folder_num = text.extr(self.request(url).text, "ages('folder', '", "'")
 
-        extract_urls = text.re(r'dtfullurl="([^"]+)').findall
+        extract_folders = text.re(r'sharing-url="([^"]+)').findall
+        extract_files = text.re(r'dtfullurl="([^"]+)').findall
+        recursive = self.config("recursive", True)
         perpage = 600
 
         data = {
@@ -67,29 +66,67 @@ class CyberfileFolderExtractor(CyberfileExtractor):
             "filterOrderBy": "",
         }
         resp = self.request_api("/account/ajax/load_files", data)
+        html = resp["html"]
 
         folder = {
-            "_extractor" : CyberfileFileExtractor,
             "folder_hash": folder_hash,
             "folder_num" : text.parse_int(folder_num),
             "folder"     : resp["page_title"],
         }
 
         while True:
-            urls = extract_urls(resp["html"])
-            for url in urls:
-                yield Message.Queue, url, folder
+            folders = extract_folders(html)
+            if recursive and folders:
+                folder["_extractor"] = CyberfileFolderExtractor
+                for url in folders:
+                    yield Message.Queue, url, folder
 
-            if len(urls) < perpage:
+            if files := extract_files(html):
+                folder["_extractor"] = CyberfileFileExtractor
+                for url in files:
+                    yield Message.Queue, url, folder
+
+            if len(folders) + len(files) < perpage:
                 return
             data["pageStart"] += 1
             resp = self.request_api("/account/ajax/load_files", data)
 
 
+class CyberfileSharedExtractor(CyberfileExtractor):
+    subcategory = "shared"
+    pattern = BASE_PATTERN + r"/shared/([a-zA-Z0-9]+)"
+    example = "https://cyberfile.me/shared/AbCdEfGhIjK"
+
+    def items(self):
+        # get 'filehosting' cookie
+        url = f"{self.root}/shared/{self.groups[0]}"
+        self.request(url, method="HEAD")
+
+        data = {
+            "pageType" : "nonaccountshared",
+            "nodeId"   : "",
+            "pageStart": "1",
+            "perPage"  : "500",
+            "filterOrderBy": "",
+        }
+        resp = self.request_api("/account/ajax/load_files", data)
+
+        html = resp["html"]
+        pos = html.find("<!-- /.navbar-collapse -->") + 26
+
+        data = {"_extractor": CyberfileFolderExtractor}
+        for url in text.extract_iter(html, 'sharing-url="', '"', pos):
+            yield Message.Queue, url, data
+
+        data = {"_extractor": CyberfileFileExtractor}
+        for url in text.extract_iter(html, 'dtfullurl="', '"', pos):
+            yield Message.Queue, url, data
+
+
 class CyberfileFileExtractor(CyberfileExtractor):
     subcategory = "file"
     directory_fmt = ("{category}", "{uploader}", "{folder}")
-    pattern = rf"{BASE_PATTERN}/([a-zA-Z0-9]+)"
+    pattern = BASE_PATTERN + r"/([a-zA-Z0-9]+)"
     example = "https://cyberfile.me/AbCdE"
 
     def items(self):
@@ -113,7 +150,7 @@ class CyberfileFileExtractor(CyberfileExtractor):
                 "Filesize:", "</tr>"))[:-1]),
             "tags"    : text.split_html(extr(
                 "Keywords:", "</tr>")),
-            "date"    : text.parse_datetime(text.remove_html(extr(
+            "date"    : self.parse_datetime(text.remove_html(extr(
                 "Uploaded:", "</tr>")), "%d/%m/%Y %H:%M:%S"),
             "permissions": text.remove_html(extr(
                 "Permissions:", "</tr>")).split(" &amp; "),
@@ -121,5 +158,5 @@ class CyberfileFileExtractor(CyberfileExtractor):
 
         file["file_url"] = url = extr("openUrl('", "'")
         text.nameext_from_url(file["name"] or url, file)
-        yield Message.Directory, file
+        yield Message.Directory, "", file
         yield Message.Url, url, file

@@ -10,7 +10,7 @@ from gallery_dl import exception
 
 __tests__ = (
 {
-    "#url"  : "https://civitai.com/models/703211/maid-classic",
+    "#url"  : "https://civitai.red/models/703211/maid-classic",
     "#class": civitai.CivitaiModelExtractor,
     "#results": (
         "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/51ea6a54-762c-46cf-9588-726461193c96/original=true/00019-2944604798.png",
@@ -75,6 +75,11 @@ __tests__ = (
         "id": 703211,
     },
     "num"    : range(1, 3),
+},
+
+{
+    "#url"  : "https://civitai.com/models/703211/maid-classic",
+    "#class": civitai.CivitaiModelExtractor,
 },
 
 {
@@ -148,6 +153,19 @@ __tests__ = (
         "availability": "Public",
         "tags": [],
         "collectionId": None,
+    },
+    "tags[*]": {
+        "automated"  : bool,
+        "concrete"   : bool,
+        "downVotes"  : int,
+        "id"         : int,
+        "lastUpvote" : None,
+        "name"       : str,
+        "needsReview": bool,
+        "nsfwLevel"  : 1,
+        "score"      : int,
+        "type"       : {"Label", "UserGenerated"},
+        "upVotes"    : int,
     },
     "model": {
         "id": 703211,
@@ -467,6 +485,14 @@ __tests__ = (
         "id"  : int,
         "date": "type:datetime",
     },
+},
+
+{
+    "#url"      : "https://civitai.com/user/jackietop515100/posts",
+    "#comment"  : "deleted user (#8299)",
+    "#class"    : civitai.CivitaiUserPostsExtractor,
+    "#options"  : {"timeout": 5, "retries": 2},
+    "#exception": exception.HttpError,
 },
 
 {

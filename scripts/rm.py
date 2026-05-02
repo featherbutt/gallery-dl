@@ -99,6 +99,7 @@ def parse_args(args=None):
 
 def main():
     args = parse_args()
+    utils = util.path("gallery_dl", "extractor", "utils")
 
     files = [
         (util.path("gallery_dl", "extractor", f"{args.category}.py"),
@@ -106,6 +107,10 @@ def main():
 
         (util.path("test", "results", f"{args.category}.py"),
          remove_file),
+
+        *((util.path(utils, "utils", name), remove_file)
+          for name in os.listdir(utils)
+          if name.startswith(f"{args.category}_")),
 
         (util.path("docs", "configuration.rst"),
          remove_from_docs_configurationrst),

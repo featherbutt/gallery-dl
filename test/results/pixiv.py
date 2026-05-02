@@ -15,6 +15,23 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.pixiv.net/en/users/173530",
+    "#class"   : pixiv.PixivUserExtractor,
+    "#options" : {"include": "all"},
+    "#results" : (
+        "https://www.pixiv.net/users/173530/avatar",
+        "https://www.pixiv.net/users/173530/background",
+        "https://www.pixiv.net/users/173530/artworks",
+        "https://www.pixiv.net/users/173530/bookmarks/artworks",
+        "https://www.pixiv.net/users/173530/bookmarks/novels",
+        "https://www.pixiv.net/users/173530/novels",
+        "https://sketch.pixiv.net/@del_shannon",
+        "https://www.pixiv.net/users/173530/bookmarks/novels",
+        "https://www.pixiv.net/users/173530/novels",
+    ),
+},
+
+{
     "#url"     : "https://www.pixiv.net/u/173530",
     "#class"   : pixiv.PixivUserExtractor,
 },
@@ -107,6 +124,7 @@ __tests__ = (
     "#comment" : "Invalid PHPSESSID cookie",
     "#class"   : pixiv.PixivArtworksExtractor,
     "#options" : {"cookies": {"PHPSESSID": "12345_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+    "#log"     : "Invalid 'PHPSESSID' cookie",
     "#sha1_url": "852c31ad83b6840bacbce824d85f2a997889efb7",
 },
 
@@ -193,12 +211,24 @@ __tests__ = (
 {
     "#url"     : "https://www.pixiv.net/en/users/173530/avatar",
     "#class"   : pixiv.PixivAvatarExtractor,
+    "#options" : {
+        "metadata"         : True,
+        "metadata-bookmark": True,
+        "captions"         : True,
+        "comments"         : True,
+    },
     "#sha1_content": "4e57544480cc2036ea9608103e8f024fa737fe66",
 },
 
 {
     "#url"     : "https://www.pixiv.net/en/users/194921/background",
     "#class"   : pixiv.PixivBackgroundExtractor,
+    "#options" : {
+        "metadata"         : True,
+        "metadata-bookmark": True,
+        "captions"         : True,
+        "comments"         : True,
+    },
     "#pattern" : r"https://i\.pximg\.net/background/img/2021/01/30/16/12/02/194921_af1f71e557a42f499213d4b9eaccc0f8\.jpg",
 },
 
@@ -216,11 +246,12 @@ __tests__ = (
 
 {
     "#url"     : "https://www.pixiv.net/artworks/966412",
-    "#comment" : "related works (#1237)",
     "#class"   : pixiv.PixivWorkExtractor,
     "#sha1_url"    : "90c1715b07b0d1aad300bce256a0bc71f42540ba",
     "#sha1_content": "69a8edfb717400d1c2e146ab2b30d2c235440c5a",
 
+    "count"   : 1,
+    "num"     : 0,
     "date"    : "dt:2008-06-12 15:29:13",
     "date_url": "dt:2008-06-12 15:29:13",
 },
@@ -238,13 +269,14 @@ __tests__ = (
     "#results" : "https://i.pximg.net/img-zip-ugoira/img/2018/01/15/13/24/48/66806629_ugoira1920x1080.zip",
 
     "frames"  : list,
+    "count"   : 1,
     "date"    : "dt:2018-01-14 15:06:08",
     "date_url": "dt:2018-01-15 04:24:48",
 },
 
 {
     "#url"     : "https://www.pixiv.net/artworks/101003492",
-    "#comment" : "original ugoira frames (#6056)",
+    "#comment" : "ugoira - original '.png' frames (#6056)",
     "#class"   : pixiv.PixivWorkExtractor,
     "#options" : {"ugoira": "original"},
     "#results" : (
@@ -257,6 +289,19 @@ __tests__ = (
     ),
 
     "frames": list,
+    "count" : 6,
+},
+
+{
+    "#url"     : "https://www.pixiv.net/en/artworks/108469527",
+    "#comment" : "ugoira - '.gif' frames",
+    "#class"   : pixiv.PixivWorkExtractor,
+    "#options" : {"ugoira": "original"},
+    "#pattern" : r"https://i\.pximg\.net/img\-original/img/2023/05/27/02/23/48/108469527_ugoira\d+\.gif",
+    "#count"   : 30,
+
+    "frames": list,
+    "count" : 30,
 },
 
 {
@@ -286,6 +331,7 @@ __tests__ = (
     "caption"       : "Meet a deer .",
     "comment_access_control": 0,
     "comments"      : (),
+    "count"         : 1,
     "create_date"   : "2022-11-19T15:00:00+00:00",
     "date"          : "dt:2022-11-19 15:00:00",
     "date_url"      : "dt:2022-11-19 15:00:49",
@@ -367,10 +413,7 @@ __tests__ = (
     "#comment" : "deleted limit_sanity_level_360.png work (#6339)",
     "#class"   : pixiv.PixivWorkExtractor,
     "#count"   : 0,
-    "#log"     : (
-        ("warning", "104582860: 'limit_sanity_level' warning"),
-        ("error"  , "'General Error'"),
-    ),
+    "#exception": exception.NotFoundError,
 },
 
 {
@@ -441,6 +484,56 @@ __tests__ = (
 {
     "#url"     : "https://phixiv.net/member_illust.php?mode=medium&illust_id=966412",
     "#class"   : pixiv.PixivWorkExtractor,
+},
+
+{
+    "#url"     : "https://www.pixiv.net/en/artworks/141762848",
+    "#comment" : "'hash' metadata",
+    "#class"   : pixiv.PixivWorkExtractor,
+    "#results" : "https://i.pximg.net/img-original/img/2026/03/01/07/35/25/141762848-757d4d64b92a41c496c04aa34ae56855_p0.jpg",
+
+    "caption"  : """🐰＜ Twitter [ <strong><a href="https://twitter.com/MityaStar" target="_blank">twitter/MityaStar</a></strong> ]<br />🐰＜ FANBOX [ <a href="https://shootingstar.fanbox.cc/" target="_blank">https://shootingstar.fanbox.cc/</a> ]<br />🐰＜ Skeb [ <a href="https://skeb.jp/@MityaStar" target='_blank' rel='noopener noreferrer'>https://skeb.jp/@MityaStar</a> ]""",
+    "date"     : "dt:2026-02-28 22:35:25",
+    "date_url" : "dt:2026-02-28 22:35:25",
+    "extension": "jpg",
+    "filename" : "141762848-757d4d64b92a41c496c04aa34ae56855_p0",
+    "hash"     : "757d4d64b92a41c496c04aa34ae56855",
+    "width"    : 816,
+    "height"   : 1200,
+    "id"       : 141762848,
+    "title"    : "シャロちゃん",
+    "tags"     : [
+        "ご注文はうさぎですか?",
+        "桐間紗路",
+        "シャロ",
+        "内田真礼",
+    ],
+    "user"     : {
+        "account"    : "witch_shootingstar",
+        "id"         : 213128,
+        "name"       : "みーちゃ",
+    },
+},
+
+{
+    "#url"     : "https://i.pximg.net/img-original/img/2026/03/01/07/35/25/141762848-757d4d64b92a41c496c04aa34ae56855_p0.jpg",
+    "#comment" : "'hash' metadata - direct link URL",
+    "#class"   : pixiv.PixivWorkExtractor,
+    "#results" : "https://i.pximg.net/img-original/img/2026/03/01/07/35/25/141762848-757d4d64b92a41c496c04aa34ae56855_p0.jpg",
+
+    "filename" : "141762848-757d4d64b92a41c496c04aa34ae56855_p0",
+    "hash"     : "757d4d64b92a41c496c04aa34ae56855",
+    "id"       : 141762848,
+},
+
+{
+    "#url"     : "https://www.pixiv.net/en/artworks/67841765",
+    "#comment" : "deleted work, KeyError - 'total_comments' (cb#16)",
+    "#class"   : pixiv.PixivWorkExtractor,
+    "#auth"    : True,
+    "#options" : {"comments": True},
+    "#count"   : 0,
+    "#log"     : "67841765: Deleted",
 },
 
 {
@@ -616,18 +709,23 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.pixiv.net/search?q=touhou%20flandre&s_mode=tc&type=artwork",
+    "#class"   : pixiv.PixivSearchExtractor,
+},
+
+{
     "#url"     : "https://touch.pixiv.net/search.php?word=Original",
     "#class"   : pixiv.PixivSearchExtractor,
 },
 
 {
     "#url"     : "https://www.pixiv.net/bookmark_new_illust.php",
-    "#class"   : pixiv.PixivFollowExtractor,
+    "#class"   : pixiv.PixivFollowedExtractor,
 },
 
 {
     "#url"     : "https://touch.pixiv.net/bookmark_new_illust.php",
-    "#class"   : pixiv.PixivFollowExtractor,
+    "#class"   : pixiv.PixivFollowedExtractor,
 },
 
 {
@@ -668,6 +766,8 @@ __tests__ = (
     "#class"   : pixiv.PixivSketchExtractor,
     "#pattern" : r"https://img\-sketch\.pixiv\.net/uploads/medium/file/\d+/\d+\.(jpg|png)",
     "#count"   : ">= 35",
+
+    "date": "type:datetime",
 },
 
 )

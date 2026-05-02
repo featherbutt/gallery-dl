@@ -25,22 +25,31 @@ CATEGORY_MAP = {
     "35photo"        : "35PHOTO",
     "adultempire"    : "Adult Empire",
     "agnph"          : "AGNPH",
+    "ahottie"        : "AHottie",
     "aibooru"        : "AIBooru",
     "allgirlbooru"   : "All girl",
+    "allporncomic"   : "AllPornComic",
     "ao3"            : "Archive of Our Own",
     "archivedmoe"    : "Archived.Moe",
     "archiveofsins"  : "Archive of Sins",
+    "arena"          : "Are.na",
     "artstation"     : "ArtStation",
     "aryion"         : "Eka's Portal",
     "atfbooru"       : "ATFBooru",
+    "atfforum"       : "All The Fallen",
     "azurlanewiki"   : "Azur Lane Wiki",
     "b4k"            : "arch.b4k.dev",
     "baraag"         : "baraag",
     "batoto"         : "BATO.TO",
     "bbc"            : "BBC",
+    "blacktowhite"   : "BlacktoWhite",
     "booth"          : "BOOTH",
+    "celebforum"     : "celebforum",
+    "cfake"          : "Celebrity Fakes",
     "cien"           : "Ci-en",
     "cohost"         : "cohost!",
+    "comedywildlifephoto": "Comedy Wildlife Photography Awards",
+    "comicartfans"   : "Comic Art Fans",
     "comicvine"      : "Comic Vine",
     "cyberfile"      : "CyberFile",
     "dankefuerslesen": "Danke fürs Lesen",
@@ -51,6 +60,7 @@ CATEGORY_MAP = {
     "e926"           : "e926",
     "e6ai"           : "e6AI",
     "erome"          : "EroMe",
+    "eporner"        : "EPORNER",
     "everia"         : "EVERIA.CLUB",
     "e-hentai"       : "E-Hentai",
     "exhentai"       : "ExHentai",
@@ -58,9 +68,15 @@ CATEGORY_MAP = {
     "fanbox"         : "pixivFANBOX",
     "fappic"         : "Fappic.com",
     "fashionnova"    : "Fashion Nova",
+    "fikfap"         : "FikFap",
+    "filester"       : "filester.me",
+    "fitnakedgirls"  : "FitNakedGirls",
+    "foriio"         : "foriio",
+    "framedsc"       : "FRAMED. Screenshot Community",
     "furaffinity"    : "Fur Affinity",
     "furry34"        : "Furry 34 com",
     "girlswithmuscle": "Girls with Muscle",
+    "harvardlawnuremberg": "Harvard Law School Nuremberg Trials Project",
     "hatenablog"     : "HatenaBlog",
     "hbrowse"        : "HBrowse",
     "hdoujin"        : "HDoujin Galleries",
@@ -84,6 +100,7 @@ CATEGORY_MAP = {
     "imagebam"       : "ImageBam",
     "imagefap"       : "ImageFap",
     "imagepond"      : "ImagePond",
+    "imageshack"     : "ImageShack",
     "imagetwist"     : "ImageTwist",
     "imgadult"       : "ImgAdult",
     "imgbb"          : "ImgBB",
@@ -93,6 +110,7 @@ CATEGORY_MAP = {
     "imgkiwi"        : "IMG.Kiwi",
     "imglike"        : "Nude Celeb",
     "imgpile"        : "imgpile",
+    "imgpv"          : "IMGPV",
     "imgtaxi"        : "ImgTaxi.com",
     "imgth"          : "imgth",
     "imgur"          : "imgur",
@@ -103,8 +121,13 @@ CATEGORY_MAP = {
     "itchio"         : "itch.io",
     "jpgfish"        : "JPG Fish",
     "kabeuchi"       : "かべうち",
+    "kaliscan"       : "KaliScan",
     "mangafire"      : "MangaFire",
+    "mangafreak"     : "MangaFreak",
+    "mangareader"    : "MangaReader",
     "mangataro"      : "MangaTaro",
+    "mgewiki"        : "Monster Girl Encyclopedia Wiki",
+    "s3ndpics"       : "S3ND",
     "schalenetwork"  : "Schale Network",
     "leakgallery"    : "Leak Gallery",
     "livedoor"       : "livedoor Blog",
@@ -115,6 +138,7 @@ CATEGORY_MAP = {
     "mangafox"       : "Manga Fox",
     "mangahere"      : "Manga Here",
     "mangakakalot"   : "MangaKakalot",
+    "mangatown"      : "MangaTown",
     "manganato"      : "MangaNato",
     "mangapark"      : "MangaPark",
     "mangaread"      : "MangaRead",
@@ -122,6 +146,7 @@ CATEGORY_MAP = {
     "mastodon.social": "mastodon.social",
     "mediawiki"      : "MediaWiki",
     "micmicidol"     : "MIC MIC IDOL",
+    "mixdrop"        : "MixDrop",
     "myhentaigallery": "My Hentai Gallery",
     "myportfolio"    : "Adobe Portfolio",
     "natomanga"      : "MangaNato",
@@ -135,7 +160,10 @@ CATEGORY_MAP = {
     "nozrip"         : "GaryC Booru",
     "nsfwalbum"      : "NSFWalbum.com",
     "nudostar"       : "NudoStar.TV",
+    "nudostarforum"  : "NudoStar Forums",
+    "okporn"         : "OK.PORN",
     "paheal"         : "Rule 34",
+    "pholder"        : "pholder",
     "photovogue"     : "PhotoVogue",
     "picstate"       : "PicState",
     "pidgiwiki"      : "PidgiWiki",
@@ -146,9 +174,9 @@ CATEGORY_MAP = {
     "pornimage"      : "Porn Image",
     "pornpics"       : "PornPics.com",
     "pornreactor"    : "PornReactor",
+    "pornstarstube"  : "PORNSTARS.TUBE",
     "postimg"        : "Postimages",
     "readcomiconline": "Read Comic Online",
-    "redbust"        : "RedBust",
     "rbt"            : "RebeccaBlackTech",
     "redgifs"        : "RedGIFs",
     "rozenarcana"    : "Rozen Arcana",
@@ -156,6 +184,7 @@ CATEGORY_MAP = {
     "rule34hentai"   : "Rule34Hentai",
     "rule34us"       : "Rule 34",
     "rule34vault"    : "R34 Vault",
+    "rule34world"    : "Rule 34 World",
     "rule34xyz"      : "Rule 34 XYZ",
     "sankaku"        : "Sankaku Channel",
     "sankakucomplex" : "Sankaku Complex",
@@ -170,6 +199,7 @@ CATEGORY_MAP = {
     "slickpic"       : "SlickPic",
     "slideshare"     : "SlideShare",
     "smugmug"        : "SmugMug",
+    "socialmediagirlsforum": "Social Media Girls Forums",
     "speakerdeck"    : "Speaker Deck",
     "steamgriddb"    : "SteamGridDB",
     "subscribestar"  : "SubscribeStar",
@@ -180,11 +210,15 @@ CATEGORY_MAP = {
     "thebarchive"    : "The /b/ Archive",
     "thecollection"  : "The /co/llection",
     "thecollectionS" : "The /co/llection",
+    "thefap"         : "TheFap",
+    "thefappeningforum": "The Fappening Forum",
     "thehentaiworld" : "The Hentai World",
     "tiktok"         : "TikTok",
+    "titsintops"     : "Tits In Tops Forum",
     "tmohentai"      : "TMOHentai",
     "tumblrgallery"  : "TumblrGallery",
     "turboimagehost" : "TurboImageHost.com",
+    "turbo"          : "turbo.cr",
     "vanillarock"    : "もえぴりあ",
     "vidyart2"       : "/v/idyart2",
     "vidyapics"      : "Vidya Booru",
@@ -196,6 +230,7 @@ CATEGORY_MAP = {
     "webmshare"      : "webmshare",
     "webtoons"       : "WEBTOON",
     "weebcentral"    : "Weeb Central",
+    "weebdex"        : "WeebDex",
     "wikiart"        : "WikiArt.org",
     "wikigg"         : "wiki.gg",
     "wikimediacommons": "Wikimedia Commons",
@@ -204,6 +239,7 @@ CATEGORY_MAP = {
     "xvideos"        : "XVideos",
     "yandere"        : "yande.re",
     "yiffverse"      : "Yiff verse",
+    "yourlesbians"   : "YourLesbians",
 }
 
 SUBCATEGORY_MAP = {
@@ -218,8 +254,10 @@ SUBCATEGORY_MAP = {
     "issue"  : "Comic Issues",
     "manga"  : "Manga",
     "media"  : "Media Files",
+    "people" : "People",
     "popular": "Popular Images",
     "recent" : "Recent Images",
+    "saved"  : "Saved Posts",
     "search" : "Search Results",
     "status" : "Images from Statuses",
     "tag"    : "Tag Searches",
@@ -227,6 +265,7 @@ SUBCATEGORY_MAP = {
     "user"   : "User Profiles",
     "watch"  : "Watches",
     "direct-messages": "DMs",
+    "direct-link"    : "Direct Links",
     "following"      : "Followed Users",
     "related-pin"    : "related Pins",
     "related-board"  : "",
@@ -238,6 +277,13 @@ SUBCATEGORY_MAP = {
         "artwork": "Artwork Listings",
         "collections": "",
     },
+    "audiochan": {
+        "audio": "Audios",
+    },
+    "aryion": {
+        "messagepage": "Message Page Submissions",
+        "watch": "Watched Users",
+    },
     "bilibili": {
         "user-articles-favorite": "User Article Favorites",
     },
@@ -246,6 +292,12 @@ SUBCATEGORY_MAP = {
     },
     "boosty": {
         "feed": "Subscriptions Feed",
+    },
+    "booth": {
+        "category": "Item Categories",
+    },
+    "cfake": {
+        "created": "Created",
     },
     "civitai": {
         "models": "Model Listings",
@@ -262,6 +314,14 @@ SUBCATEGORY_MAP = {
         "discord"       : "",
         "discord-server": "",
         "posts"         : "",
+    },
+    "cosplayrule34": {
+        "listing": ("Models", "Cosplays", "Fandoms", "Categories", "Searches"),
+        "posts"  : "Frontpage Posts",
+        "top"    : "Top Pages"
+    },
+    "cyberfile": {
+        "shared": "Shares",
     },
     "Danbooru": {
         "favgroup": "Favorite Groups",
@@ -284,6 +344,9 @@ SUBCATEGORY_MAP = {
     "fanbox": {
         "supporting": "Supported User Feed",
         "redirect"  : "Pixiv Redirects",
+    },
+    "fantia": {
+        "supporting": "Supported Creators",
     },
     "fansly": {
         "lists": "Account Lists",
@@ -310,7 +373,6 @@ SUBCATEGORY_MAP = {
     },
     "instagram": {
         "posts": "",
-        "saved": "Saved Posts",
         "tagged": "Tagged Posts",
         "stories-tray": "Stories Home Tray",
     },
@@ -321,6 +383,9 @@ SUBCATEGORY_MAP = {
         "discord"       : "Discord Servers",
         "discord-server": "",
         "posts"         : "",
+    },
+    "koofr": {
+        "shared": "Shared Links",
     },
     "leakgallery": {
         "trending" : "Trending Medias",
@@ -351,6 +416,7 @@ SUBCATEGORY_MAP = {
         "folder": "Filesystems",
     },
     "pixiv": {
+        "followed": "Follows",
         "me"  : "pixiv.me Links",
         "pixivision": "pixivision",
         "sketch": "Sketch",
@@ -368,9 +434,6 @@ SUBCATEGORY_MAP = {
         "post"           : "Individual Posts",
         "shorturl"       : "",
     },
-    "redbust": {
-        "gallery": ("Galleries", "Categories"),
-    },
     "redgifs": {
         "collections": "",
     },
@@ -378,10 +441,12 @@ SUBCATEGORY_MAP = {
         "books": "Book Searches",
     },
     "scrolller": {
+        "user"     : "Reddit Users",
         "following": "Followed Subreddits",
     },
     "sexcom": {
         "pins": "User Pins",
+        "feed": "Feed",
     },
     "sizebooru": {
         "user": "User Uploads",
@@ -394,11 +459,17 @@ SUBCATEGORY_MAP = {
     "smugmug": {
         "path": "Images from Users and Folders",
     },
+    "snapchat": {
+        "story": "",
+        "spotlight": "",
+    },
     "steamgriddb": {
         "asset": "Individual Assets",
     },
     "tiktok": {
+        "posts": "User Posts",
         "vmpost": "VM Posts",
+        "following": "Followed Users (Stories Only)",
     },
     "tumblr": {
         "day": "Days",
@@ -406,8 +477,8 @@ SUBCATEGORY_MAP = {
     "twitter": {
         "media": "Media Timelines",
         "tweets": "",
-        "replies": "",
         "community": "",
+        "with-replies": "",
         "list-members": "List Members",
     },
     "vk": {
@@ -438,6 +509,12 @@ SUBCATEGORY_MAP = {
     "wikimedia": {
         "article": ["Articles", "Categories", "Files"],
     },
+    "xenforo": {
+        "media-user": "User Media",
+        "media-item": "Media Files",
+        "media-category": "Media Categories",
+        "media-album"   : "Albums",
+    },
 }
 
 BASE_MAP = {
@@ -457,6 +534,7 @@ BASE_MAP = {
     "szurubooru"  : "szurubooru Instances",
     "urlshortener": "URL Shorteners",
     "vichan"      : "vichan Imageboards",
+    "xenforo"     : "XenForo Forums",
 }
 
 URL_MAP = {
@@ -464,8 +542,8 @@ URL_MAP = {
     "wikimedia": "https://www.wikimedia.org/",
 }
 
-_OAUTH = '<a href="https://github.com/mikf/gallery-dl#oauth">OAuth</a>'
-_COOKIES = '<a href="https://github.com/mikf/gallery-dl#cookies">Cookies</a>'
+_OAUTH = '<a href="https://codeberg.org/mikf/gallery-dl#oauth">OAuth</a>'
+_COOKIES = '<a href="https://codeberg.org/mikf/gallery-dl#cookies">Cookies</a>'
 _APIKEY_DB = ('<a href="https://gdl-org.github.io/docs/configuration.html'
               '#extractor-derpibooru-api-key">API Key</a>')
 _APIKEY_WH = ('<a href="https://gdl-org.github.io/docs/configuration.html'
@@ -511,25 +589,29 @@ AUTH_MAP = {
     "mastodon.social": _OAUTH,
     "newgrounds"     : "Supported",
     "nijie"          : "Required",
+    "nudostarforum"  : "Supported",
     "patreon"        : _COOKIES,
     "pawoo"          : _OAUTH,
     "pillowfort"     : "Supported",
     "pinterest"      : _COOKIES,
     "pixiv"          : _OAUTH,
     "pixiv-novel"    : _OAUTH,
+    "poipiku"        : "Supported",
     "ponybooru"      : "API Key",
     "reddit"         : _OAUTH,
+    "rule34world"    : "Supported",
     "rule34xyz"      : "Supported",
     "sankaku"        : "Supported",
     "scrolller"      : "Supported",
     "seiga"          : "Supported",
+    "simpcity"       : "Supported",
     "smugmug"        : _OAUTH,
     "subscribestar"  : "Supported",
     "tapas"          : "Supported",
     "tiktok"         : _COOKIES,
     "tsumino"        : "Supported",
     "tumblr"         : _OAUTH,
-    "twitter"        : "Supported",
+    "twitter"        : _COOKIES,
     "vipergirls"     : "Supported",
     "wallhaven"      : _APIKEY_WH,
     "weasyl"         : _APIKEY_WY,
@@ -667,11 +749,16 @@ def build_extractor_list():
     default["wikifeetx"] = default["wikifeet"]
     domains["wikifeetx"] = "https://www.wikifeetx.com/"
 
+    # add rule34.world
+    default["rule34world"] = default["rule34xyz"]
+    domains["rule34world"] = "https://rule34.world/"
+
     # imgdrive / imgtaxi / imgwallet
     base = categories["imagehost"]
     base["imgtaxi"] = base["imgdrive"]
     base["imgwallet"] = base["imgdrive"]
     categories["imagehost"] = {k: base[k] for k in sorted(base)}
+    domains["postimg"] = "https://postimages.org/"
     domains["imgtaxi"] = "https://imgtaxi.com/"
     domains["imgwallet"] = "https://imgwallet.com/"
 

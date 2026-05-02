@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2025 Mike Fährmann
+# Copyright 2015-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://mangapark.net/"""
 
 from .common import ChapterExtractor, Extractor, Message
-from .. import text, util, exception
-from ..cache import memcache
+from .. import text, util
 
 BASE_PATTERN = (r"(?:https?://)?(?:www\.)?(?:"
                 r"(?:manga|comic|read)park\.(?:com|net|org|me|io|to)|"
@@ -23,7 +22,7 @@ class MangaparkBase():
     category = "mangapark"
 
     def _parse_chapter_title(self, title):
-        match = util.re(
+        match = text.re(
             r"(?i)"
             r"(?:vol(?:\.|ume)?\s*(\d+)\s*)?"
             r"ch(?:\.|apter)?\s*(\d+)([^\s:]*)"
@@ -31,7 +30,6 @@ class MangaparkBase():
         ).match(title)
         return match.groups() if match else (0, 0, "", "")
 
-    @memcache(keyarg=1)
     def _extract_manga(self, manga_id):
         variables = {
             "getComicNodeId": manga_id,
@@ -60,7 +58,7 @@ class MangaparkBase():
     def _request_graphql(self, opname, variables):
         url = self.root + "/apo/"
         data = {
-            "query"        : QUERIES[opname],
+            "query"        : self.utils("graphql", opname),
             "variables"    : variables,
             "operationName": opname,
         }
@@ -80,7 +78,7 @@ class MangaparkChapterExtractor(MangaparkBase, ChapterExtractor):
 
     def metadata(self, _):
         chapter = self._extract_chapter(self.groups[0])
-        manga = self._extract_manga(chapter["comicNode"]["id"])
+        manga = self.cache(self._extract_manga, chapter["comicNode"]["id"])
 
         self._urls = chapter["imageFile"]["urlList"]
         vol, ch, minor, title = self._parse_chapter_title(chapter["dname"])
@@ -101,7 +99,7 @@ class MangaparkChapterExtractor(MangaparkBase, ChapterExtractor):
             "language"  : util.code_to_language(lang),
             "source"    : chapter["srcTitle"],
             "source_id" : chapter["sourceId"],
-            "date"      : text.parse_timestamp(chapter["dateCreate"] // 1000),
+            "date"      : self.parse_timestamp(chapter["dateCreate"] / 1000),
         }
 
     def images(self, _):
@@ -138,8 +136,8 @@ class MangaparkMangaExtractor(MangaparkBase, Extractor):
                 "language"  : util.code_to_language(lang),
                 "source"    : chapter["srcTitle"],
                 "source_id" : chapter["sourceId"],
-                "date"      : text.parse_timestamp(
-                    chapter["dateCreate"] // 1000),
+                "date"      : self.parse_timestamp(
+                    chapter["dateCreate"] / 1000),
                 "_extractor": MangaparkChapterExtractor,
             }
             yield Message.Queue, url, data
@@ -175,185 +173,5 @@ class MangaparkMangaExtractor(MangaparkBase, Extractor):
                     not lang or data["lang"] == lang):
                 return data["id"]
 
-        raise exception.AbortExtraction(
+        raise self.exc.AbortExtraction(
             f"'{source}' does not match any available source")
-
-
-QUERIES = {
-    "Get_comicChapterList": """
-query Get_comicChapterList($comicId: ID!) {
-    get_comicChapterList(comicId: $comicId) {
-        data {
-            id
-            dname
-            title
-            lang
-            urlPath
-            srcTitle
-            sourceId
-            dateCreate
-        }
-    }
-}
-""",
-
-    "Get_chapterNode": """
-query Get_chapterNode($getChapterNodeId: ID!) {
-    get_chapterNode(id: $getChapterNodeId) {
-        data {
-            id
-            dname
-            lang
-            sourceId
-            srcTitle
-            dateCreate
-            comicNode{
-                id
-            }
-            imageFile {
-                urlList
-            }
-        }
-    }
-}
-""",
-
-    "Get_comicNode": """
-query Get_comicNode($getComicNodeId: ID!) {
-    get_comicNode(id: $getComicNodeId) {
-        data {
-            id
-            name
-            artists
-            authors
-            genres
-        }
-    }
-}
-""",
-
-    "get_content_source_chapterList": """
-  query get_content_source_chapterList($sourceId: Int!) {
-    get_content_source_chapterList(
-      sourceId: $sourceId
-    ) {
-
-  id
-  data {
-
-
-  id
-  sourceId
-
-  dbStatus
-  isNormal
-  isHidden
-  isDeleted
-  isFinal
-
-  dateCreate
-  datePublic
-  dateModify
-  lang
-  volume
-  serial
-  dname
-  title
-  urlPath
-
-  srcTitle srcColor
-
-  count_images
-
-  stat_count_post_child
-  stat_count_post_reply
-  stat_count_views_login
-  stat_count_views_guest
-
-  userId
-  userNode {
-
-  id
-  data {
-
-id
-name
-uniq
-avatarUrl
-urlPath
-
-verified
-deleted
-banned
-
-dateCreate
-dateOnline
-
-stat_count_chapters_normal
-stat_count_chapters_others
-
-is_adm is_mod is_vip is_upr
-
-  }
-
-  }
-
-  disqusId
-
-
-  }
-
-    }
-  }
-""",
-
-    "get_content_comic_sources": """
-  query get_content_comic_sources($comicId: Int!, $dbStatuss: [String] = [], $userId: Int, $haveChapter: Boolean, $sortFor: String) {
-    get_content_comic_sources(
-      comicId: $comicId
-      dbStatuss: $dbStatuss
-      userId: $userId
-      haveChapter: $haveChapter
-      sortFor: $sortFor
-    ) {
-
-id
-data{
-
-  id
-
-  dbStatus
-  isNormal
-  isHidden
-  isDeleted
-
-  lang name altNames authors artists
-
-  release
-  genres summary{code} extraInfo{code}
-
-  urlCover600
-  urlCover300
-  urlCoverOri
-
-  srcTitle srcColor
-
-  chapterCount
-  chapterNode_last {
-    id
-    data {
-      dateCreate datePublic dateModify
-      volume serial
-      dname title
-      urlPath
-      userNode {
-        id data {uniq name}
-      }
-    }
-  }
-}
-
-    }
-  }
-""",
-}

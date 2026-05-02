@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2018-2025 Mike Fährmann
+# Copyright 2018-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -21,7 +21,7 @@ class PostProcessor():
     def __repr__(self):
         return self.__class__.__name__
 
-    def _init_archive(self, job, options, prefix=None):
+    def _archive_init(self, job, options, prefix=None):
         if archive_path := options.get("archive"):
             extr = job.extractor
 
@@ -44,7 +44,7 @@ class PostProcessor():
                     archive_table,
                     "file",
                     options.get("archive-pragma"),
-                    job.pathfmt.kwdict,
+                    job.pathfmt,
                     "_archive_" + self.name,
                 )
             except Exception as exc:
@@ -54,11 +54,13 @@ class PostProcessor():
             else:
                 self.log.debug(
                     "Using %s archive '%s'", self.name, archive_path)
-                job.register_hooks({"finalize": self._close_archive})
                 return True
 
         self.archive = None
         return False
 
-    def _close_archive(self, _):
+    def _archive_register(self, job):
+        job.register_hooks({"finalize": self._archive_close})
+
+    def _archive_close(self, _):
         self.archive.close()

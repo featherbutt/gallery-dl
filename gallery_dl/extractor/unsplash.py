@@ -41,17 +41,17 @@ class UnsplashExtractor(Extractor):
             if metadata:
                 photo.update(metadata)
             photo["extension"] = "jpg"
-            photo["date"] = text.parse_datetime(photo["created_at"])
+            photo["date"] = self.parse_datetime_iso(photo["created_at"])
             if "tags" in photo:
                 photo["tags"] = [t["title"] for t in photo["tags"]]
 
-            yield Message.Directory, photo
+            yield Message.Directory, "", photo
             yield Message.Url, url, photo
 
     def metadata(self):
         return None
 
-    def skip(self, num):
+    def skip_files(self, num):
         pages = num // self.per_page
         self.page_start += pages
         return pages * self.per_page

@@ -64,6 +64,46 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://lejean.blogspot.com/2009/08/my-workflow.html",
+    "#comment" : "video (gh#9487)",
+    "#category": ("blogger", "blogspot", "post"),
+    "#class"   : blogger.BloggerPostExtractor,
+    "#pattern" : (
+        r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgWSVrXVeJ3Ro03C5hefLD2LxomAmtePXOc-b0tgtXaQoDLLtma5z47KLlt0C_ffik8IQdTENLu7RB7qJSLtdbwVF8t-KVTgFu0rWU-3UZyCg01wdBB3QQK7fELi5m67FHXLTVHY5yu9CvG/s0/jequ.jpg",
+        r"https://[^/?#]+\.googlevideo\.com/videoplayback\?expire=\d+&.+&itag=22&.+",
+    ),
+
+    "blog"     : {
+        "date"       : "dt:2008-02-09 17:00:11",
+        "description": "",
+        "id"         : "8155490718269393715",
+        "name"       : "rLéJean's Daily Sketch Grind",
+        "published"  : "2008-02-10T02:00:11+09:00",
+        "updated"    : "2024-11-01T21:01:52+09:00",
+        "url"        : "https://lejean.blogspot.com/",
+        "locale"     : {
+            "country" : "US",
+            "language": "en",
+            "variant" : "",
+        },
+    },
+    "post"     : {
+        "author"   : "rLéJean",
+        "content"  : str,
+        "date"     : "dt:2009-08-30 10:25:00",
+        "id"       : "5067046835459217828",
+        "published": "2009-08-30T19:25:00+09:00",
+        "title"    : "My workflow",
+        "updated"  : "2011-01-06T13:34:01+09:00",
+        "url"      : "https://lejean.blogspot.com/2009/08/my-workflow.html",
+        "labels"   : [
+            "fashion",
+            "tutorial",
+        ],
+    },
+},
+
+{
     "#url"     : "https://julianbphotography.blogspot.com/",
     "#category": ("blogger", "blogspot", "blog"),
     "#class"   : blogger.BloggerBlogExtractor,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2022-2025 Mike Fährmann
+# Copyright 2022-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://twibooru.org/"""
 
 from .booru import BooruExtractor
-from .. import text, exception
+from .. import text
 import operator
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?twibooru\.org"
@@ -28,6 +28,7 @@ class TwibooruExtractor(BooruExtractor):
 
     def _init(self):
         self.api = TwibooruAPI(self)
+        self.comments = self.config("comments", False)
         if not self.config("svg", True):
             self._file_url = operator.itemgetter("view_url")
 
@@ -37,8 +38,11 @@ class TwibooruExtractor(BooruExtractor):
         return post["view_url"]
 
     def _prepare(self, post):
-        post["date"] = text.parse_datetime(
-            post["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        post["date"] = self.parse_datetime_iso(post["created_at"])
+
+        if self.comments:
+            post["comments"] = (self.api.comments(post["id"])
+                                if post.get("comment_count") else ())
 
         if "name" in post:
             name, sep, rest = post["name"].rpartition(".")
@@ -124,6 +128,10 @@ class TwibooruAPI():
         self.extractor = extractor
         self.root = "https://twibooru.org/api"
 
+    def comments(self, post_id):
+        endpoint = f"/v3/posts/{post_id}/comments"
+        return self._call(endpoint)
+
     def gallery(self, gallery_id):
         endpoint = "/v3/galleries/" + gallery_id
         return self._call(endpoint)["gallery"]
@@ -146,15 +154,15 @@ class TwibooruAPI():
                 return response.json()
 
             if response.status_code == 429:
-                until = text.parse_datetime(
-                    response.headers["X-RL-Reset"], "%Y-%m-%d %H:%M:%S %Z")
+                until = self.parse_datetime_iso(
+                    response.headers["X-RL-Reset"][:19])
                 # wait an extra minute, just to be safe
                 self.extractor.wait(until=until, adjust=60.0)
                 continue
 
             # error
             self.extractor.log.debug(response.content)
-            raise exception.HttpError("", response)
+            raise self.extractor.exc.HttpError("", response)
 
     def _pagination(self, endpoint, params):
         extr = self.extractor

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2024-2025 Mike Fährmann
+# Copyright 2024-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://bsky.app/"""
 
 from .common import Extractor, Message, Dispatch
-from .. import text, util, exception
-from ..cache import cache, memcache
+from .. import text, util
 
 BASE_PATTERN = (r"(?:https?://)?"
                 r"(?:(?:www\.)?(?:c|[fv]x)?bs[ky]y[ex]?\.app|main\.bsky\.dev)")
@@ -44,6 +43,8 @@ class BlueskyExtractor(Extractor):
         for post in self.posts():
             if "post" in post:
                 post = post["post"]
+            elif "item" in post:
+                post = post["item"]
             if self._user_did and post["author"]["did"] != self._user_did:
                 self.log.debug("Skipping %s (repost)", self._pid(post))
                 continue
@@ -58,11 +59,11 @@ class BlueskyExtractor(Extractor):
                 self._prepare(post)
                 files = self._extract_files(post)
 
-                yield Message.Directory, post
+                yield Message.Directory, "", post
                 if files:
                     did = post["author"]["did"]
-                    base = (f"{self.api.service_endpoint(did)}/xrpc"
-                            f"/com.atproto.sync.getBlob?did={did}&cid=")
+                    base = (f"{self.cache(self.api.service_endpoint, did)}"
+                            f"/xrpc/com.atproto.sync.getBlob?did={did}&cid=")
                     for post["num"], file in enumerate(files, 1):
                         post.update(file)
                         yield Message.Url, base + file["filename"], post
@@ -94,7 +95,7 @@ class BlueskyExtractor(Extractor):
                 uri = record["value"]["subject"]["uri"]
                 if "/app.bsky.feed.post/" in uri:
                     yield from self.api.get_post_thread_uri(uri, depth)
-            except exception.ControlException:
+            except self.exc.ControlException:
                 pass  # deleted post
             except Exception as exc:
                 self.log.debug(record, exc_info=exc)
@@ -104,7 +105,6 @@ class BlueskyExtractor(Extractor):
     def _pid(self, post):
         return post["uri"].rpartition("/")[2]
 
-    @memcache(keyarg=1)
     def _instance(self, handle):
         return ".".join(handle.rsplit(".", 2)[-2:])
 
@@ -133,8 +133,7 @@ class BlueskyExtractor(Extractor):
 
         post["instance"] = self.instance
         post["post_id"] = self._pid(post)
-        post["date"] = text.parse_datetime(
-            post["createdAt"][:19], "%Y-%m-%dT%H:%M:%S")
+        post["date"] = self.parse_datetime_iso(post["createdAt"][:19])
 
     def _extract_files(self, post):
         if "embed" not in post:
@@ -148,9 +147,15 @@ class BlueskyExtractor(Extractor):
 
         if "images" in media:
             for image in media["images"]:
-                files.append(self._extract_media(image, "image"))
+                try:
+                    files.append(self._extract_media(image, "image"))
+                except Exception:
+                    pass
         if "video" in media and self.videos:
-            files.append(self._extract_media(media, "video"))
+            try:
+                files.append(self._extract_media(media, "video"))
+            except Exception:
+                pass
 
         post["count"] = len(files)
         return files
@@ -179,7 +184,7 @@ class BlueskyExtractor(Extractor):
 
     def _make_post(self, actor, kind):
         did = self.api._did_from_actor(actor)
-        profile = self.api.get_profile(did)
+        profile = self.cache(self.api.get_profile, did)
 
         if kind not in profile:
             return ()
@@ -329,7 +334,7 @@ class BlueskyInfoExtractor(BlueskyExtractor):
     def items(self):
         self._metadata_user = True
         self.api._did_from_actor(self.groups[0])
-        return iter(((Message.Directory, self._user),))
+        return iter(((Message.Directory, "", self._user.copy()),))
 
 
 class BlueskyAvatarExtractor(BlueskyExtractor):
@@ -372,6 +377,15 @@ class BlueskyHashtagExtractor(BlueskyExtractor):
         return self.api.search_posts("#"+hashtag, order)
 
 
+class BlueskyBookmarkExtractor(BlueskyExtractor):
+    subcategory = "bookmark"
+    pattern = BASE_PATTERN + r"/saved"
+    example = "https://bsky.app/saved"
+
+    def posts(self):
+        return self.api.get_bookmarks()
+
+
 class BlueskyAPI():
     """Interface for the Bluesky API
 
@@ -384,7 +398,9 @@ class BlueskyAPI():
         self.headers = {"Accept": "application/json"}
 
         self.username, self.password = extractor._get_auth_info()
-        if self.username:
+        if srv := extractor.config("api-server", False):
+            self.root = srv.rstrip("/")
+        elif self.username:
             self.root = "https://bsky.social"
         else:
             self.root = "https://api.bsky.app"
@@ -406,6 +422,10 @@ class BlueskyAPI():
             "limit" : "100",
         }
         return self._pagination(endpoint, params)
+
+    def get_bookmarks(self):
+        endpoint = "app.bsky.bookmark.getBookmarks"
+        return self._pagination(endpoint, {}, "bookmarks", check_empty=True)
 
     def get_feed(self, actor, feed):
         endpoint = "app.bsky.feed.getFeed"
@@ -455,7 +475,6 @@ class BlueskyAPI():
             index += 1
         return posts
 
-    @memcache(keyarg=1)
     def get_profile(self, did):
         endpoint = "app.bsky.actor.getProfile"
         params = {"actor": did}
@@ -464,25 +483,23 @@ class BlueskyAPI():
     def list_records(self, actor, collection):
         endpoint = "com.atproto.repo.listRecords"
         actor_did = self._did_from_actor(actor)
+        service = self.extractor.cache(self.service_endpoint, actor_did)
         params = {
             "repo"      : actor_did,
             "collection": collection,
             "limit"     : "100",
             #  "reverse"   : "false",
         }
-        return self._pagination(endpoint, params, "records",
-                                self.service_endpoint(actor_did))
+        return self._pagination(endpoint, params, "records", service)
 
-    @memcache(keyarg=1)
     def resolve_handle(self, handle):
         endpoint = "com.atproto.identity.resolveHandle"
         params = {"handle": handle}
         return self._call(endpoint, params)["did"]
 
-    @memcache(keyarg=1)
     def service_endpoint(self, did):
         if did.startswith('did:web:'):
-            url = "https://" + did[8:] + "/.well-known/did.json"
+            url = f"https://{did[8:]}/.well-known/did.json"
         else:
             url = "https://plc.directory/" + did
 
@@ -508,49 +525,56 @@ class BlueskyAPI():
         if actor.startswith("did:"):
             did = actor
         else:
-            did = self.resolve_handle(actor)
+            did = self.extractor.cache(self.resolve_handle, actor)
 
         extr = self.extractor
         if user_did and not extr.config("reposts", False):
             extr._user_did = did
         if extr._metadata_user:
-            extr._user = user = self.get_profile(did)
+            extr._user = user = extr.cache(self.get_profile, did)
             user["instance"] = extr._instance(user["handle"])
 
         return did
 
     def authenticate(self):
-        self.headers["Authorization"] = self._authenticate_impl(self.username)
+        self.headers["Authorization"] = self.extractor.cache(
+            self._authenticate_impl, self.username, _exp=3600, _mem=False)
 
-    @cache(maxage=3600, keyarg=1)
     def _authenticate_impl(self, username):
-        refresh_token = _refresh_token_cache(username)
-
-        if refresh_token:
+        if refresh_token := self.extractor.cache(
+                _refresh_token_cache, username, _mem=False):
             self.log.info("Refreshing access token for %s", username)
             endpoint = "com.atproto.server.refreshSession"
             headers = {"Authorization": "Bearer " + refresh_token}
-            data = None
+            json = None
         else:
             self.log.info("Logging in as %s", username)
             endpoint = "com.atproto.server.createSession"
             headers = None
-            data = {
+            json = {
                 "identifier": username,
                 "password"  : self.password,
             }
 
         url = f"{self.root}/xrpc/{endpoint}"
-        response = self.extractor.request(
-            url, method="POST", headers=headers, json=data, fatal=None)
-        data = response.json()
 
-        if response.status_code != 200:
-            self.log.debug("Server response: %s", data)
-            raise exception.AuthenticationError(
-                f"\"{data.get('error')}: {data.get('message')}\"")
+        while True:
+            response = self.extractor.request(
+                url, method="POST", headers=headers, json=json, fatal=None)
+            data = response.json()
 
-        _refresh_token_cache.update(self.username, data["refreshJwt"])
+            if data.get("error") == "AuthFactorTokenRequired":
+                json["authFactorToken"] = self.extractor.input(
+                    data.get("message", "Login Code") + ": ")
+            elif response.status_code != 200:
+                self.log.debug("Server response: %s", data)
+                raise self.extractor.exc.AuthenticationError(
+                    f"\"{data.get('error')}: {data.get('message')}\"")
+            else:
+                break  # success
+
+        self.extractor.cache_update(_refresh_token_cache, self.username,
+                                    data["refreshJwt"], _exp=84*86400)
         return "Bearer " + data["accessJwt"]
 
     def _call(self, endpoint, params, root=None):
@@ -578,7 +602,7 @@ class BlueskyAPI():
                 msg = f"{msg} ({response.status_code} {response.reason})"
 
             self.extractor.log.debug("Server response: %s", response.text)
-            raise exception.AbortExtraction(msg)
+            raise self.extractor.exc.AbortExtraction(msg)
 
     def _pagination(self, endpoint, params,
                     key="feed", root=None, check_empty=False):
@@ -595,6 +619,5 @@ class BlueskyAPI():
             params["cursor"] = cursor
 
 
-@cache(maxage=84*86400, keyarg=0)
 def _refresh_token_cache(username):
     return None

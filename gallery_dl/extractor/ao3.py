@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2024-2025 Mike Fährmann
+# Copyright 2024-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,8 +9,7 @@
 """Extractors for https://archiveofourown.org/"""
 
 from .common import Extractor, Message, Dispatch
-from .. import text, util, exception
-from ..cache import cache
+from .. import text, util
 
 BASE_PATTERN = (r"(?:https?://)?(?:www\.)?"
                 r"a(?:rchiveofourown|o3)\.(?:org|com|net)")
@@ -63,9 +62,10 @@ class Ao3Extractor(Extractor):
 
         username, password = self._get_auth_info()
         if username:
-            return self.cookies_update(self._login_impl(username, password))
+            return self.cookies_update(self.cache(
+                self._login_impl, username, password,
+                _exp=90*86400, _mem=False))
 
-    @cache(maxage=90*86400, keyarg=1)
     def _login_impl(self, username, password):
         self.log.info("Logging in as %s", username)
 
@@ -88,11 +88,11 @@ class Ao3Extractor(Extractor):
 
         response = self.request(url, method="POST", data=data)
         if not response.history:
-            raise exception.AuthenticationError()
+            raise self.exc.AuthenticationError()
 
         remember = response.history[0].cookies.get("remember_user_token")
         if not remember:
-            raise exception.AuthenticationError()
+            raise self.exc.AuthenticationError()
 
         return {
             "remember_user_token": remember,
@@ -139,15 +139,15 @@ class Ao3WorkExtractor(Ao3Extractor):
 
         work_id = self.groups[0]
         url = f"{self.root}/works/{work_id}"
-        response = self.request(url, notfound="work")
+        response = self.request(url, notfound=True)
 
         if response.url.endswith("/users/login?restricted=true"):
-            raise exception.AuthorizationError(
+            raise self.exc.AuthorizationError(
                 "Login required to access member-only works")
         page = response.text
         if len(page) < 20000 and \
                 '<h2 class="landmark heading">Adult Content Warning</' in page:
-            raise exception.AbortExtraction("Adult Content")
+            raise self.exc.AbortExtraction("Adult Content")
 
         extr = text.extract_from(page)
 
@@ -182,11 +182,11 @@ class Ao3WorkExtractor(Ao3Extractor):
                 extr('<dd class="freeform tags">', "</dd>")),
             "lang"         : extr('<dd class="language" lang="', '"'),
             "series"       : extr('<dd class="series">', "</dd>"),
-            "date"         : text.parse_datetime(
-                extr('<dd class="published">', "<"), "%Y-%m-%d"),
-            "date_completed": text.parse_datetime(
-                extr('>Completed:</dt><dd class="status">', "<"), "%Y-%m-%d"),
-            "date_updated" : text.parse_timestamp(
+            "date"         : self.parse_datetime_iso(extr(
+                '<dd class="published">', "<")),
+            "date_completed": self.parse_datetime_iso(extr(
+                '>Completed:</dt><dd class="status">', "<")),
+            "date_updated" : self.parse_timestamp(
                 path.rpartition("updated_at=")[2]),
             "words"        : text.parse_int(
                 extr('<dd class="words">', "<").replace(",", "")),
@@ -220,7 +220,7 @@ class Ao3WorkExtractor(Ao3Extractor):
         else:
             data["series"] = None
 
-        yield Message.Directory, data
+        yield Message.Directory, "", data
         for fmt in self.formats:
             try:
                 url = text.urljoin(self.root, fmts[fmt])

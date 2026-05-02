@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2019-2025 Mike Fährmann
+# Copyright 2019-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://www.pornhub.com/"""
 
 from .common import Extractor, Message, Dispatch
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:[\w-]+\.)?pornhub\.com"
 
@@ -64,7 +64,7 @@ class PornhubGalleryExtractor(PornhubExtractor):
 
     def items(self):
         data = self.metadata()
-        yield Message.Directory, data
+        yield Message.Directory, "", data
         for num, img in enumerate(self.images(), 1):
 
             image = {
@@ -85,7 +85,7 @@ class PornhubGalleryExtractor(PornhubExtractor):
         extr = text.extract_from(self.request(url).text)
 
         title = extr("<title>", "</title>")
-        self._token = extr('name="token" value="', '"')
+        self._token = extr('data-token="', '"')
         score = extr('<div id="albumGreenBar" style="width:', '"')
         views = extr('<div id="viewsPhotAlbumCounter">', '<')
         tags = extr('<div id="photoTagsBox"', '<script')
@@ -109,7 +109,7 @@ class PornhubGalleryExtractor(PornhubExtractor):
         data = self.request_json(url, params=params)
 
         if not (images := data.get("photos")):
-            raise exception.AuthorizationError()
+            raise self.exc.AuthorizationError()
         key = end = self._first
 
         results = []
@@ -150,15 +150,14 @@ class PornhubGifExtractor(PornhubExtractor):
             "tags" : extr("data-context-tag='", "'").split(","),
             "title": extr('"name": "', '"'),
             "url"  : extr('"contentUrl": "', '"'),
-            "date" : text.parse_datetime(
-                extr('"uploadDate": "', '"'), "%Y-%m-%d"),
+            "date" : self.parse_datetime_iso(extr('"uploadDate": "', '"')),
             "viewkey"  : extr('From this video: '
                               '<a href="/view_video.php?viewkey=', '"'),
             "timestamp": extr('lass="directLink tstamp" rel="nofollow">', '<'),
             "user" : text.remove_html(extr("Created by:", "</div>")),
         }
 
-        yield Message.Directory, gif
+        yield Message.Directory, "", gif
         yield Message.Url, gif["url"], text.nameext_from_url(gif["url"], gif)
 
 

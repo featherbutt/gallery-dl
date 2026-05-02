@@ -7,7 +7,7 @@
 """Extractors for https://www.lofter.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
+from .. import text, util
 
 
 class LofterExtractor(Extractor):
@@ -29,7 +29,7 @@ class LofterExtractor(Extractor):
                 post = post["post"]
 
             post["blog_name"] = post["blogInfo"]["blogName"]
-            post["date"] = text.parse_timestamp(post["publishTime"] // 1000)
+            post["date"] = self.parse_timestamp(post["publishTime"] / 1000)
             post_type = post["type"]
 
             # Article
@@ -63,7 +63,7 @@ class LofterExtractor(Extractor):
                     post["id"], post_type)
 
             post["count"] = len(image_urls)
-            yield Message.Directory, post
+            yield Message.Directory, "", post
             for post["num"], url in enumerate(image_urls, 1):
                 yield Message.Url, url, text.nameext_from_url(url, post)
 
@@ -132,11 +132,11 @@ class LofterAPI():
         info = response.json()
 
         if info["meta"]["status"] == 4200:
-            raise exception.NotFoundError("blog")
+            raise self.extractor.exc.NotFoundError("blog")
 
         if info["meta"]["status"] != 200:
             self.extractor.log.debug("Server response: %s", info)
-            raise exception.AbortExtraction("API request failed")
+            raise self.extractor.exc.AbortExtraction("API request failed")
 
         return info["response"]
 

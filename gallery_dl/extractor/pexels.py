@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2025 Mike Fährmann
+# Copyright 2025-2026 Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -9,7 +9,7 @@
 """Extractors for https://pexels.com/"""
 
 from .common import Extractor, Message
-from .. import text, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https?://)?(?:www\.)?pexels\.com"
 
@@ -35,8 +35,7 @@ class PexelsExtractor(Extractor):
                 post["type"] = attr["type"]
 
             post.update(metadata)
-            post["date"] = text.parse_datetime(
-                post["created_at"][:-5], "%Y-%m-%dT%H:%M:%S")
+            post["date"] = self.parse_datetime_iso(post["created_at"][:-5])
 
             if "image" in post:
                 url, _, query = post["image"]["download_link"].partition("?")
@@ -49,7 +48,7 @@ class PexelsExtractor(Extractor):
                 self.log.warning("%s: Unsupported post type", post.get("id"))
                 continue
 
-            yield Message.Directory, post
+            yield Message.Directory, "", post
             yield Message.Url, url, text.nameext_from_url(name, post)
 
     def posts(self):
@@ -175,7 +174,7 @@ class PexelsAPI():
 
             else:
                 self.extractor.log.debug(response.text)
-                raise exception.AbortExtraction("API request failed")
+                raise self.extractor.exc.AbortExtraction("API request failed")
 
     def _pagination(self, endpoint, params):
         while True:

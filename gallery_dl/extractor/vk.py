@@ -9,7 +9,7 @@
 """Extractors for https://vk.com/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
+from .. import text
 
 BASE_PATTERN = r"(?:https://)?(?:www\.|m\.)?vk\.com"
 
@@ -26,21 +26,21 @@ class VkExtractor(Extractor):
     def _init(self):
         self.offset = text.parse_int(self.config("offset"))
 
-    def finalize(self):
-        if self.offset:
+    def finalize(self, status):
+        if status and self.offset:
             self.log.info("Use '-o offset=%s' to continue downloading "
                           "from the current position", self.offset)
 
-    def skip(self, num):
+    def skip_files(self, num):
         self.offset += num
         return num
 
     def items(self):
-        subn = util.re(r"/imp[fg]/").subn
+        subn = text.re(r"/imp[fg]/").subn
         sizes = "wzyxrqpo"
 
         data = self.metadata()
-        yield Message.Directory, data
+        yield Message.Directory, "", data
 
         for photo in self.photos():
 
@@ -72,7 +72,7 @@ class VkExtractor(Extractor):
                 photo["width"] = photo["height"] = 0
 
             photo["id"] = photo["id"].rpartition("_")[2]
-            photo["date"] = text.parse_timestamp(text.extr(
+            photo["date"] = self.parse_timestamp(text.extr(
                 photo["date"], 'data-date="', '"'))
             photo["description"] = text.unescape(text.extr(
                 photo.get("desc", ""), ">", "<"))
@@ -100,13 +100,13 @@ class VkExtractor(Extractor):
             response = self.request(
                 url, method="POST", headers=headers, data=data)
             if response.history and "/challenge.html" in response.url:
-                raise exception.AbortExtraction(
-                    f"HTTP redirect to 'challenge' page:\n{response.url}")
+                raise self.exc.AbortExtraction(
+                    "HTTP redirect to 'challenge' page:\n" + response.url)
 
             payload = response.json()["payload"][1]
             if len(payload) < 4:
                 self.log.debug(payload)
-                raise exception.AuthorizationError(
+                raise self.exc.AuthorizationError(
                     text.unescape(payload[0]) if payload[0] else None)
 
             total = payload[1]
@@ -236,7 +236,7 @@ class VkTaggedExtractor(VkExtractor):
         self.user_id = match[1]
 
     def photos(self):
-        return self._pagination(f"tag{self.user_id}")
+        return self._pagination("tag" + self.user_id)
 
     def metadata(self):
         return {"user": {"id": self.user_id}}

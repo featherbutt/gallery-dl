@@ -7,7 +7,7 @@
 """Extractors for https://www.boosty.to/"""
 
 from .common import Extractor, Message
-from .. import text, util, exception
+from .. import text, util
 import itertools
 
 BASE_PATTERN = r"(?:https?://)?boosty\.to"
@@ -49,6 +49,9 @@ class BoostyExtractor(Extractor):
         self.videos = videos
 
     def items(self):
+        headers = self.api.headers.copy()
+        del headers["Accept"]
+
         for post in self.posts():
             if not post.get("hasAccess"):
                 self.log.warning("Not allowed to access post %s", post["id"])
@@ -61,9 +64,10 @@ class BoostyExtractor(Extractor):
                 "post" : post,
                 "user" : post.pop("user", None),
                 "count": len(files),
+                "_http_headers": headers,
             }
 
-            yield Message.Directory, data
+            yield Message.Directory, "", data
             for data["num"], file in enumerate(files, 1):
                 data["file"] = file
                 url = file["url"]
@@ -78,7 +82,7 @@ class BoostyExtractor(Extractor):
         post["links"] = links = []
 
         if "createdAt" in post:
-            post["date"] = text.parse_timestamp(post["createdAt"])
+            post["date"] = self.parse_timestamp(post["createdAt"])
 
         for block in post["data"]:
             try:
@@ -260,7 +264,7 @@ class BoostyDirectMessagesExtractor(BoostyExtractor):
                 "count": len(files),
             }
 
-            yield Message.Directory, data
+            yield Message.Directory, "", data
             for data["num"], file in enumerate(files, 1):
                 data["file"] = file
                 url = file["url"]
@@ -280,8 +284,12 @@ class BoostyAPI():
 
         if not access_token:
             if auth := self.extractor.cookies.get("auth", domain=".boosty.to"):
-                access_token = text.extr(
-                    text.unquote(auth), '"accessToken":"', '"')
+                auth = text.unquote(auth)
+                access_token = text.extr(auth, '"accessToken":"', '"')
+                if expires := text.extr(auth, '"expiresAt":', ','):
+                    import time
+                    if text.parse_int(expires) < time.time() * 1000:
+                        extractor.log.warning("'auth' cookie tokens expired")
         if access_token:
             self.headers["Authorization"] = "Bearer " + access_token
 
@@ -372,14 +380,15 @@ class BoostyAPI():
                 return response.json()
 
             elif response.status_code < 400:
-                raise exception.AuthenticationError("Invalid API access token")
+                raise self.extractor.exc.AuthenticationError(
+                    "Invalid API access token")
 
             elif response.status_code == 429:
                 self.extractor.wait(seconds=600)
 
             else:
                 self.extractor.log.debug(response.text)
-                raise exception.AbortExtraction("API request failed")
+                raise self.extractor.exc.AbortExtraction("API request failed")
 
     def _pagination(self, endpoint, params, transform=None, key=None):
         if "is_only_allowed" not in params and self.extractor.only_allowed:
@@ -416,7 +425,7 @@ class BoostyAPI():
             params["offset"] = offset
 
     def dialog(self, dialog_id):
-        endpoint = f"/v1/dialog/{dialog_id}"
+        endpoint = "/v1/dialog/" + dialog_id
         return self._call(endpoint)
 
     def dialog_messages(self, dialog_id, limit=300, offset=None):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2024 Mike Fährmann
+# Copyright 2024-2026n Mike Fährmann
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -28,6 +28,8 @@ class YiffverseExtractor(BooruExtractor):
         2   : "copyright",
         4   : "character",
         8   : "artist",
+        16  : "system",
+        32  : "meta",
     }
     FORMATS = (
         ("100", "mov.mp4"),
@@ -55,8 +57,7 @@ class YiffverseExtractor(BooruExtractor):
 
     def _prepare(self, post):
         post.pop("files", None)
-        post["date"] = text.parse_datetime(
-            post["created"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        post["date"] = self.parse_datetime_iso(post["created"])
         post["filename"], _, post["format"] = post["filename"].rpartition(".")
         if "tags" in post:
             post["tags"] = [t["value"] for t in post["tags"]]

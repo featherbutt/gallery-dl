@@ -17,6 +17,8 @@ from . import config, util, formatter
 # --------------------------------------------------------------------
 # Globals
 
+format_bytes = util.format_bytes_decimal
+
 try:
     TTY_STDOUT = sys.stdout.isatty()
 except Exception:
@@ -58,7 +60,7 @@ else:
     CHAR_SKIP = "# "
     CHAR_SUCCESS = "✔ "
     CHAR_ELLIPSIES = "…"
-
+OFFSET_BYTES = 7
 
 # --------------------------------------------------------------------
 # Logging
@@ -88,6 +90,11 @@ class LoggerAdapter():
     def __init__(self, logger, job):
         self.logger = logger
         self.extra = job._logger_extra
+
+    def traceback(self, exc):
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger._log(
+                logging.DEBUG, "", None, exc_info=exc, extra=self.extra)
 
     def debug(self, msg, *args, **kwargs):
         if self.logger.isEnabledFor(logging.DEBUG):
@@ -171,6 +178,48 @@ class Formatter(logging.Formatter):
         return msg
 
 
+class FileHandler(logging.StreamHandler):
+    def __init__(self, path, mode, encoding, delay=True):
+        self.path = path
+        self.mode = mode
+        self.errors = None
+        self.encoding = encoding
+
+        if delay:
+            logging.Handler.__init__(self)
+            self.stream = None
+            self.emit = self.emit_delayed
+        else:
+            logging.StreamHandler.__init__(self, self._open())
+
+    def close(self):
+        with self.lock:
+            try:
+                if self.stream:
+                    try:
+                        self.flush()
+                        self.stream.close()
+                    finally:
+                        self.stream = None
+            finally:
+                logging.StreamHandler.close(self)
+
+    def _open(self):
+        try:
+            return open(self.path, self.mode,
+                        encoding=self.encoding, errors=self.errors)
+        except FileNotFoundError:
+            os.makedirs(os.path.dirname(self.path))
+            return open(self.path, self.mode,
+                        encoding=self.encoding, errors=self.errors)
+
+    def emit_delayed(self, record):
+        if self.mode != "w" or not self._closed:
+            self.stream = self._open()
+        self.emit = logging.StreamHandler.emit.__get__(self)
+        self.emit(record)
+
+
 def initialize_logging(loglevel):
     """Setup basic logging functionality before configfiles have been loaded"""
     # convert levelnames to lowercase
@@ -242,7 +291,8 @@ def configure_logging(loglevel):
     root.setLevel(minlevel)
 
 
-def setup_logging_handler(key, fmt=LOG_FORMAT, lvl=LOG_LEVEL, mode="w"):
+def setup_logging_handler(key, fmt=LOG_FORMAT, lvl=LOG_LEVEL, mode="w",
+                          defer=False):
     """Setup a new logging handler"""
     opts = config.interpolate(("output",), key)
     if not opts:
@@ -253,12 +303,10 @@ def setup_logging_handler(key, fmt=LOG_FORMAT, lvl=LOG_LEVEL, mode="w"):
     path = opts.get("path")
     mode = opts.get("mode", mode)
     encoding = opts.get("encoding", "utf-8")
+    delay = opts.get("defer", defer)
     try:
         path = util.expand_path(path)
-        handler = logging.FileHandler(path, mode, encoding)
-    except FileNotFoundError:
-        os.makedirs(os.path.dirname(path))
-        handler = logging.FileHandler(path, mode, encoding)
+        handler = FileHandler(path, mode, encoding, delay)
     except (OSError, ValueError) as exc:
         logging.getLogger("gallery-dl").warning(
             "%s: %s", key, exc)
@@ -318,6 +366,14 @@ def configure_standard_streams():
             options["errors"] = "replace"
 
         stream.reconfigure(**options)
+
+
+def configure_units():
+    global format_bytes, OFFSET_BYTES
+
+    if config.get(("output",), "units") in {"binary", "base-2", "iec"}:
+        format_bytes = util.format_bytes_binary
+        OFFSET_BYTES = 8
 
 
 # --------------------------------------------------------------------
@@ -399,13 +455,13 @@ class TerminalOutput():
         stdout_write(f"\r{self.shorten(CHAR_SUCCESS + path)}\n")
 
     def progress(self, bytes_total, bytes_downloaded, bytes_per_second):
-        bdl = util.format_value(bytes_downloaded)
-        bps = util.format_value(bytes_per_second)
+        bdl = format_bytes(bytes_downloaded)
+        bps = format_bytes(bytes_per_second)
         if bytes_total is None:
-            stderr_write(f"\r{bdl:>7}B {bps:>7}B/s ")
+            stderr_write(f"\r{bdl:>{OFFSET_BYTES}}B {bps:>{OFFSET_BYTES}}B/s ")
         else:
             stderr_write(f"\r{bytes_downloaded * 100 // bytes_total:>3}% "
-                         f"{bdl:>7}B {bps:>7}B/s ")
+                         f"{bdl:>{OFFSET_BYTES}}B {bps:>{OFFSET_BYTES}}B/s ")
 
 
 class ColorOutput(TerminalOutput):
@@ -480,13 +536,13 @@ class CustomOutput():
         stdout_write(self._fmt_success(path))
 
     def progress(self, bytes_total, bytes_downloaded, bytes_per_second):
-        bdl = util.format_value(bytes_downloaded)
-        bps = util.format_value(bytes_per_second)
+        bdl = format_bytes(bytes_downloaded)
+        bps = format_bytes(bytes_per_second)
         if bytes_total is None:
             stderr_write(self._fmt_progress(bdl, bps))
         else:
             stderr_write(self._fmt_progress_total(
-                bdl, bps, util.format_value(bytes_total),
+                bdl, bps, format_bytes(bytes_total),
                 bytes_downloaded * 100 // bytes_total))
 
 
