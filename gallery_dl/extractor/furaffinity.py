@@ -89,7 +89,7 @@ class FuraffinityExtractor(Extractor):
         pi = text.parse_int
         rh = text.remove_html
 
-        path = page[page.rfind('"', 0, pos)+1:page.find('"', pos)]
+        path = page[page.rfind('"', None, pos)+1:page.find('"', pos)]
         data = text.nameext_from_url(path, {
             "id" : pi(post_id),
             "url": "https:" + path,
