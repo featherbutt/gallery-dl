@@ -4198,6 +4198,25 @@ Description
     header causing potentially lowered video quality.
 
 
+extractor.instagram.wd
+----------------------
+Type
+    * ``bool``
+    * ``string``
+Default
+    ``false``
+Description
+    | Controls how to handle ``wd`` cookies,
+    | which possibly limit the dimensions of returned photos.
+
+    ``true``
+        Keep ``wd`` cookie
+    ``false``
+        Unset/delete ``wd`` cookie
+    any ``string``
+        Set ``wd`` cookie to this value
+
+
 extractor.instagram.stories.split
 ---------------------------------
 Type

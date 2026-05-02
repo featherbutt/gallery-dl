@@ -45,6 +45,11 @@ class InstagramExtractor(Extractor):
         self.cookies.set(
             "csrftoken", self.csrf_token, domain=self.cookies_domain)
 
+        if not (wd := self.config("wd", False)):
+            self.cookies.set("wd", None, domain=self.cookies_domain)
+        elif isinstance(wd, str):
+            self.cookies.set("wd", wd, domain=self.cookies_domain)
+
         if self.config("api") == "graphql":
             self.api = InstagramGraphqlAPI(self)
         else:
