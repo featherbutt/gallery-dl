@@ -4082,6 +4082,16 @@ Note
     This option only affects ``highlights``.
 
 
+extractor.instagram.pinned
+--------------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Process pinned posts.
+
+
 extractor.instagram.previews
 ----------------------------
 Type
@@ -4196,6 +4206,25 @@ Description
     Show a warning when downloading videos with a
     `User-Agent <extractor.*.user-agent_>`__
     header causing potentially lowered video quality.
+
+
+extractor.instagram.wd
+----------------------
+Type
+    * ``bool``
+    * ``string``
+Default
+    ``false``
+Description
+    | Controls how to handle ``wd`` cookies,
+    | which possibly limit the dimensions of returned photos.
+
+    ``true``
+        Keep ``wd`` cookie
+    ``false``
+        Unset/delete ``wd`` cookie
+    any ``string``
+        Set ``wd`` cookie to this value
 
 
 extractor.instagram.stories.split
@@ -5785,6 +5814,16 @@ Description
 
     ``null`` means not including this parameter at all
     and letting Reddit chose a default.
+
+
+extractor.reddit.pinned
+-----------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Process pinned submissions.
 
 
 extractor.reddit.previews

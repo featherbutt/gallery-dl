@@ -45,6 +45,11 @@ class InstagramExtractor(Extractor):
         self.cookies.set(
             "csrftoken", self.csrf_token, domain=self.cookies_domain)
 
+        if not (wd := self.config("wd", False)):
+            self.cookies.set("wd", None, domain=self.cookies_domain)
+        elif isinstance(wd, str):
+            self.cookies.set("wd", wd, domain=self.cookies_domain)
+
         if self.config("api") == "graphql":
             self.api = InstagramGraphqlAPI(self)
         else:
@@ -85,6 +90,7 @@ class InstagramExtractor(Extractor):
             previews_video = previews_audio = False
         del previews
 
+        pinned = self.config("pinned", True)
         max_posts = self.config("max-posts")
         order = self.config("order-files")
         reverse = order[0] in {"r", "d"} if order else False
@@ -99,6 +105,10 @@ class InstagramExtractor(Extractor):
                 post = self._parse_post_graphql(post)
             else:
                 post = self._parse_post_rest(post)
+
+            if not pinned and post.get("pinned"):
+                self.log.debug("%s: Skipping pinned post", post.get("post_id"))
+                continue
 
             if self._user:
                 post["user"] = self._user
