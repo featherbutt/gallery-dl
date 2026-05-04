@@ -315,8 +315,14 @@ class TwitterExtractor(Extractor):
         if "legacy" in card:
             card = card["legacy"]
 
-        name = card["name"].rpartition(":")[2]
-        bvals = card["binding_values"]
+        try:
+            name = card["name"].rpartition(":")[2]
+            bvals = card["binding_values"]
+        except Exception:
+            self.log.debug("%s: Ignoring external card (%s)",
+                           tweet["id_str"], card.get("rest_id"))
+            return
+
         if isinstance(bvals, list):
             bvals = {bval["key"]: bval["value"]
                      for bval in card["binding_values"]}
