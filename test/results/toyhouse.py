@@ -71,4 +71,23 @@ __tests__ = (
     "#class"   : toyhouse.ToyhouseImageExtractor,
 },
 
+{
+    "#url"     : "https://toyhou.se/~images/90697482",
+    "#comment" : "multiple characters",
+    "#class"   : toyhouse.ToyhouseImageExtractor,
+    "#results" : "https://f2.toyhou.se/file/f2-toyhou-se/images/90697482_ohVDjxWjeepj3LC.png",
+
+    "artists"   : ["d-floe"],
+    "date"      : "dt:2024-11-01 20:43:46",
+    "extension" : "png",
+    "filename"  : "90697482_ohVDjxWjeepj3LC",
+    "hash"      : "ohVDjxWjeepj3LC",
+    "id"        : "90697482",
+    "url"       : "https://f2.toyhou.se/file/f2-toyhou-se/images/90697482_ohVDjxWjeepj3LC.png",
+    "characters": [
+        "Ash",
+        "Sumi",
+    ],
+},
+
 )
