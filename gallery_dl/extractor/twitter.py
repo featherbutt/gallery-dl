@@ -1630,6 +1630,7 @@ class TwitterAPI():
         pgn = cfg("search-pagination", "max_id")
         if pgn in {"max_id", "maxid", "id"}:
             update_variables = self._update_variables_search_maxid
+            self._var_maxid_prev = None
         elif pgn in {"until", "date", "datetime", "dt"}:
             update_variables = self._update_variables_search_date
             self._var_date_prev = None
@@ -2458,7 +2459,14 @@ class TwitterAPI():
     def _update_variables_search_maxid(self, variables, cursor, tweet):
         try:
             tweet_id = tweet.get("id_str") or tweet["legacy"]["id_str"]
-            max_id = "max_id:" + str(int(tweet_id)-1)
+            max_id = int(tweet_id)
+
+            if max_id == self._var_maxid_prev:
+                self.log.debug("Repeated 'max_id' value (%s)", max_id)
+                # reduce 'max_id' timestamp milliseconds by 1
+                max_id = (max_id - 0x400000) | 0x3fffff
+            self._var_maxid_prev = max_id
+            max_id = "max_id:" + str(max_id)
 
             query, n = text.re(r"\bmax_id:\d+").subn(
                 max_id, variables["rawQuery"])
