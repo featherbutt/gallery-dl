@@ -104,7 +104,11 @@ class VipergirlsExtractor(Extractor):
     def _login_impl(self, username, password):
         self.log.info("Logging in as %s", username)
 
-        url = self.root + "/login.php?do=login"
+        root = self.root
+        if root == "https://viper.click":
+            root = VipergirlsExtractor.root
+
+        url = root + "/login.php?do=login"
         data = {
             "vb_login_username": username,
             "vb_login_password": password,
