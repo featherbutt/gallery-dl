@@ -142,11 +142,8 @@ class VipergirlsThreadExtractor(VipergirlsExtractor):
                r"/threads/(\d+)(?:-[^/?#]+)?(/page\d+)?(?:$|#|\?(?!p=))")
     example = "https://vipergirls.to/threads/12345-TITLE"
 
-    def __init__(self, match):
-        VipergirlsExtractor.__init__(self, match)
-        self.thread_id, self.page = match.groups()
-
     def posts(self):
+        self.thread_id, self.page = self.groups
         url = f"{self.root}/vr.php?t={self.thread_id}"
         return self.request_xml(url)
 
@@ -158,11 +155,8 @@ class VipergirlsPostExtractor(VipergirlsExtractor):
                r"/threads/(\d+)(?:-[^/?#]+)?\?p=\d+[^#]*#post(\d+)")
     example = "https://vipergirls.to/threads/12345-TITLE?p=23456#post23456"
 
-    def __init__(self, match):
-        VipergirlsExtractor.__init__(self, match)
-        self.thread_id, self.post_id = match.groups()
-        self.page = 0
-
     def posts(self):
-        url = f"{self.root}/vr.php?p={self.post_id}"
+        self.page = 0
+        self.thread_id, post_id = self.groups
+        url = f"{self.root}/vr.php?p={post_id}"
         return self.request_xml(url)
