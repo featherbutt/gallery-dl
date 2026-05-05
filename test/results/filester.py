@@ -24,16 +24,27 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://filester.sh/d/aPc9D5g",
+    "#class"   : filester.FilesterFileExtractor,
+    "#pattern" : r"https://cache[16].filester.me/d/37313437[0-9a-f]+\.\w{64}\?download=true",
+},
+
+{
+    "#url"     : "https://filester.si/d/aPc9D5g",
+    "#class"   : filester.FilesterFileExtractor,
+    "#pattern" : r"https://cache[16].filester.me/d/37313437[0-9a-f]+\.\w{64}\?download=true",
+},
+
+{
+    "#url"     : "https://filester.gg/d/aPc9D5g",
+    "#class"   : filester.FilesterFileExtractor,
+    "#pattern" : r"https://cache[16].filester.me/d/37313437[0-9a-f]+\.\w{64}\?download=true",
+},
+
+{
     "#url"     : "https://filester.me/f/1725bc5b793e8a4a",
     "#class"   : filester.FilesterFolderExtractor,
-    "#pattern" : (
-        r"https://cache[16].filester.me/d/33343537[0-9a-f]+\.\w{64}\?download=true",
-        r"https://cache[16].filester.me/d/30386462[0-9a-f]+\.\w{64}\?download=true",
-        r"https://cache[16].filester.me/d/66663562[0-9a-f]+\.\w{64}\?download=true",
-        r"https://cache[16].filester.me/d/63396533[0-9a-f]+\.\w{64}\?download=true",
-        r"https://cache[16].filester.me/d/63343162[0-9a-f]+\.\w{64}\?download=true",
-        r"https://cache[16].filester.me/d/39623935[0-9a-f]+\.\w{64}\?download=true",
-    ),
+    "#pattern" : r"https://cache[16].filester.me/d/[0-9a-f]+\.\w{64}\?download=true",
 
     "count"      : 6,
     "num"        : range(1, 6),
@@ -44,7 +55,7 @@ __tests__ = (
     "folder_id"  : "1725bc5b793e8a4a",
     "folder_name": '''"&>''',
     "folder_size": 194734,
-    "folder_uuid": "34576704-dc5f-44a9-843c-ae0e5284309d",
+    "folder_uuid": "iso:uuid",
     "id"         : r"re:\w+",
     "size"       : r"re:\d+",
     "uuid"       : "iso:uuid",

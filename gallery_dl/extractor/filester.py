@@ -12,7 +12,7 @@ from .common import Extractor, Message
 from .. import text
 import random
 
-BASE_PATTERN = r"(?:https?://)?(?:www\.)?filester\.me"
+BASE_PATTERN = r"(?:https?://)?(?:www\.)?filester\.(?:me|s[hi]|gg)"
 
 
 class FilesterExtractor(Extractor):
