@@ -21,6 +21,11 @@ class FilesterExtractor(Extractor):
     archive_fmt = "{id}"
     root = "https://filester.me"
 
+    def _init(self):
+        if domain := self.config("domain"):
+            self.root = (text.root_from_url(self.url) if domain == "auto" else
+                         text.ensure_http_scheme(domain))
+
     def _download_url(self, slug):
         url = self.root + "/api/public/download"
         data = self.request_json(url, method="POST", json={"file_slug": slug})

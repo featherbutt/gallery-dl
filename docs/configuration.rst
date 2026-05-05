@@ -3432,6 +3432,20 @@ Description
     to access locked content.
 
 
+extractor.filester.domain
+-------------------------
+Type
+    ``string``
+Default
+    ``"filester.me"``
+Description
+    Specifies the domain used by ``filester`` extractors.
+
+    Setting this option to ``"auto"``
+    uses the same domain as a given input URL.
+
+
+
 extractor.flickr.access-token & .access-token-secret
 ----------------------------------------------------
 Type
