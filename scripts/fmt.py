@@ -67,8 +67,8 @@ def fmt_subject(subject):
     return subject.replace("<SINGLEQUOTE>", "'")
 
 
-def fmt_commit(pr, subject, issues):
-    subject = fmt_subject(subject)
+def fmt_commit(pr, subject, issues, suffix=""):
+    subject = fmt_subject(subject) + suffix
     if pr:
         subject = f"merge {fmt_issue(pr, True)}: {subject}"
     if issues:
@@ -97,8 +97,8 @@ def process_ref(ref):
     if not sep:
         return 1
     m = re.match(RE_COMMIT, subject)
-    w(f"[`{HASH[:8]}`]({ROOT}/{REPO}/commit/{HASH}) "
-      f"{fmt_commit(*m.groups())}\n")
+    s = f"]({ROOT}/{REPO}/commit/{HASH})"
+    w(f"[`{HASH[:8]}` {fmt_commit(*m.groups(), s)}\n")
     return 0
 
 
@@ -114,7 +114,7 @@ def main():
     if len(arg) < 8 and arg.isdecimal():
         return process_issue(arg)
 
-    if m := re.match(fr"{ROOT}/{REPO}/commit/([0-9a-f]{8,})", arg):
+    if m := re.match(fr"{ROOT}/{REPO}/commit/([0-9a-f]{{8,}})", arg):
         return process_ref(m[1])
 
     if m := re.match(RE_COMMIT, arg):
