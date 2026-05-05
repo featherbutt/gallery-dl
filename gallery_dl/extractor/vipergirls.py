@@ -25,7 +25,7 @@ class VipergirlsExtractor(Extractor):
     cookies_domain = ".vipergirls.to"
     cookies_names = ("vg_userid", "vg_password")
 
-    def _init(self):
+    def initialize(self):
         if domain := self.config("domain"):
             pos = domain.find("://")
             if pos >= 0:
@@ -38,6 +38,7 @@ class VipergirlsExtractor(Extractor):
         else:
             self.root = "https://viper.click"
             self.cookies_domain = ".viper.click"
+        Extractor.initialize(self)
 
     def items(self):
         self.login()
