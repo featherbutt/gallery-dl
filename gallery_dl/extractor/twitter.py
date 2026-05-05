@@ -2461,10 +2461,14 @@ class TwitterAPI():
             tweet_id = tweet.get("id_str") or tweet["legacy"]["id_str"]
             max_id = int(tweet_id)
 
-            if max_id == self._var_maxid_prev:
-                self.log.debug("Repeated 'max_id' value (%s)", max_id)
+            user = self.extractor._user
+            if user is not None or max_id == self._var_maxid_prev:
+                if user is None:
+                    self.log.debug("Repeated 'max_id' value (%s)", max_id)
                 # reduce 'max_id' timestamp milliseconds by 1
+                # https://docs.x.com/fundamentals/x-ids
                 max_id = (max_id - 0x400000) | 0x3fffff
+            self.log.debug("Next 'max_id': %s", max_id)
             self._var_maxid_prev = max_id
             max_id = "max_id:" + str(max_id)
 
