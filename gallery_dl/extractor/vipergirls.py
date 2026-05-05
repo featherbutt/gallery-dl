@@ -42,8 +42,15 @@ class VipergirlsExtractor(Extractor):
     def items(self):
         self.login()
         root = self.posts()
-        forum_title = root[1].attrib["title"]
-        thread_title = root[2].attrib["title"]
+        try:
+            forum_title = root[1].attrib["title"]
+            thread_title = root[2].attrib["title"]
+        except KeyError:
+            if root[1].tag == "error":
+                raise self.exc.AuthRequired(
+                    ("username & password", "authenticated cookies"),
+                    "thread", root[1].attrib.get("details"))
+            raise
 
         if like := self.config("like"):
             user_hash = root[0].get("hash")
