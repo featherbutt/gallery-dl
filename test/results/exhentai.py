@@ -139,6 +139,12 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://exhentai.org/tag/parody:touhou+project?next=3845466&seek=2025-05-05",
+    "#category": ("", "exhentai", "search"),
+    "#class"   : exhentai.ExhentaiSearchExtractor,
+},
+
+{
     "#url"     : "https://exhentai.org/?f_doujinshi=0&f_manga=0&f_artistcg=0&f_gamecg=0&f_western=0&f_non-h=1&f_imageset=0&f_cosplay=0&f_asianporn=0&f_misc=0&f_search=touhou&f_apply=Apply+Filter",
     "#category": ("", "exhentai", "search"),
     "#class"   : exhentai.ExhentaiSearchExtractor,

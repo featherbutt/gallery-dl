@@ -680,24 +680,9 @@ class ExhentaiGalleryExtractor(ExhentaiExtractor):
 class ExhentaiSearchExtractor(ExhentaiExtractor):
     """Extractor for exhentai search results"""
     subcategory = "search"
-    pattern = BASE_PATTERN + r"/(?:\?([^#]*)|tag/([^/?#]+))"
+    pattern = (BASE_PATTERN +
+               r"/(?!favorites\.php)(?:tag/([^/?#]+))?(?:\?([^#]*))?")
     example = "https://e-hentai.org/?f_search=QUERY"
-
-    def __init__(self, match):
-        ExhentaiExtractor.__init__(self, match)
-
-        _, query, tag = self.groups
-        if tag:
-            if "+" in tag:
-                ns, _, tag = tag.rpartition(":")
-                tag = f"{ns}:\"{tag.replace('+', ' ')}$\""
-            else:
-                tag += "$"
-            self.params = {"f_search": tag, "page": 0}
-        else:
-            self.params = text.parse_query(query)
-            if "next" not in self.params:
-                self.params["page"] = text.parse_int(self.params.get("page"))
 
     def _init(self):
         self.search_url = self.root
@@ -706,7 +691,18 @@ class ExhentaiSearchExtractor(ExhentaiExtractor):
         self.login()
         data = {"_extractor": ExhentaiGalleryExtractor}
         search_url = self.search_url
-        params = self.params
+
+        _, tag, query = self.groups
+        params = text.parse_query(query)
+        if "next" not in params:
+            params["page"] = text.parse_int(params.get("page"))
+        if tag is not None:
+            if "+" in tag:
+                ns, _, tag = tag.rpartition(":")
+                tag = f"{ns}:\"{tag.replace('+', ' ')}$\""
+            else:
+                tag += "$"
+            params["f_search"] = tag
 
         while True:
             last = None
@@ -737,7 +733,7 @@ class ExhentaiSearchExtractor(ExhentaiExtractor):
 class ExhentaiFavoriteExtractor(ExhentaiSearchExtractor):
     """Extractor for favorited exhentai galleries"""
     subcategory = "favorite"
-    pattern = BASE_PATTERN + r"/favorites\.php(?:\?([^#]*)())?"
+    pattern = BASE_PATTERN + r"/favorites\.php(?:\?()([^#]*))?"
     example = "https://e-hentai.org/favorites.php"
 
     def _init(self):
