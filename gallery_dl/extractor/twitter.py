@@ -359,6 +359,20 @@ class TwitterExtractor(Extractor):
             if "component_objects" in data:
                 self._extract_components(tweet, data, files)
             return
+        elif name == "poll_choice_images":
+            for i in range(1, 100):
+                key = f"choice{i}_image_original"
+                if key not in bvals:
+                    break
+                value = bvals[key].get("image_value")
+                if value and "url" in value:
+                    base, sep, size = value["url"].rpartition("&name=")
+                    if sep:
+                        base += sep
+                        value["url"] = base + self._size_image
+                        value["_fallback"] = self._image_fallback(base)
+                    files.append(value)
+            return
 
         if self.cards == "ytdl":
             tweet_id = tweet.get("rest_id") or tweet["id_str"]
