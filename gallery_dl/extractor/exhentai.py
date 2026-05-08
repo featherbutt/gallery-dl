@@ -251,7 +251,7 @@ class ExhentaiGalleryExtractor(ExhentaiExtractor):
 
         base = (f"https://ehtracker.org/get/{data['gid']}/"
                 if self.root[9] == "-" else
-                f"{self.root}/torrent/{data['gid']}/")
+                f"{self.root}/torrent/")
 
         data["extension"] = "torrent"
         for data["num"], torrent in enumerate(torrents, 1):
@@ -259,8 +259,15 @@ class ExhentaiGalleryExtractor(ExhentaiExtractor):
             data["date"] = self.parse_timestamp(torrent["added"])
             data["filename"] = data["name"]
             data["image_token"] = data["hash"][:10]
-            url = f"{base}{data['hash']}.torrent"
+            data["_fallback"] = self._fallback_torrent(data)
+            url = f"{base}{data['gid']}/{data['hash']}.torrent"
             yield Message.Url, url, data
+
+    def _fallback_torrent(self, data):
+        url = (f"{self.root}/gallerytorrents.php"
+               f"?gid={data['gid']}&t={data['token']}")
+        tpage = self.request(url).text
+        yield text.unescape(text.iextr(tpage, data["hash"], '"', '"'))
 
     def get_metadata(self, page):
         """Extract gallery metadata"""
