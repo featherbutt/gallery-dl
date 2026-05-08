@@ -98,7 +98,7 @@ def process_ref(ref):
         return 1
     m = re.match(RE_COMMIT, subject)
     s = f"]({ROOT}/{REPO}/commit/{HASH})"
-    w(f"[`{HASH[:8]}` {fmt_commit(*m.groups(), s)}\n")
+    w(f"[`{HASH[:10]}` {fmt_commit(*m.groups(), s)}\n")
     return 0
 
 
