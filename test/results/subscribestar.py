@@ -71,6 +71,20 @@ __tests__ = (
 },
 
 {
+    "#url"     : "https://www.subscribestar.adult/subscribestar",
+    "#comment" : "'.adult' TLD",
+    "#category": ("", "subscribestar", "user-adult"),
+    "#class"   : subscribestar.SubscribestarUserExtractor,
+},
+
+{
+    "#url"     : "https://www.subscribestar.art/subscribestar",
+    "#comment" : "'.art' TLD (cb#77)",
+    "#category": ("", "subscribestar", "user-adult"),
+    "#class"   : subscribestar.SubscribestarUserExtractor,
+},
+
+{
     "#url"     : "https://www.subscribestar.com/posts/102468",
     "#category": ("", "subscribestar", "post"),
     "#class"   : subscribestar.SubscribestarPostExtractor,

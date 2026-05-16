@@ -344,6 +344,13 @@ class Job():
                 alt is not None and extr.config(alt + "-unique"):
             predicates.append(util.predicate_unique())
 
+        if (pfilter := extr.config(target + "-filter")) or \
+                alt is not None and (pfilter := extr.config(alt + "-filter")):
+            try:
+                predicates.append(util.predicate_filter(pfilter, target))
+            except (SyntaxError, ValueError, TypeError) as exc:
+                extr.log.warning(exc)
+
         if target == "post":
             if dta := extr.config("date-after"):
                 dta = dt.convert(dta)
@@ -368,13 +375,6 @@ class Job():
                                 "%s: %s", exc.__class__.__name__, exc)
                             tl = ()
                 predicates.append(util.predicate_tags(tl, bool(wl)))
-
-        if (pfilter := extr.config(target + "-filter")) or \
-                alt is not None and (pfilter := extr.config(alt + "-filter")):
-            try:
-                predicates.append(util.predicate_filter(pfilter, target))
-            except (SyntaxError, ValueError, TypeError) as exc:
-                extr.log.warning(exc)
 
         if (prange := extr.config(target + "-range")) or \
                 alt is not None and (prange := extr.config(alt + "-range")):
